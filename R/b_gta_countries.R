@@ -10,15 +10,15 @@
 # Function infos and parameters  --------------------------------------------
 
 b_gta_countries = function(
-  convert.values=NULL,
+  convert.values,
   from=NULL,
   to=NULL
 ) {
-
   gta.countries=gtabastiat::gta.countries
-
-  b_eval(paste("converted=sapply(convert.values, function(x) gta.countries$",to,"[gta.countries$",from,"==x])", sep=""))
+  if(to=="gta.name"){
+    if(from=="agnet.id"){
+      return(sapply(convert.values, function(x) gta.countries$gta.name[gta.countries$agnet.id==x]))
+    }
+  }
   rm(gta.countries)
-  return(converted)
-
 }
