@@ -51,7 +51,9 @@ b_clean = function(
   }
 
   if(command %in% c("country","cty")){
+    variable<<-variable
     return(b_gta_countries(variable, parameter[1],parameter[2]))
+    rm(variable)
   }
 
 }
