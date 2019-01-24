@@ -13,7 +13,7 @@
 
 # Function infos and parameters  --------------------------------------------
 
-b_clean_string = function(
+b_clean = function(
   variable=NULL,
   command=NULL,
   parameter=NULL
@@ -27,16 +27,16 @@ b_clean_string = function(
     return(as.Date(variable, parameter[1]))
   }
 
-  if(command %in% c("extract_all","ea")){
+  if(command %in% c("extract_all","sea")){
     return(stringr::str_extract_all(variable, parameter[1]))
   }
 
 
-  if(command %in% c("ul_extract_all","uea")){
+  if(command %in% c("ul_extract_all","usea")){
     return(unlist(stringr::str_extract_all(variable, parameter[1])))
   }
 
-  if(command %in% c("extract","e")){
+  if(command %in% c("extract","se")){
     return(stringr::str_extract(variable, parameter[1]))
   }
 
