@@ -47,4 +47,9 @@ b_clean = function(
   if(command %in% c("grepl_ignore","gi")){
     return(grepl(parameter[1],variable, ignore.case = T))
   }
+
+  if(command %in% c("numeric","n")){
+    return(as.numeric(as.character(variable)))
+  }
+
 }
