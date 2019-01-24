@@ -50,4 +50,8 @@ b_clean = function(
     return(as.numeric(as.character(variable)))
   }
 
+  if(command %in% c("country","cty")){
+    return(b_gta_countries(variable, parameter[1],parameter[2]))
+  }
+
 }

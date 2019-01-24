@@ -10,14 +10,15 @@
 # Function infos and parameters  --------------------------------------------
 
 b_gta_countries = function(
-  vector=NULL,
+  convert.values=NULL,
   from=NULL,
   to=NULL
 ) {
 
+  gta.countries=gtabastiat::gta.countries
 
-  b_eval(paste("return(gtabastiat::gta.countries$",to,"[gta.countries$",from,"==vector])",sep=""))
-
-
+  b_eval(paste("converted=sapply(convert.values, function(x) gta.countries$",to,"[gta.countries$",from,"==x])", sep=""))
+  rm(gta.countries)
+  return(converted)
 
 }
