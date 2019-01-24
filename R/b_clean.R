@@ -4,9 +4,7 @@
 #'
 #' Performs some cleaning operation on a string. It's a wrapper that helps standardise code somewhat.
 #'
-#' @param data.path Specifies where the GTA data file is located (Default: 'data/master_plus.Rdata'). Set to 'online' to download the latest copy.
-
-#' @return Output is two data frames. First data frame includes the share of each year that in intervention was in force. Second data frame states parameter choices.
+#' @return Clean text.
 #' @references www.globaltradealert.org
 #' @author Johannes Fritz for GTA
 

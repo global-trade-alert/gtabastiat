@@ -12,5 +12,5 @@
 # Function infos and parameters  --------------------------------------------
 
 b_eval = function(x) {
-  return(eval(parse(text=gsub("(^.*?)=","\\1<<-",x))))
+  return(eval(parse(text=gsub("(^[A-Za-z\\(\\[0-9\\s !]*?)=([A-Za-z\\(\\[0-9\\s !])","\\1+\\2",x))))
 }

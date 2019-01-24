@@ -6,11 +6,8 @@
 \usage{
 b_clean(variable = NULL, command = NULL, parameter = NULL)
 }
-\arguments{
-\item{data.path}{Specifies where the GTA data file is located (Default: 'data/master_plus.Rdata'). Set to 'online' to download the latest copy.}
-}
 \value{
-Output is two data frames. First data frame includes the share of each year that in intervention was in force. Second data frame states parameter choices.
+Clean text.
 }
 \description{
 Performs some cleaning operation on a string. It's a wrapper that helps standardise code somewhat.
