@@ -3,6 +3,9 @@
 #' Bastiat, clean my string.
 #'
 #' Performs some cleaning operation on a string. It's a wrapper that helps standardise code somewhat.
+#' @param variable Specify the vector on which to apply the cleaning operation.
+#' @param command Specify the command you want to use for the cleaning.
+#' @param parameter Give the parameter commands to do the cleaning.
 #'
 #' @return Clean text.
 #' @references www.globaltradealert.org

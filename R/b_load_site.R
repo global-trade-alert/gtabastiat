@@ -1,6 +1,7 @@
 # Roxygen documentation
 
 #' Bastiat, please wait until the following XPATH appears on the site.
+#' @param xpath Provide the XPATH for which the function should wait.
 #'
 #' @return Pauses the algorithm until XPATH appears.
 #' @references www.globaltradealert.org

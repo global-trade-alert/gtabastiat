@@ -4,7 +4,12 @@
 \alias{b_gta_countries}
 \title{Bastiat, please convert this into GTA countries.}
 \usage{
-b_gta_countries(vector = NULL, from = NULL, to = NULL)
+b_gta_countries(convert.values, from = NULL, to = NULL)
+}
+\arguments{
+\item{from}{Specify the origin classification.}
+
+\item{to}{Specify the target classification.}
 }
 \value{
 Output is two data frames. First data frame includes the share of each year that in intervention was in force. Second data frame states parameter choices.

@@ -1,6 +1,8 @@
 # Roxygen documentation
 
 #' Bastiat, please convert this into GTA countries.
+#' @param from Specify the origin classification.
+#' @param to Specify the target classification.
 
 #' @return Output is two data frames. First data frame includes the share of each year that in intervention was in force. Second data frame states parameter choices.
 #' @references www.globaltradealert.org

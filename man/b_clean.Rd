@@ -6,6 +6,13 @@
 \usage{
 b_clean(variable = NULL, command = NULL, parameter = NULL)
 }
+\arguments{
+\item{variable}{Specify the vector on which to apply the cleaning operation.}
+
+\item{command}{Specify the command you want to use for the cleaning.}
+
+\item{parameter}{Give the parameter commands to do the cleaning.}
+}
 \value{
 Clean text.
 }
