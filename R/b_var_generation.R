@@ -37,12 +37,12 @@ b_var_generation <- function(x, method="fully random") {
 
     good.draw=F
     while(good.draw==F){
+
       # slicing the distance 0:x in 5 parts
       c= sample(2:(x-1),1)
-      b= sample(0:(c-1),1)
-      a= max(sample(0:(b-1),1),0)
-      d = sample((c + 1):x, 1)
-
+      b= ifelse(c<=1,0,sample(0:(c-1),1))
+      a= ifelse(b<=1,0,sample(0:(b-1),1))
+      d =ifelse((c + 1)==x,x,sample((c + 1):x, 1))
 
       i=0
       while(i<5 & good.draw==F){
