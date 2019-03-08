@@ -20,10 +20,6 @@ b_create_model_variables <- function(bid=NULL,
                                      dtm.terms=NULL
                                      ) {
 
-  train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-  train.split<<-train.split
-
-
   if(is.null(evaluation)){
 
     tf=data.frame(bid=bid,
@@ -37,6 +33,8 @@ b_create_model_variables <- function(bid=NULL,
                   stringsAsFactors = F)
   }
 
+  train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+  train.split<<-train.split
 
 
   tf=unnest_tokens(tf, word, text, drop=F)
