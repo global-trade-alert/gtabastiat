@@ -19,6 +19,8 @@ b_train_detective = function(detective.number=NULL,
                              train.share=NULL,
                              practice=T){
 
+  library(SuperLearner)
+
   ## initialising
   result= data.frame(round=numeric(),
                      obs=numeric(),
