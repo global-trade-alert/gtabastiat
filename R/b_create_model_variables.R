@@ -257,7 +257,7 @@ b_create_model_variables <- function(bid=NULL,
     doc.share=aggregate(bid ~word + evaluation, subset(tf, bid %in% train.split), function(x) length(unique(x)))
 
     doc.share$d.share=doc.share$bid/nrow(subset(tf, evaluation==1 & bid %in% train.split))
-    doc.share$d.share[doc.share$evaluation==0] =doc.share$bid[doc.share$evaluation==0]/nrow(subset(tf, relevant==0 & bid %in% train.split))
+    doc.share$d.share[doc.share$evaluation==0] =doc.share$bid[doc.share$evaluation==0]/nrow(subset(tf, evaluation==0 & bid %in% train.split))
 
     setnames(word.share.irrelevant, "Var1", "word")
     setnames(word.share.relevant, "Var1", "word")
@@ -342,7 +342,7 @@ b_create_model_variables <- function(bid=NULL,
   tf.agg=aggregate(score.delta ~ bid, tf, sum)
 
   if(is.null(evaluation)==F){
-    tf.agg=merge(tf.agg, data.frame(bid=bid, evaluation=evaluation, stringsAsFactors = F), by="bid", all.x=T)
+    tf.agg=merge(tf.agg, unique(data.frame(bid=bid, evaluation=evaluation, stringsAsFactors = F)), by="bid", all.x=T)
   }
 
   setnames(tf.agg, "score.delta","delta.sum")
@@ -403,6 +403,8 @@ b_create_model_variables <- function(bid=NULL,
 
 
   if(ncol(aggregate.variables)>2){
+    aggregate.variables=unique(aggregate.variables)
+    aggregate.variables=subset(aggregate.variables, bid %in% tf.agg$bid)
     tf.agg=merge(tf.agg, aggregate.variables, by="bid", all.x=T)
   }
 
