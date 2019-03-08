@@ -9,58 +9,17 @@
 
 # Function infos and parameters  --------------------------------------------
 
-b_train_detective = function(
-  detective.number=NULL,
-  variables=NULL,
-  estimation.rounds=NULL,
-  dtm.incl=FALSE,
-  dtm.metric=NULL,
-  terms.xgb=NULL,
-  terms.svm=NULL,
-  estimation.method=NULL,
-  xg.eta=NULL,
-  xg.turns=NULL,
-  xg.stop=NULL,
-  svm.kernel=NULL,
-  svm.type='C-svc',
-  svm.C=NULL,
-  svm.sigma=NULL,
-  svm.checks=NULL){
+b_train_detective = function(detective.number=NULL,
+                             variables=NULL,
+                             estimation.method=NULL,
+                             estimation.rounds=NULL,
+                             dtm.incl=FALSE,
+                             dtm.metric=NULL,
+                             dtm.terms=NULL,
+                             train.share=NULL,
+                             practice=T){
 
-
-  ## parameters
-  d.no=detective.number
-  my.vars=variables
-  mv=variables
-  turns=estimation.rounds
-
-  ## XGB
-  eta=xg.eta
-  rnds=xg.turns
-  early.stop=xg.stop
-
-  ## SVM
-  svm.type=svm.type
-  kernel.choice=svm.kernel
-
-
-  if(is.na(kernel.choice)==F){
-    if(kernel.choice=="vanilladot"){
-      kernel.parameters=list()
-    } else {
-      kernel.parameters=list(sigma=svm.sigma)
-    }
-
-  }
-  kernel.C=svm.C
-  kernel.crosschecks=svm.checks
-
-  ## training data
-  load("data/classifier/training data.Rdata")
-
-
-  ## estimation
-  train.share=.82
+  ## initialising
   result= data.frame(round=numeric(),
                      obs=numeric(),
                      pred=numeric())
@@ -76,15 +35,28 @@ b_train_detective = function(
                    capture.adjusted=numeric(),
                    reduction.adjusted=numeric())
 
+  ## parameters
+  d.no=detective.number
+  my.vars=variables
+  mv=variables
+  turns=estimation.rounds
 
-  ####### SL Round
+  ## training data
+  load("data/classifier/training data.Rdata")
 
   ## data prep
   model.variables=b_create_model_variables(bid=training$bid,
                                            evaluation=training$evaluation,
                                            text=training$text,
-                                           train.share = train.share)
+                                           train.share = train.share,
+                                           detective.number=detective.number,
+                                           variables=variables,
+                                           dtm.incl=dtm.incl,
+                                           dtm.metric=dtm.metric,
+                                           dtm.terms=dtm.terms)
 
+
+  ####### SL Round
 
   #### ESTIMATION
   ## estimates with SuperLearner
@@ -110,70 +82,77 @@ b_train_detective = function(
   parallel::clusterEvalQ(cluster, library(SuperLearner))
   parallel::clusterSetRNGStream(cluster, 1)
 
-  sl.performance= data.frame(algorithm=character(),
-                             max.score=numeric(),
-                             cutoff.train=numeric(),
-                             cutoff.test=numeric(),
-                             cutoff.ratio=numeric(),
-                             capture=numeric(),
-                             reduction=numeric(),
-                             capture.adjusted=numeric(),
-                             reduction.adjusted=numeric())
-
-  print("Looking for the algorithm")
-
-
   algorithm.dictionary=data.frame(short=c("XGB","KNN","RNF", "SVM"),
                                   full=c("SL.xgboost", "SL.kernelKnn", "SL.randomForest", "SL.ksvm"),
                                   stringsAsFactors = F)
 
-  for(mdl in c(algorithm.dictionary$short, "SL")){
-    print(paste("Started ",mdl,sep=""))
+  if(practice){
 
-    if(mdl=="SL"){
-      sl.model=algorithm.dictionary$full
-    } else{
-      sl.model=algorithm.dictionary$full[algorithm.dictionary$short==mdl]
+    sl.performance= data.frame(algorithm=character(),
+                               max.score=numeric(),
+                               cutoff.train=numeric(),
+                               cutoff.test=numeric(),
+                               cutoff.ratio=numeric(),
+                               capture=numeric(),
+                               reduction=numeric(),
+                               capture.adjusted=numeric(),
+                               reduction.adjusted=numeric())
+
+    print("Looking for the algorithm")
+
+
+    for(mdl in c(algorithm.dictionary$short, "SL")){
+      print(paste("Started ",mdl,sep=""))
+
+      if(mdl=="SL"){
+        sl.model=algorithm.dictionary$full
+      } else{
+        sl.model=algorithm.dictionary$full[algorithm.dictionary$short==mdl]
+      }
+
+      # estimation & prediction
+      bastiat.classifier = snowSuperLearner(train.y,train.x, family = binomial(),
+                                            cluster=cluster,
+                                            SL.library = sl.model)
+
+      pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
+      pred.test= data.frame(obs=test.y, pred=predict(bastiat.classifier, test.x)$pred[,1])
+
+      ## stats
+      c.train=b_cutoff_probability(observations = pred.train$obs, predictions = pred.train$pred)
+      c.test=b_cutoff_probability(observations = pred.test$obs, predictions = pred.test$pred)
+
+      capture=nrow(subset(subset(pred.test, obs==1), pred>=c.train))/nrow(subset(pred.test, obs==1))
+      reduction=1-nrow(subset(pred.test, obs==0& pred>=c.train))/nrow(subset(pred.test, obs==0))
+      capture.adjusted=nrow(subset(subset(pred.test, obs==1), pred>=c.test))/nrow(subset(pred.test, obs==1))
+      reduction.adjusted=1-nrow(subset(pred.test, obs==0 & pred>=c.test))/nrow(subset(pred.test, obs==0))
+
+      sl.performance=rbind(sl.performance,
+                           data.frame(algorithm=mdl,
+                                      max.score=max(score_me(capture, reduction), score_me(capture.adjusted, reduction.adjusted)),
+                                      cutoff.train=c.train,
+                                      cutoff.test=c.test,
+                                      cutoff.ratio=c.test/c.train,
+                                      capture=nrow(subset(subset(pred.test, obs==1), pred>=c.train))/nrow(subset(pred.test, obs==1)),
+                                      reduction=1-nrow(subset(pred.test, obs==0& pred>=c.train))/nrow(subset(pred.test, obs==0)),
+                                      capture.adjusted=nrow(subset(subset(pred.test, obs==1), pred>=c.test))/nrow(subset(pred.test, obs==1)),
+                                      reduction.adjusted=1-nrow(subset(pred.test, obs==0 & pred>=c.test))/nrow(subset(pred.test, obs==0)))
+      )
+
+      rm(capture, reduction, capture.adjusted, reduction.adjusted,c.train, c.test,bastiat.classifier)
+
+      print(paste("Finished ",mdl,sep=""))
+
     }
 
-    # estimation & prediction
-    bastiat.classifier = snowSuperLearner(train.y,train.x, family = binomial(),
-                                   cluster=cluster,
-                                   SL.library = sl.model)
 
-    pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
-    pred.test= data.frame(obs=test.y, pred=predict(bastiat.classifier, test.x)$pred[,1])
+    sl.winner=sl.performance$algorithm[sl.performance$max.score==max(sl.performance$max.score)]
+    the.model<<-sl.winner
 
-    ## stats
-    c.train=b_cutoff_probability(observations = pred.train$obs, predictions = pred.train$pred)
-    c.test=b_cutoff_probability(observations = pred.test$obs, predictions = pred.test$pred)
-
-    capture=nrow(subset(subset(pred.test, obs==1), pred>=c.train))/nrow(subset(pred.test, obs==1))
-    reduction=1-nrow(subset(pred.test, obs==0& pred>=c.train))/nrow(subset(pred.test, obs==0))
-    capture.adjusted=nrow(subset(subset(pred.test, obs==1), pred>=c.test))/nrow(subset(pred.test, obs==1))
-    reduction.adjusted=1-nrow(subset(pred.test, obs==0 & pred>=c.test))/nrow(subset(pred.test, obs==0))
-
-    sl.performance=rbind(sl.performance,
-                         data.frame(algorithm=mdl,
-                                    max.score=max(score_me(capture, reduction), score_me(capture.adjusted, reduction.adjusted)),
-                                    cutoff.train=c.train,
-                                    cutoff.test=c.test,
-                                    cutoff.ratio=c.test/c.train,
-                                    capture=nrow(subset(subset(pred.test, obs==1), pred>=c.train))/nrow(subset(pred.test, obs==1)),
-                                    reduction=1-nrow(subset(pred.test, obs==0& pred>=c.train))/nrow(subset(pred.test, obs==0)),
-                                    capture.adjusted=nrow(subset(subset(pred.test, obs==1), pred>=c.test))/nrow(subset(pred.test, obs==1)),
-                                    reduction.adjusted=1-nrow(subset(pred.test, obs==0 & pred>=c.test))/nrow(subset(pred.test, obs==0)))
-    )
-
-    rm(capture, reduction, capture.adjusted, reduction.adjusted,c.train, c.test,bastiat.classifier)
-
-    print(paste("Finished ",mdl,sep=""))
-
+  } else {
+    sl.winner=estimation.method
   }
 
-
-  sl.winner=sl.performance$algorithm[sl.performance$max.score==max(sl.performance$max.score)]
-  the.model<<-sl.winner
 
   if(sl.winner=="SL"){
     sl.model=algorithm.dictionary$full
@@ -192,7 +171,12 @@ b_train_detective = function(
     model.variables=b_create_model_variables(bid=training$bid,
                                              evaluation=training$evaluation,
                                              text=training$text,
-                                             train.share = train.share)
+                                             train.share = train.share,
+                                             detective.number=detective.number,
+                                             variables=variables,
+                                             dtm.incl=dtm.incl,
+                                             dtm.metric=dtm.metric,
+                                             dtm.terms=dtm.terms)
 
 
     #### ESTIMATION
@@ -202,9 +186,9 @@ b_train_detective = function(
     train=model.variables[,c("bid","evaluation",my.vars)]
 
     train.x = subset(train, bid %in% train.split)
-    train.x$acting.agency=as.numeric(train.x$acting.agency)
+    # train.x$acting.agency=as.numeric(train.x$acting.agency)
     test.x = subset(train, ! bid %in% train.split)
-    test.x$acting.agency=as.numeric(test.x$acting.agency)
+    # test.x$acting.agency=as.numeric(test.x$acting.agency)
     test.y=test.x$evaluation
     test.x$bid=NULL
     test.x$evaluation=NULL
