@@ -17,9 +17,16 @@ b_create_model_variables <- function(bid=NULL,
                                      variables=NULL,
                                      dtm.incl=FALSE,
                                      dtm.metric=NULL,
-                                     dtm.terms=NULL
+                                     dtm.terms=NULL,
+                                     acting.agency=NULL,
+                                     act.values=NULL,
+                                     has.value=F,
+                                     is.td=F,
+                                     keywords=F
                                      ) {
 
+
+  ### word-level variables
   if(is.null(evaluation)){
 
     tf=data.frame(bid=bid,
@@ -107,7 +114,7 @@ b_create_model_variables <- function(bid=NULL,
       gta.gini.threshold=100
       nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
 
-      load("data/classifier/gta words.Rdata")
+      gta.words=gtabastiat::gta.corpus
       stop.en=get_stopwords()$word
 
       gini.result=data.frame(word=character(),
@@ -249,8 +256,8 @@ b_create_model_variables <- function(bid=NULL,
     ### document frequencies
     doc.share=aggregate(bid ~word + evaluation, subset(tf, bid %in% train.split), function(x) length(unique(x)))
 
-    doc.share$d.share=doc.share$bid/nrow(subset(training, evaluation==1 & bid %in% train.split))
-    doc.share$d.share[doc.share$evaluation==0] =doc.share$bid[doc.share$evaluation==0]/nrow(subset(training, relevant==0 & bid %in% train.split))
+    doc.share$d.share=doc.share$bid/nrow(subset(tf, evaluation==1 & bid %in% train.split))
+    doc.share$d.share[doc.share$evaluation==0] =doc.share$bid[doc.share$evaluation==0]/nrow(subset(tf, relevant==0 & bid %in% train.split))
 
     setnames(word.share.irrelevant, "Var1", "word")
     setnames(word.share.relevant, "Var1", "word")
@@ -306,7 +313,7 @@ b_create_model_variables <- function(bid=NULL,
 
 
     if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric))))>0){
-      load("data/classifier/gta words.Rdata")
+      gta.words=gtabastiat::gta.corpus
       for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric)))){
         g.var=gsub("gta.share.","",gs)
         word.score=merge(word.score, subset(gta.words, text==g.var)[,c("word","gta.share.word")], by="word", all=T)
@@ -363,8 +370,43 @@ b_create_model_variables <- function(bid=NULL,
 
   }
 
+  ## adding aggregate variables, if called for
+  ## text.level variables
+  aggregate.variables=data.frame(bid=bid,
+                                 text=text,
+                                 stringsAsFactors = F)
 
-  tf.agg=merge(tf.agg, training[,c("bid","acting.agency","is.td","pos.word","pos.word.char", "neg.word", "neg.word.char")], by="bid", all.x=T)
+  ## acting.agency
+  if(is.null(acting.agency)==F){
+    aggregate.variables$acting.agency=as.factor(acting.agency)
+  }
+
+  ## has.value
+  if(is.null(act.values)==F){
+    aggregate.variables$has.value=as.numeric(is.na(act.values)==F)
+  }
+
+  ## is.td
+  if(is.td){
+    aggregate.variables$is.td=as.numeric(grepl("-[(TD)|(SG)|(AD)|(CVD)]+-",aggregate.variables$bid))
+  }
+
+  ## keywords
+ if(keywords){
+   keyword.variables=b_process_keywords(bid=aggregate.variables$bid,
+                                        text=aggregate.variables$text)
+
+   aggregate.variables=merge(aggregate.variables,
+                             keyword.variables[,c("bid","pos.word","pos.word.char", "neg.word", "neg.word.char")],
+                             by="bid", all.x=T)
+ }
+
+
+  if(ncol(aggregate.variables)>2){
+    tf.agg=merge(tf.agg, aggregate.variables, by="bid", all.x=T)
+  }
+
+
 
   ## DTM, if called for
   if(dtm.incl==T){

@@ -45,6 +45,19 @@ b_train_detective = function(detective.number=NULL,
   load("data/classifier/training data.Rdata")
 
   ## data prep
+  aa=NULL
+  if("acting.agency" %in% variables){
+    aa=training$acting.agency
+  }
+
+  av=NULL
+  if("has.value" %in% variables){
+    av=training$act.values
+  }
+
+  kw=sum(as.numeric(c("pos.word","pos.word.char", "neg.word", "neg.word.char") %in% variables))>0
+
+
   model.variables=b_create_model_variables(bid=training$bid,
                                            evaluation=training$evaluation,
                                            text=training$text,
@@ -53,7 +66,12 @@ b_train_detective = function(detective.number=NULL,
                                            variables=variables,
                                            dtm.incl=dtm.incl,
                                            dtm.metric=dtm.metric,
-                                           dtm.terms=dtm.terms)
+                                           dtm.terms=dtm.terms,
+                                           acting.agency=aa,
+                                           act.values=av,
+                                           is.td=("is.td" %in% variables),
+                                           keywords=kw
+  )
 
 
   ####### SL Round
