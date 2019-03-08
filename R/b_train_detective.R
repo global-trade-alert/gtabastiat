@@ -194,7 +194,12 @@ b_train_detective = function(detective.number=NULL,
                                              variables=variables,
                                              dtm.incl=dtm.incl,
                                              dtm.metric=dtm.metric,
-                                             dtm.terms=dtm.terms)
+                                             dtm.terms=dtm.terms,
+                                             acting.agency=aa,
+                                             act.values=av,
+                                             is.td=("is.td" %in% variables),
+                                             keywords=kw
+    )
 
 
     #### ESTIMATION
