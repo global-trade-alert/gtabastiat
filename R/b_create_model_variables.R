@@ -15,7 +15,7 @@ b_create_model_variables <- function(bid=NULL,
                                      train.share=.82) {
 
   tf=data.frame(bid=bid,
-                evaluation=evaluatoin,
+                evaluation=evaluation,
                 text=text,
                 stringsAsFactors = F)
 
