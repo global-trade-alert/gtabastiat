@@ -17,7 +17,9 @@ b_train_detective = function(detective.number=NULL,
                              dtm.metric=NULL,
                              dtm.terms=NULL,
                              train.share=NULL,
-                             practice=T){
+                             practice=T,
+                             tested.models=c("XGB","KNN","RNF", "SVM","SL")
+                             ){
 
   library(SuperLearner)
 
@@ -121,7 +123,7 @@ b_train_detective = function(detective.number=NULL,
     print("Looking for the algorithm")
 
 
-    for(mdl in c(algorithm.dictionary$short, "SL")){
+    for(mdl in tested.models){
       print(paste("Started ",mdl,sep=""))
 
       if(mdl=="SL"){
