@@ -303,8 +303,8 @@ b_create_model_variables <- function(bid=NULL,
         g.var=gsub("gta.gini.","",gg)
         word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
         setnames(word.score, "gta.gini.delta",gg)
+        print(gg)
       }
-      print(gg)
     }
 
     if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
@@ -327,8 +327,8 @@ b_create_model_variables <- function(bid=NULL,
         g.var=gsub("gta.gini.","",gg)
         word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
         setnames(word.score, "gta.gini.delta",gg)
+        print(gg)
       }
-      print(gg)
     }
 
   }

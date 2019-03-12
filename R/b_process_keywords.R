@@ -31,7 +31,7 @@ b_process_keywords <- function(bid=NULL,
     word=positive[i]
     text.to.process$pos.word=text.to.process$pos.word+str_count(text.to.process$text, word)
     text.to.process$pos.word.char=text.to.process$pos.word.char+str_count(text.to.process$text, word)*nchar(word)
-    print(i/length(positive))
+    # print(i/length(positive))
   }
   text.to.process$pos.word.char=text.to.process$pos.word.char/nchar(enc2native(text.to.process$text))
 
@@ -44,7 +44,7 @@ b_process_keywords <- function(bid=NULL,
     word=negative[i]
     text.to.process$neg.word=text.to.process$neg.word+str_count(text.to.process$text, word)
     text.to.process$neg.word.char=text.to.process$neg.word+str_count(text.to.process$text, word)*nchar(word)
-    print(i/length(negative))
+    # print(i/length(negative))
   }
   text.to.process$neg.word.char=text.to.process$neg.word.char/nchar(enc2native(text.to.process$text))
 
