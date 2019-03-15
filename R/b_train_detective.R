@@ -51,7 +51,7 @@ b_train_detective = function(detective.number=NULL,
   ## data prep
   aa=NULL
   if("acting.agency" %in% variables){
-    aa=training$acting.agency
+    aa=as.character(training$acting.agency)
   }
 
   av=NULL

@@ -378,7 +378,8 @@ b_create_model_variables <- function(bid=NULL,
 
   ## acting.agency
   if(is.null(acting.agency)==F){
-    aggregate.variables$acting.agency=as.factor(acting.agency)
+    aggregate.variables$acting.agency=acting.agency
+    aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
   }
 
   ## has.value
