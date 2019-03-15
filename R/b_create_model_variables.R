@@ -393,12 +393,15 @@ b_create_model_variables <- function(bid=NULL,
 
   ## keywords
  if(keywords){
+   print("Generating keyword-related variables ...")
    keyword.variables=b_process_keywords(bid=aggregate.variables$bid,
                                         text=aggregate.variables$text)
 
    aggregate.variables=merge(aggregate.variables,
                              keyword.variables[,c("bid","pos.word","pos.word.char", "neg.word", "neg.word.char")],
                              by="bid", all.x=T)
+
+   print("Generating keyword-related variables ... complete.")
  }
 
 

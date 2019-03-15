@@ -100,9 +100,9 @@ b_train_detective = function(detective.number=NULL,
 
 
   ## opening cluster
-  cluster = parallel::makeCluster(2)
-  parallel::clusterEvalQ(cluster, library(SuperLearner))
-  parallel::clusterSetRNGStream(cluster, 1)
+  # cluster = parallel::makeCluster(2)
+  # parallel::clusterEvalQ(cluster, library(SuperLearner))
+  # parallel::clusterSetRNGStream(cluster, 1)
 
   algorithm.dictionary=data.frame(short=c("XGB","KNN","RNF", "SVM"),
                                   full=c("SL.xgboost", "SL.kernelKnn", "SL.randomForest", "SL.ksvm"),
@@ -133,8 +133,7 @@ b_train_detective = function(detective.number=NULL,
       }
 
       # estimation & prediction
-      bastiat.classifier = snowSuperLearner(train.y,train.x, family = binomial(),
-                                            cluster=cluster,
+      bastiat.classifier = SuperLearner(train.y,train.x, family = binomial(),
                                             SL.library = sl.model)
 
       pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
@@ -225,8 +224,7 @@ b_train_detective = function(detective.number=NULL,
     train.x$evaluation=NULL
 
 
-    bastiat.classifier = snowSuperLearner(train.y,train.x, family = binomial(),
-                                          cluster=cluster,
+    bastiat.classifier = SuperLearner(train.y,train.x, family = binomial(),
                                           SL.library = sl.model)
 
     pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
@@ -265,7 +263,7 @@ b_train_detective = function(detective.number=NULL,
   }
 
   ## closing cluster
-  parallel::stopCluster(cluster)
+  # parallel::stopCluster(cluster)
   ## end of estimation
 
 
