@@ -52,6 +52,7 @@ b_train_detective = function(detective.number=NULL,
   aa=NULL
   if("acting.agency" %in% variables){
     aa=as.character(training$acting.agency)
+    agency.dummies=unique(training$acting.agency)
   }
 
   av=NULL
@@ -84,15 +85,18 @@ b_train_detective = function(detective.number=NULL,
   ## estimates with SuperLearner
 
   ## SuperLearner data prep
-  train=model.variables[,c("bid","evaluation",my.vars)]
+  train=model.variables[,c("bid","evaluation",my.vars[!my.vars %in% "acting.agency"])]
 
   train.x = subset(train, bid %in% train.split)
-  train.x$acting.agency=as.numeric(train.x$acting.agency)
   test.x = subset(train, ! bid %in% train.split)
-  test.x$acting.agency=as.numeric(test.x$acting.agency)
+
   test.y=test.x$evaluation
   test.x$bid=NULL
   test.x$evaluation=NULL
+
+  train.y=train.x$evaluation
+  train.x$bid=NULL
+  train.x$evaluation=NULL
 
   train.y=train.x$evaluation
   train.x$bid=NULL
@@ -209,12 +213,11 @@ b_train_detective = function(detective.number=NULL,
     ## estimates with SuperLearner
 
     ## SuperLearner data prep
-    train=model.variables[,c("bid","evaluation",my.vars)]
+    train=model.variables[,c("bid","evaluation",my.vars[!my.vars %in% "acting.agency"])]
 
     train.x = subset(train, bid %in% train.split)
-    # train.x$acting.agency=as.numeric(train.x$acting.agency)
     test.x = subset(train, ! bid %in% train.split)
-    # test.x$acting.agency=as.numeric(test.x$acting.agency)
+
     test.y=test.x$evaluation
     test.x$bid=NULL
     test.x$evaluation=NULL

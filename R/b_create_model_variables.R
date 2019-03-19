@@ -41,6 +41,15 @@ b_create_model_variables <- function(bid=NULL,
   }
 
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+
+  ## ensuring I have all acting agencies, if called for
+  if(is.null(acting.agency)==F){
+    while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
+      train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+      print("resplitting to ensure presence of all agencies")
+    }
+  }
+
   train.split<<-train.split
 
 
@@ -380,6 +389,14 @@ b_create_model_variables <- function(bid=NULL,
   if(is.null(acting.agency)==F){
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
+    aa.dummies = as.data.frame(predict(dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
+    names(aa.dummies)=tolower(gsub(" ","-",gsub("acting.agency","",names(aa.dummies))))
+    aa.dummies$bid=bid
+
+
+    aggregate.variables$acting.agency=NULL
+    aggregate.variables=merge(aggregate.variables, aa.dummies, by="bid", all.x=T)
+    rm(aa.dummies)
   }
 
   ## has.value
