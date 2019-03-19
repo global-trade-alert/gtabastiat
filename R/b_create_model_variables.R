@@ -44,7 +44,6 @@ b_create_model_variables <- function(bid=NULL,
 
   ## ensuring I have all acting agencies, if called for
   if(is.null(acting.agency)==F){
-    agency.dummies=as.character(unique(training$acting.agency))
     while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
       train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
       print("resplitting to ensure presence of all agencies")
