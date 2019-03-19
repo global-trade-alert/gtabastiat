@@ -309,8 +309,14 @@ b_train_detective = function(detective.number=NULL,
 
   word.score.now=word.score
 
-  output.list<- list("performance"=detective.stats, "word.scores"=word.score.now,
-                     "classifier"=bastiat.classifier, "sl.outcome"=sl.performance)
+  if(practice){
+    output.list<- list("performance"=detective.stats, "word.scores"=word.score.now,
+                       "classifier"=bastiat.classifier, "sl.outcome"=sl.performance)
+
+  }else {
+    output.list<- list("performance"=detective.stats, "word.scores"=word.score.now,
+                       "classifier"=bastiat.classifier)
+  }
 
   return(output.list)
 
