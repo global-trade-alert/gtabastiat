@@ -390,7 +390,7 @@ b_create_model_variables <- function(bid=NULL,
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
     aa.dummies = as.data.frame(predict(dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
-    names(aa.dummies)=tolower(gsub(" ","-",gsub("acting.agency","",names(aa.dummies))))
+    names(aa.dummies)=tolower(gsub(" ","-",gsub("acting.agency\\.?","",names(aa.dummies))))
     aa.dummies$bid=bid
 
 
