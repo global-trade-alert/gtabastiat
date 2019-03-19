@@ -98,10 +98,6 @@ b_train_detective = function(detective.number=NULL,
   train.x$bid=NULL
   train.x$evaluation=NULL
 
-  train.y=train.x$evaluation
-  train.x$bid=NULL
-  train.x$evaluation=NULL
-
 
   ## opening cluster
   # cluster = parallel::makeCluster(2)
