@@ -10,7 +10,6 @@
 
 b_update = function(x){
   devtools::install_github("global-trade-alert/gtabastiat", force=T)
-  detach("package:gtabastiat", unload=T, force=T)
   library("gtabastiat")
   print("You are up to date.")
 }
