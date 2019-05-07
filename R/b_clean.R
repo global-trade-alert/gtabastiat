@@ -32,6 +32,33 @@ b_clean = function(
     return(stringr::str_extract_all(variable, parameter[1]))
   }
 
+  if(command %in% c("ul_split","usp")){
+    spt=unlist(data.table::strsplit(variable, parameter[1]))
+
+    if(parameter[2]=="max"){
+      n=length(spt)
+
+    } else {
+      if(parameter[2]=="min"){
+        n=1
+      } else {
+
+        if(parameter[2]=="from.end"){
+
+          n=length(spt)-as.numeric(parameter[3])
+
+
+        } else {
+
+          n=parameter[2]
+        }
+
+
+      }
+    }
+
+    return(spt[n])
+  }
 
   if(command %in% c("ul_extract_all","usea")){
     return(unlist(stringr::str_extract_all(variable, parameter[1])))
