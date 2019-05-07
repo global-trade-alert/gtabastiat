@@ -21,6 +21,12 @@ b_gta_countries = function(
     if(from=="agnet.id"){
       return(sapply(convert.values, function(x) gta.countries$gta.name[gta.countries$agnet.id==x]))
     }
+
+    if(from=="gain.name"){
+      gta.countries=gtabastiat::gain.countries
+
+      return(sapply(convert.values, function(x) gta.countries$gta.name[gta.countries$gain.name==x]))
+    }
   }
   rm(gta.countries)
 }
