@@ -33,7 +33,7 @@ b_clean = function(
   }
 
   if(command %in% c("ul_split","usp")){
-    spt=unlist(data.table::strsplit(variable, parameter[1]))
+    spt=unlist(strsplit(variable, parameter[1]))
 
     if(parameter[2]=="max"){
       n=length(spt)
