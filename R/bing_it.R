@@ -1,6 +1,6 @@
 # Roxygen documentation
 
-#' Bastiat, please translate using bing.
+#' Bastiat, please translate using bing (legacy function).
 #'
 #' @return Use MSFT's translation API.
 #' @references www.globaltradealert.org
@@ -9,7 +9,7 @@
 
 # Function infos and parameters  --------------------------------------------
 
-b_bing_it = function (text, origin, target){
+bing_it = function (text, origin, target){
 
   if(origin %in% c("yue", "zh-Hans", "zh-Hant","ja")){
     params = paste("?from=",origin,'&to=',target, '&text=',gsub(" ","%20",text), sep="")
