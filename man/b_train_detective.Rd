@@ -7,7 +7,8 @@
 b_train_detective(detective.number = NULL, variables = NULL,
   estimation.method = NULL, estimation.rounds = NULL,
   dtm.incl = FALSE, dtm.metric = NULL, dtm.terms = NULL,
-  train.share = NULL, practice = T)
+  train.share = NULL, practice = T, tested.models = c("XGB", "KNN",
+  "RNF", "SVM", "SL"))
 }
 \value{
 Several data frames about how the detective did.
