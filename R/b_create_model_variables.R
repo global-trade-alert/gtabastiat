@@ -92,144 +92,152 @@ b_create_model_variables <- function(bid=NULL,
     ### GINI
     # I could exclude features by GINI value. Does not seem to do much, so I skip it here.
     # If reconsidered, need to add those BIDs removed due to lack of high-GINI words into the estimation results by assigning 0/1 randomnly.
-    if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
+
+    # if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
+
+    gini=as.data.frame(table(subset(tf, bid %in% train.split)$word))
+    names(gini)=c("word","freq.total")
+
+    gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+    names(gini.ir)=c("word","freq.irrelevant")
+    gini=merge(gini, gini.ir, by="word", all.x=T)
+
+    gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+    names(gini.ir)=c("word","freq.relevant")
+    gini=merge(gini, gini.ir, by="word", all.x=T)
+    rm(gini.ir)
+    gini[is.na(gini)]=0
+
+    gini$gini.simple=(gini$freq.relevant/gini$freq.total)^2+(gini$freq.irrelevant/gini$freq.total)^2
+
+    gini$gini.normalised.num=gini$freq.relevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==1)$bid)))
+    gini$gini.normalised.denom=gini$freq.irrelevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==0)$bid)))
+    gini$gini.normalised=(gini$gini.normalised.num/(gini$gini.normalised.num+ gini$gini.normalised.denom))^2 +
+      (gini$gini.normalised.denom/(gini$gini.normalised.denom+ gini$gini.normalised.num))^2
 
 
-      gini=as.data.frame(table(subset(tf, bid %in% train.split)$word))
-      names(gini)=c("word","freq.total")
 
-      gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
-      names(gini.ir)=c("word","freq.irrelevant")
-      gini=merge(gini, gini.ir, by="word", all.x=T)
-
-      gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
-      names(gini.ir)=c("word","freq.relevant")
-      gini=merge(gini, gini.ir, by="word", all.x=T)
-      rm(gini.ir)
-      gini[is.na(gini)]=0
-
-      gini$gini.simple=(gini$freq.relevant/gini$freq.total)^2+(gini$freq.irrelevant/gini$freq.total)^2
-
-      gini$gini.normalised.num=gini$freq.relevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==1)$bid)))
-      gini$gini.normalised.denom=gini$freq.irrelevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==0)$bid)))
-      gini$gini.normalised=(gini$gini.normalised.num/(gini$gini.normalised.num+ gini$gini.normalised.denom))^2 +
-        (gini$gini.normalised.denom/(gini$gini.normalised.denom+ gini$gini.normalised.num))^2
-
-    }
+    # }
 
     ### delta
-    if(sum(as.numeric(grepl("gta.gini", unique(c(my.vars, dtm.metric)))))>0){
+    # if(sum(as.numeric(grepl("gta.gini", unique(c(my.vars, dtm.metric)))))>0){
 
-      gta.gini.threshold=100
-      nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
+    gta.gini.threshold=100
+    nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
 
-      gta.words=gtabastiat::gta.corpus
-      stop.en=get_stopwords()$word
+    gta.words=gtabastiat::gta.corpus
+    stop.en=get_stopwords()$word
 
-      gini.result=data.frame(word=character(),
-                             gta.text=character(),
-                             gta.gini.ir=numeric(),
-                             gta.gini.re=numeric(),
-                             gta.gini.delta=numeric())
+    gini.result=data.frame(word=character(),
+                           gta.text=character(),
+                           gta.gini.ir=numeric(),
+                           gta.gini.re=numeric(),
+                           gta.gini.delta=numeric())
 
-      ## loop over GTA text types (all, description, title, source)
-      for(txt in unique(gta.words$text)){
+    ## loop over GTA text types (all, description, title, source)
+    for(txt in unique(gta.words$text)){
 
-        ## normalising gta frequency by vastly different total word count
-        gta.words$gta.freq.word=round(gta.words$gta.freq.word/sum(gta.words$gta.freq.word)*nrow(subset(tf, ! word %in% stop.en)),0)
+      ## normalising gta frequency by vastly different total word count
+      gta.words$gta.freq.word=round(gta.words$gta.freq.word/sum(gta.words$gta.freq.word)*nrow(subset(tf, ! word %in% stop.en)),0)
 
-        ## irrelevant cases
-        gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==0)$word)))
-        names(gta.gini)=c("word","gta.freq.word")
+      ## irrelevant cases
+      gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==0)$word)))
+      names(gta.gini)=c("word","gta.freq.word")
 
-        gta.gini=rbind(gta.gini, subset(gta.words, text==txt)[,c("word","gta.freq.word")])
+      gta.gini=rbind(gta.gini, subset(gta.words, text==txt)[,c("word","gta.freq.word")])
 
-        # removing words also removed from GTA corpus
-        gta.gini=subset(gta.gini, ! tolower(word) %in% stop.en)
-        gta.gini=subset(gta.gini, grepl("[0-9]+", word)==F)
-        gta.gini=subset(gta.gini, ! word %in% nonsense)
-
-
-        gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
-        setnames(gta.gini, "gta.freq.word","freq.total")
-
-        gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
-        names(gta.gini.ir)=c("word","freq.irrelevant")
-        gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
-        rm(gta.gini.ir)
-
-        gta.gini=merge(gta.gini, subset(gta.words, text==txt)[,c("word", "gta.freq.word")],by="word",all.x=T)
-        setnames(gta.gini, "gta.freq.word","freq.gta")
-        gta.gini[is.na(gta.gini)]=0
-        gta.gini=subset(gta.gini, freq.total>gta.gini.threshold)
+      # removing words also removed from GTA corpus
+      gta.gini=subset(gta.gini, ! tolower(word) %in% stop.en)
+      gta.gini=subset(gta.gini, grepl("[0-9]+", word)==F)
+      gta.gini=subset(gta.gini, ! word %in% nonsense)
 
 
-        gta.gini$gta.gini.ir=(gta.gini$freq.gta/gta.gini$freq.total)^2+(gta.gini$freq.irrelevant/gta.gini$freq.total)^2
+      gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
+      setnames(gta.gini, "gta.freq.word","freq.total")
 
-        gta.gini.delta=gta.gini[,c("word","gta.gini.ir")]
+      gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+      names(gta.gini.ir)=c("word","freq.irrelevant")
+      gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
+      rm(gta.gini.ir)
 
-        ## relevant cases
-        gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==1)$word)))
-        names(gta.gini)=c("word","gta.freq.word")
-
-        gta.gini=rbind(gta.gini, subset(gta.words, text==txt)[,c("word","gta.freq.word")])
-
-        # removing words also removed from GTA corpus
-        gta.gini=subset(gta.gini, ! tolower(word) %in% stop.en)
-        gta.gini=subset(gta.gini, grepl("[0-9]+", word)==F)
-        gta.gini=subset(gta.gini, ! word %in% nonsense)
-
-        gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
-        setnames(gta.gini, "gta.freq.word","freq.total")
-
-        gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
-        names(gta.gini.ir)=c("word","freq.relevant")
-        gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
-        rm(gta.gini.ir)
-
-        gta.gini=merge(gta.gini, subset(gta.words, text==txt)[,c("word", "gta.freq.word")],by="word",all.x=T)
-        setnames(gta.gini, "gta.freq.word","freq.gta")
-        gta.gini[is.na(gta.gini)]=0
-        gta.gini=subset(gta.gini, freq.total>gta.gini.threshold)
-
-        gta.gini$gta.gini.re=(gta.gini$freq.gta/gta.gini$freq.total)^2+(gta.gini$freq.relevant/gta.gini$freq.total)^2
+      gta.gini=merge(gta.gini, subset(gta.words, text==txt)[,c("word", "gta.freq.word")],by="word",all.x=T)
+      setnames(gta.gini, "gta.freq.word","freq.gta")
+      gta.gini[is.na(gta.gini)]=0
+      gta.gini=subset(gta.gini, freq.total>gta.gini.threshold)
 
 
-        gta.gini.delta=merge(gta.gini.delta, gta.gini[,c("word","gta.gini.re")], by="word", all.x=T)
-        gta.gini.delta$gta.gini.delta=gta.gini.delta$gta.gini.ir-gta.gini.delta$gta.gini.re
-        gta.gini.delta$gta.text=txt
+      gta.gini$gta.gini.ir=(gta.gini$freq.gta/gta.gini$freq.total)^2+(gta.gini$freq.irrelevant/gta.gini$freq.total)^2
 
-        gini.result=rbind(gini.result, gta.gini.delta[,names(gini.result)])
-        print(txt)
-      }
+      gta.gini.delta=gta.gini[,c("word","gta.gini.ir")]
 
-      gta.gini=gini.result
-      rm(gini.result, gta.gini.delta)
+      ## relevant cases
+      gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==1)$word)))
+      names(gta.gini)=c("word","gta.freq.word")
 
+      gta.gini=rbind(gta.gini, subset(gta.words, text==txt)[,c("word","gta.freq.word")])
+
+      # removing words also removed from GTA corpus
+      gta.gini=subset(gta.gini, ! tolower(word) %in% stop.en)
+      gta.gini=subset(gta.gini, grepl("[0-9]+", word)==F)
+      gta.gini=subset(gta.gini, ! word %in% nonsense)
+
+      gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
+      setnames(gta.gini, "gta.freq.word","freq.total")
+
+      gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+      names(gta.gini.ir)=c("word","freq.relevant")
+      gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
+      rm(gta.gini.ir)
+
+      gta.gini=merge(gta.gini, subset(gta.words, text==txt)[,c("word", "gta.freq.word")],by="word",all.x=T)
+      setnames(gta.gini, "gta.freq.word","freq.gta")
+      gta.gini[is.na(gta.gini)]=0
+      gta.gini=subset(gta.gini, freq.total>gta.gini.threshold)
+
+      gta.gini$gta.gini.re=(gta.gini$freq.gta/gta.gini$freq.total)^2+(gta.gini$freq.relevant/gta.gini$freq.total)^2
+
+
+      gta.gini.delta=merge(gta.gini.delta, gta.gini[,c("word","gta.gini.re")], by="word", all.x=T)
+      gta.gini.delta$gta.gini.delta=gta.gini.delta$gta.gini.ir-gta.gini.delta$gta.gini.re
+      gta.gini.delta$gta.text=txt
+
+      gini.result=rbind(gini.result, gta.gini.delta[,names(gini.result)])
+      print(txt)
     }
+
+    gta.gini=gini.result
+    rm(gini.result, gta.gini.delta)
+
+
+    # }
 
     ### odds ratio
-    if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
-      odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
-      names(odds)=c("word","freq.total")
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
 
-      odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
-      names(odds.ir)=c("word","freq.irrelevant")
-      odds=merge(odds, odds.ir, by="word", all.x=T)
+    odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
+    names(odds)=c("word","freq.total")
 
-      odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
-      names(odds.ir)=c("word","freq.relevant")
-      odds=merge(odds, odds.ir, by="word", all.x=T)
-      odds[is.na(odds)]=0
-      rm(odds.ir)
+    odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+    names(odds.ir)=c("word","freq.irrelevant")
+    odds=merge(odds, odds.ir, by="word", all.x=T)
+
+    odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+    names(odds.ir)=c("word","freq.relevant")
+    odds=merge(odds, odds.ir, by="word", all.x=T)
+    odds[is.na(odds)]=0
+    rm(odds.ir)
 
 
-      odds$odds.relevant=((odds$freq.relevant/sum(odds$freq.relevant))/(1-odds$freq.relevant/sum(odds$freq.relevant)))
-      odds$odds.irrelevant=((odds$freq.irrelevant/sum(odds$freq.irrelevant))/(1-odds$freq.irrelevant/sum(odds$freq.irrelevant)))
-      odds$odds.ratio=log(odds$odds.relevant/odds$odds.irrelevant)
-      odds$odds.ratio[odds$odds.irrelevant==0]=max(odds$odds.ratio[odds$odds.irrelevant!=0])*1.1
-      odds$odds.ratio[odds$odds.relevant==0]=min(odds$odds.ratio[odds$odds.relevant!=0])*1.1
-    }
+    odds$odds.relevant=((odds$freq.relevant/sum(odds$freq.relevant))/(1-odds$freq.relevant/sum(odds$freq.relevant)))
+    odds$odds.irrelevant=((odds$freq.irrelevant/sum(odds$freq.irrelevant))/(1-odds$freq.irrelevant/sum(odds$freq.irrelevant)))
+    odds$odds.ratio=log(odds$odds.relevant/odds$odds.irrelevant)
+    odds$odds.ratio[odds$odds.irrelevant==0]=max(odds$odds.ratio[odds$odds.irrelevant!=0])*1.1
+    odds$odds.ratio[odds$odds.relevant==0]=min(odds$odds.ratio[odds$odds.relevant!=0])*1.1
+
+
+    # }
+
+
 
     ### information gain
     # observations=length(unique(tf$bid))
@@ -303,42 +311,40 @@ b_create_model_variables <- function(bid=NULL,
 
     ## packing word score DF
 
-    if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
+    # if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
       word.score=merge(word.score, gini[,c("word","gini.normalised")], by="word", all=T)
-    }
+    # }
 
     for(gg in c("gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description")){
-      if(gg %in% unique(c(my.vars, dtm.metric))){
-        g.var=gsub("gta.gini.","",gg)
-        word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
-        setnames(word.score, "gta.gini.delta",gg)
-        print(gg)
-      }
+      # if(gg %in% unique(c(my.vars, dtm.metric))){
+
+      g.var=gsub("gta.gini.","",gg)
+      word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
+      setnames(word.score, "gta.gini.delta",gg)
+      print(gg)
+
+      # }
     }
 
-    if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
       word.score=merge(word.score, odds[,c("word","odds.relevant","odds.irrelevant", "odds.ratio" )], by="word", all=T)
-    }
+    # }
 
 
-    if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric))))>0){
+    # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric))))>0){
+
       gta.words=gtabastiat::gta.corpus
-      for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric)))){
+
+      # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric)))){
+      for(gs in c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description")){
         g.var=gsub("gta.share.","",gs)
         word.score=merge(word.score, subset(gta.words, text==g.var)[,c("word","gta.share.word")], by="word", all=T)
         setnames(word.score, "gta.share.word",gs)
       }
 
-    }
 
-    for(gg in c("gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description")){
-      if(gg %in% unique(c(my.vars, dtm.metric))){
-        g.var=gsub("gta.gini.","",gg)
-        word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
-        setnames(word.score, "gta.gini.delta",gg)
-        print(gg)
-      }
-    }
+    # }
+
 
   }
 
@@ -372,12 +378,27 @@ b_create_model_variables <- function(bid=NULL,
   tf.agg=merge(tf.agg, aggregate(exclusive.ir ~ bid , tf, max), by="bid", all.x=T)
   setnames(tf.agg, "exclusive.ir","exclusive.ir.max")
 
-  for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-    if(var %in% unique(c(my.vars, dtm.metric))){
+
+  if(is.null(evaluation)){
+
+    for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
+      # if(var %in% unique(c(my.vars, dtm.metric))){
       eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
+      # }
+
+    }
+
+  } else {
+
+    for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
+      if(var %in% unique(c(my.vars, dtm.metric))){
+        eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
+      }
+
     }
 
   }
+
 
   ## adding aggregate variables, if called for
   ## text.level variables
