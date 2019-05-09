@@ -391,9 +391,9 @@ b_create_model_variables <- function(bid=NULL,
   } else {
 
     for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      if(var %in% unique(c(my.vars, dtm.metric))){
-        eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
-      }
+      # if(var %in% unique(c(my.vars, dtm.metric))){
+      eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
+      # }
 
     }
 
@@ -451,6 +451,8 @@ b_create_model_variables <- function(bid=NULL,
   }
 
 
+  ## cleaning out tf.agg
+  tf.agg=tf.agg[,c(my.vars, "bid","evaluation")]
 
   ## DTM, if called for
   if(dtm.incl==T){
