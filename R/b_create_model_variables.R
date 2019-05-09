@@ -452,7 +452,11 @@ b_create_model_variables <- function(bid=NULL,
 
 
   ## cleaning out tf.agg
-  tf.agg=tf.agg[,c(my.vars, "bid","evaluation")]
+  if(is.null(evaluation)){
+    tf.agg=tf.agg[,c(my.vars, "bid")]
+  } else {
+    tf.agg=tf.agg[,c(my.vars, "bid","evaluation")]
+  }
 
   ## DTM, if called for
   if(dtm.incl==T){
