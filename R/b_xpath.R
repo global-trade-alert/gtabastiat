@@ -14,13 +14,15 @@
 
 
 # Function infos and parameters  --------------------------------------------
-b_xpath=function(path.base=NULL,
+b_xpath=function(html.doc="html",
+                 path.base=NULL,
                   path.extension=NULL,
                   get.attribute=F,
                   the.attribute="href"){
 
+  eval(parse(text=paste("html.dom=",html.doc, sep="")))
 
-  xpathSApply(html, path.base, function(x) {
+  return(xpathSApply(html.dom, path.base, function(x) {
 
     if(get.attribute){
 
@@ -47,6 +49,6 @@ b_xpath=function(path.base=NULL,
     }
 
 
-  })
+  }))
 
 }
