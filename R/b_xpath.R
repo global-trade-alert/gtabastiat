@@ -14,7 +14,7 @@
 
 
 # Function infos and parameters  --------------------------------------------
-bt_xpath=function(path.base=NULL,
+b_xpath=function(path.base=NULL,
                   path.extension=NULL,
                   get.attribute=F,
                   the.attribute="href"){
