@@ -2,6 +2,8 @@
 
 #' Bastiat, please wait until the following XPATH appears on the site.
 #' @param xpath Provide the XPATH for which the function should wait.
+#' @param wait Specify the number of seconds you want to wait. Default is 60.
+#' @param abort Specifiy whether to cause an error in case path is not find after waiting time. Default is FALSE.
 #'
 #' @return Pauses the algorithm until XPATH appears.
 #' @references www.globaltradealert.org
@@ -9,7 +11,9 @@
 
 
 # Function infos and parameters  --------------------------------------------
-b_load_site=function(xpath){
+b_load_site=function(xpath=NULL,
+                     wait=60,
+                     abort=F){
   html <- htmlParse(remDr$getSource()[[1]], asText=T)
   load=length(xpathSApply(html, xpath, xmlValue))
 
@@ -22,8 +26,14 @@ b_load_site=function(xpath){
     load=length(xpathSApply(html, xpath, xmlValue))
     sleep=sleep+1
 
-    if(sleep>60){
-      print("site does not respond")
+    if(sleep>wait){
+
+      if(abort){
+        stop("site does not respond")
+      }else{
+        print("site does not respond")
+      }
+
       load=1
     }
   }
