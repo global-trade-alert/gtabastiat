@@ -27,7 +27,22 @@ b_load_site=function(xpath=NULL,
     refreshed=length(xpathSApply(html, xpath, xmlValue))>0
 
   }
-  print("Site's fresh!")
+
+  if(refreshed){
+
+    print("Site's fresh!")
+
+  }else {
+
+    if(abort){
+      stop("Site does not respond")
+    }else{
+      print("Site does not respond")
+    }
+
+  }
+
+
 
 
   # legacy version
