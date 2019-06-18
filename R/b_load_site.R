@@ -16,7 +16,9 @@ b_load_site=function(xpath=NULL,
                      abort=F,
                      wait.interval=.2){
 
+  html <<- htmlParse(remDr$getSource()[[1]], asText=T)
   print("Loading site ...")
+
   refreshed=FALSE
   t=Sys.time()
 
@@ -24,6 +26,7 @@ b_load_site=function(xpath=NULL,
     print("... waiting ...")
     Sys.sleep(wait.interval)
     html <- htmlParse(remDr$getSource()[[1]], asText=T)
+
     refreshed=length(xpathSApply(html, xpath, xmlValue))>0
 
   }
@@ -71,3 +74,4 @@ b_load_site=function(xpath=NULL,
   # }
   # print("loading complete")
 }
+
