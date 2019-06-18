@@ -13,29 +13,46 @@
 # Function infos and parameters  --------------------------------------------
 b_load_site=function(xpath=NULL,
                      wait=60,
-                     abort=F){
-  html <- htmlParse(remDr$getSource()[[1]], asText=T)
-  load=length(xpathSApply(html, xpath, xmlValue))
+                     abort=F,
+                     wait.interval=.2){
 
-  sleep=1
-  while(load==0){
-    print(paste("waiting ", sleep, sep=""))
-    Sys.sleep(1)
+  print("Loading site ...")
+  refreshed=FALSE
+  t=Sys.time()
 
+  while(refreshed==F & as.numeric(Sys.time()-t)<=wait){
+    print("... waiting ...")
+    Sys.sleep(wait.interval)
     html <- htmlParse(remDr$getSource()[[1]], asText=T)
-    load=length(xpathSApply(html, xpath, xmlValue))
-    sleep=sleep+1
+    refreshed=length(xpathSApply(html, xpath, xmlValue))>0
 
-    if(sleep>wait){
-
-      if(abort){
-        stop("site does not respond")
-      }else{
-        print("site does not respond")
-      }
-
-      load=1
-    }
   }
-  print("loading complete")
+  print("Site's fresh!")
+
+
+  # legacy version
+  # html <- htmlParse(remDr$getSource()[[1]], asText=T)
+  # load=length(xpathSApply(html, xpath, xmlValue))
+  #
+  # sleep=1
+  # while(load==0){
+  #   print(paste("waiting ", sleep, sep=""))
+  #   Sys.sleep(1)
+  #
+  #   html <- htmlParse(remDr$getSource()[[1]], asText=T)
+  #   load=length(xpathSApply(html, xpath, xmlValue))
+  #   sleep=sleep+1
+  #
+  #   if(sleep>wait){
+  #
+  #     if(abort){
+  #       stop("site does not respond")
+  #     }else{
+  #       print("site does not respond")
+  #     }
+  #
+  #     load=1
+  #   }
+  # }
+  # print("loading complete")
 }
