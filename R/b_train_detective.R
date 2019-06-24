@@ -52,7 +52,6 @@ b_train_detective = function(detective.number=NULL,
   aa=NULL
   if("acting.agency" %in% variables){
     aa=as.character(training$acting.agency)
-    agency.dummies=unique(training$acting.agency)
   }
 
   av=NULL
@@ -85,7 +84,14 @@ b_train_detective = function(detective.number=NULL,
   ## estimates with SuperLearner
 
   ## SuperLearner data prep
-  train=model.variables[,c("bid","evaluation",my.vars[!my.vars %in% "acting.agency"])]
+  estimation.variables=c("bid","evaluation",my.vars[!my.vars %in% "acting.agency"])
+
+  if("acting.agency" %in% my.vars){
+    estimation.variables=c(estimation.variables,
+                           c("agroindustria","australia","cbec","dti","eib","e-to-china","eur-lex","meti","mofcom","other","us-gain-report","wto-notification"))
+  }
+
+  train=model.variables[,estimation.variables]
 
   train.x = subset(train, bid %in% train.split)
   test.x = subset(train, ! bid %in% train.split)
@@ -209,7 +215,7 @@ b_train_detective = function(detective.number=NULL,
     ## estimates with SuperLearner
 
     ## SuperLearner data prep
-    train=model.variables[,c("bid","evaluation",my.vars[!my.vars %in% "acting.agency"])]
+    train=model.variables[,estimation.variables]
 
     train.x = subset(train, bid %in% train.split)
     test.x = subset(train, ! bid %in% train.split)
