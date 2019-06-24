@@ -41,6 +41,7 @@ b_create_model_variables <- function(bid=NULL,
   }
 
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+  return.vars=my.vars
 
   ## ensuring I have all acting agencies, if called for
   if(is.null(acting.agency)==F){
@@ -48,6 +49,8 @@ b_create_model_variables <- function(bid=NULL,
       train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
       print("resplitting to ensure presence of all agencies")
     }
+
+    return.vars=c(my.vars[!my.vars %in% "acting.agency"],agency.dummies.col.names)
   }
 
   train.split<<-train.split
@@ -453,9 +456,9 @@ b_create_model_variables <- function(bid=NULL,
 
   ## cleaning out tf.agg
   if(is.null(evaluation)){
-    tf.agg=tf.agg[,c(my.vars, "bid")]
+    tf.agg=tf.agg[,c(return.vars, "bid")]
   } else {
-    tf.agg=tf.agg[,c(my.vars, "bid","evaluation")]
+    tf.agg=tf.agg[,c(return.vars, "bid","evaluation")]
   }
 
   ## DTM, if called for
@@ -481,7 +484,7 @@ b_create_model_variables <- function(bid=NULL,
     tf.agg=merge(tf.agg, tf.dtm[,c("bid", model.words)], by="bid", all.x=T)
 
 
-    my.vars=c(my.vars, names(tf.agg)[!names(tf.agg) %in% c(my.vars, "bid","evaluation")])
+    my.vars=c(return.vars, names(tf.agg)[!names(tf.agg) %in% c(return.vars, "bid","evaluation")])
   }
 
   my.vars<<-my.vars

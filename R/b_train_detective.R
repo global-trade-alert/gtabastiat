@@ -88,7 +88,7 @@ b_train_detective = function(detective.number=NULL,
 
   if("acting.agency" %in% my.vars){
     estimation.variables=c(estimation.variables,
-                           c("agroindustria","australia","cbec","dti","eib","e-to-china","eur-lex","meti","mofcom","other","us-gain-report","wto-notification"))
+                           agency.dummies.col.names)
   }
 
   train=model.variables[,estimation.variables]
