@@ -61,11 +61,17 @@ b_estimate_classifier = function(training.data=training,
                                observed.cutoff=c.train,
                                assumed.cutoff=c.test,
                                cutoff.ratio=c.test/c.train,
+                               cutoff.ratio.sd=NA,
                                capture=nrow(subset(subset(pred.test, obs==1), pred>=c.train))/nrow(subset(pred.test, obs==1)),
+                               capture.sd=NA,
                                reduction=1-nrow(subset(pred.test, obs==0& pred>=c.train))/nrow(subset(pred.test, obs==0)),
+                               reduction.sd=NA,
                                capture.adjusted=nrow(subset(subset(pred.test, obs==1), pred>=c.test))/nrow(subset(pred.test, obs==1)),
+                               capture.adjusted.sd=NA,
                                reduction.adjusted=1-nrow(subset(pred.test, obs==0 & pred>=c.test))/nrow(subset(pred.test, obs==0)),
+                               reduction.adjusted.sd=NA,
                                stringsAsFactors = F)
+
 
 
   if(robustness.turns>0){
