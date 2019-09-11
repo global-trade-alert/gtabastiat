@@ -89,5 +89,11 @@ b_squad_formation = function(squad.level=.7
   print(paste("New score is",squad.stats$score," and ",squad.stats$score.adjusted, " (adjusted)"))
   save(squad.classifier, bt.squad, squad.cutoff, file="content/0 core/Bastiat squad classifier.Rdata")
 
+  squad.stats$quad.no=s.no
+  squad.stats$quad.no=date=Sys.Date()
+
+  ## saving the stats & squads
+  save(squad.statistics, all.squads, file="content/0 core/Squad statistics & history.Rdata")
+
 }
 
