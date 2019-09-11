@@ -54,7 +54,7 @@ b_squad_formation = function(squad.level=.7
 
   ## getting squad member predictions
   squad.predictions=data.frame()
-  for(squad.member in contenders){
+  for(squad.member in bt.squad$member.name){
     squad.predictions=rbind(squad.predictions,
                             b_detective_prediction(detective=squad.member,
                                                    classifier.location=bt.squad$classifier.location[bt.squad$member.name==squad.member]))
