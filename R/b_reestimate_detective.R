@@ -56,6 +56,8 @@ b_reestimate_detective = function(detective=NULL,
   if(save.result){
     load("content/0 core/Classifier statistics & history.Rdata")
 
+    t.stats$detective.no=d.no
+
     stats=rbind(stats, t.stats)
     word.score=training.stats$word.scores
     incumbent.classifier=training.stats$classifier
