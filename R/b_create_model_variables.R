@@ -41,7 +41,7 @@ b_create_model_variables <- function(bid=NULL,
   }
 
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-  return.vars=my.vars
+  return.vars=variables
 
   ## ensuring I have all acting agencies, if called for
   if(is.null(acting.agency)==F){
@@ -50,7 +50,7 @@ b_create_model_variables <- function(bid=NULL,
       print("resplitting to ensure presence of all agencies")
     }
 
-    return.vars=c(my.vars[!my.vars %in% "acting.agency"],agency.dummies.col.names)
+    return.vars=c(variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
   train.split<<-train.split
@@ -96,7 +96,7 @@ b_create_model_variables <- function(bid=NULL,
     # I could exclude features by GINI value. Does not seem to do much, so I skip it here.
     # If reconsidered, need to add those BIDs removed due to lack of high-GINI words into the estimation results by assigning 0/1 randomnly.
 
-    # if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
+    # if("gini.normalised" %in% unique(c(variables, dtm.metric))){
 
     gini=as.data.frame(table(subset(tf, bid %in% train.split)$word))
     names(gini)=c("word","freq.total")
@@ -123,7 +123,7 @@ b_create_model_variables <- function(bid=NULL,
     # }
 
     ### delta
-    # if(sum(as.numeric(grepl("gta.gini", unique(c(my.vars, dtm.metric)))))>0){
+    # if(sum(as.numeric(grepl("gta.gini", unique(c(variables, dtm.metric)))))>0){
 
     gta.gini.threshold=100
     nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
@@ -215,7 +215,7 @@ b_create_model_variables <- function(bid=NULL,
     # }
 
     ### odds ratio
-    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, dtm.metric)))))>0){
 
     odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
     names(odds)=c("word","freq.total")
@@ -314,12 +314,12 @@ b_create_model_variables <- function(bid=NULL,
 
     ## packing word score DF
 
-    # if("gini.normalised" %in% unique(c(my.vars, dtm.metric))){
+    # if("gini.normalised" %in% unique(c(variables, dtm.metric))){
       word.score=merge(word.score, gini[,c("word","gini.normalised")], by="word", all=T)
     # }
 
     for(gg in c("gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description")){
-      # if(gg %in% unique(c(my.vars, dtm.metric))){
+      # if(gg %in% unique(c(variables, dtm.metric))){
 
       g.var=gsub("gta.gini.","",gg)
       word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
@@ -329,16 +329,16 @@ b_create_model_variables <- function(bid=NULL,
       # }
     }
 
-    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(my.vars, dtm.metric)))))>0){
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, dtm.metric)))))>0){
       word.score=merge(word.score, odds[,c("word","odds.relevant","odds.irrelevant", "odds.ratio" )], by="word", all=T)
     # }
 
 
-    # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric))))>0){
+    # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, dtm.metric))))>0){
 
       gta.words=gtabastiat::gta.corpus
 
-      # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(my.vars, dtm.metric)))){
+      # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, dtm.metric)))){
       for(gs in c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description")){
         g.var=gsub("gta.share.","",gs)
         word.score=merge(word.score, subset(gta.words, text==g.var)[,c("word","gta.share.word")], by="word", all=T)
@@ -385,7 +385,7 @@ b_create_model_variables <- function(bid=NULL,
   if(is.null(evaluation)){
 
     for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(my.vars, dtm.metric))){
+      # if(var %in% unique(c(variables, dtm.metric))){
       eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
       # }
 
@@ -394,7 +394,7 @@ b_create_model_variables <- function(bid=NULL,
   } else {
 
     for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(my.vars, dtm.metric))){
+      # if(var %in% unique(c(variables, dtm.metric))){
       eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
       # }
 
@@ -484,10 +484,10 @@ b_create_model_variables <- function(bid=NULL,
     tf.agg=merge(tf.agg, tf.dtm[,c("bid", model.words)], by="bid", all.x=T)
 
 
-    my.vars=c(return.vars, names(tf.agg)[!names(tf.agg) %in% c(return.vars, "bid","evaluation")])
+    variables=c(return.vars, names(tf.agg)[!names(tf.agg) %in% c(return.vars, "bid","evaluation")])
   }
 
-  my.vars<<-my.vars
+  variables<<-variables
   word.score<<-word.score
   return(tf.agg)
 
