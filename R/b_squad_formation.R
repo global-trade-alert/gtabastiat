@@ -81,13 +81,13 @@ b_squad_formation = function(squad.level=.7
   squad.stats=squad.estimation$performance
   if(squad.stats$score>squad.stats$score.adjusted){
     squad.cutoff=squad.stats$observed.cutoff
+
   } else {
     squad.cutoff=squad.stats$assumed.cutoff
   }
 
+  print(paste("New score is",squad.stats$score," and ",squad.stats$score.adjusted, " (adjusted)"))
   save(squad.classifier, bt.squad, squad.cutoff, file="content/0 core/Bastiat squad classifier.Rdata")
-
-
 
 }
 
