@@ -71,7 +71,7 @@ b_reestimate_detective = function(detective=NULL,
   }
 
   if(save.classifier){
-    save(incumbent.classifier, file=paste("content/0 core/",Sys.Date()," - ",detective," classifier.Rdata", sep=""))
+    save(incumbent.classifier, word.score, file=paste("content/0 core/",Sys.Date()," - ",detective," classifier.Rdata", sep=""))
   }
 
 
