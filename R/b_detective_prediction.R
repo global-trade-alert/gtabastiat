@@ -14,7 +14,7 @@ b_detective_prediction = function(detective=NULL,
                                   prediction.data=NULL){
 
   if(is.null(prediction.data)){
-    load("data/classifier/prediction.data data.Rdata")
+    load("data/classifier/training data.Rdata")
     prediction.data=training
     rm(training)
   }
