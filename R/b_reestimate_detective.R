@@ -56,7 +56,11 @@ b_reestimate_detective = function(detective=NULL,
   if(save.result){
     load("content/0 core/Classifier statistics & history.Rdata")
 
-    t.stats$detective.no=d.no
+    t.stats$max.score.xgb=NA
+    t.stats$max.score.knn=NA
+    t.stats$max.score.rnf=NA
+    t.stats$max.score.svm=NA
+    t.stats$max.score.sl=NA
 
     stats=rbind(stats, t.stats)
     word.score=training.stats$word.scores
