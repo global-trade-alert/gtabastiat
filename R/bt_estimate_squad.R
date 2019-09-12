@@ -87,6 +87,7 @@ bt_estimate_squad = function(squad.level=.7,
                                                     prediction.data.id=training$bid,
                                                     prediction.data.evaluation=training$evaluation,
                                                     prediction.data.text=training$text,
+                                                    prediction.acting.agency=training$acting.agency,
                                                     train.share=train.share))
 
   }
