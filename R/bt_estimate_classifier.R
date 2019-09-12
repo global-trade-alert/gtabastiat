@@ -117,7 +117,8 @@ bt_estimate_classifier = function(training.data=NULL,
   }
 
   ## storing the information and/or classifier, if called for
-  if(update.log|save.classifier){
+  if(update.log){
+
     if(is.null(detective.name) & is.null(detective.number)){
 
       print("Please specify detective.")
@@ -135,9 +136,7 @@ bt_estimate_classifier = function(training.data=NULL,
           }
 
       }
-    }
 
-  if(update.log){
 
     if(is.null(detective.number)){print("Need detective number to store result. Result NOT stored.")} else {
 
