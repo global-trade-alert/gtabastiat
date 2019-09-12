@@ -20,7 +20,7 @@ bt_classify_by_keyword = function(text.to.check=NULL,
                       id=text.id,
                       text=text.to.check,
                       agency=stringr::str_extract(new.leads$bid[i], "[A-Z]+-[A-Z]+"),
-                      found.key=0,
+                      found.key=F,
                       stringsAsFactors = F)
 
   for(key.source in unique(check.df$agency)[unique(check.df$agency) %in% keys$source[keys$type==flavour]]){
@@ -28,7 +28,7 @@ bt_classify_by_keyword = function(text.to.check=NULL,
     search.df=subset(check.df, agency==key.source)
 
     out=paste(subset(keys, type==flavour & source==key.source)$key, collapse="|")
-    search.df$found.key=as.numeric(grepl(out, search.df$text, ignore.case=T))
+    search.df$found.key=grepl(out, search.df$text, ignore.case=T)
 
     check.df=rbind(subset(check.df, agency!=key.source),
                    search.df)
