@@ -11,7 +11,7 @@
 
 # Function infos and parameters  --------------------------------------------
 
-b_bind <- function(x, y) {
+bt_bind <- function(x, y) {
   x.diff <- setdiff(colnames(x), colnames(y))
   y.diff <- setdiff(colnames(y), colnames(x))
 

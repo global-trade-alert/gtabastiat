@@ -143,7 +143,7 @@ bt_estimate_classifier = function(training.data=NULL,
 
 
 
-      stats=b_bind(stats,
+      stats=bt_bind(stats,
                   new.stats[,names(new.stats)[names(new.stats) %in% names(stats)]])
       save(model, stats, file="content/0 core/Classifier statistics & history.Rdata")
 
