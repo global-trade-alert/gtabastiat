@@ -2,14 +2,14 @@
 
 #' Bastiat, please process my text and create the model variables.
 #'
-#' @return A data frame with all estimation variables
+#' @return A list including data frames for the estimation data, the word scores and a vector of variables.
 #' @references www.globaltradealert.org
 #' @author Johannes Fritz for GTA
 
 
 # Function infos and parameters  --------------------------------------------
 
-b_create_model_variables <- function(bid=NULL,
+bt_create_estimation_data <- function(bid=NULL,
                                      evaluation=NULL,
                                      text=NULL,
                                      train.share=.82,
@@ -487,8 +487,10 @@ b_create_model_variables <- function(bid=NULL,
     variables=c(return.vars, names(tf.agg)[!names(tf.agg) %in% c(return.vars, "bid","evaluation")])
   }
 
-  variables<<-variables
-  word.score<<-word.score
-  return(tf.agg)
 
+
+  output.list<- list("variables"=variables,
+                     "word.score"=word.score,
+                     "estimation.data"=tf.agg)
+  return(output.list)
 }
