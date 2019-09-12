@@ -54,11 +54,11 @@ bt_estimate_classifier = function(training.data=NULL,
 
 
       ## estimation
-      bastiat.classifier = SuperLearner(train.y,train.x, family = binomial(),
+      classifier = SuperLearner(train.y,train.x, family = binomial(),
                                     SL.library = sl.model)
 
-      pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
-      pred.test= data.frame(obs=test.y, pred=predict(bastiat.classifier, test.x)$pred[,1])
+      pred.train=data.frame(obs=train.y, pred=predict(classifier, train.x)$pred[,1])
+      pred.test= data.frame(obs=test.y, pred=predict(classifier, test.x)$pred[,1])
 
       ## stats
       c.train=b_cutoff_probability(observations = pred.train$obs, predictions = pred.train$pred)
@@ -105,6 +105,13 @@ bt_estimate_classifier = function(training.data=NULL,
                                             reduction.adjusted.sd=sd(this.performance$reduction.adjusted),
                                             stringsAsFactors = F))
 
+
+    if(classifier.performance$score>=classifier.performance$score.adjusted){
+      cutoff=classifier.performance$observed.cutoff
+
+    } else {
+      cutoff=classifier.performance$assumed.cutoff
+    }
 
 
 
@@ -153,11 +160,14 @@ bt_estimate_classifier = function(training.data=NULL,
   }
 
   if(save.classifier){
-    save(bastiat.classifier, file=paste("content/0 core/",Sys.Date()," - ",detective," classifier.Rdata", sep=""))
+
+
+    save(classifier, cutoff, file=paste("content/0 core/",Sys.Date()," - ",detective.name," classifier.Rdata", sep=""))
   }
 
   output.list<- list("performance"=classifier.performance,
-                     "classifier"=bastiat.classifier)
+                     "classifier"=classifier,
+                     "cutoff"=cutoff)
   return(output.list)
 
 }
