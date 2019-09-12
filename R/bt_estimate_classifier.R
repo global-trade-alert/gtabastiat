@@ -14,7 +14,11 @@ bt_estimate_classifier = function(training.data=NULL,
                                   training.y="evaluation",
                                   estimation.model="XGB",
                                   robustness.turns=0,
-                                  train.share=.82
+                                  train.share=.82,
+                                  update.log=F,
+                                  save.classifier=F,
+                                  detective.name=NULL,
+                                  detective.number=NULL
                                   ){
 
   if(is.null(training.data)){stop("Please provide training data.")}
@@ -50,11 +54,11 @@ bt_estimate_classifier = function(training.data=NULL,
 
 
       ## estimation
-      new.classifier = SuperLearner(train.y,train.x, family = binomial(),
+      bastiat.classifier = SuperLearner(train.y,train.x, family = binomial(),
                                     SL.library = sl.model)
 
-      pred.train=data.frame(obs=train.y, pred=predict(new.classifier, train.x)$pred[,1])
-      pred.test= data.frame(obs=test.y, pred=predict(new.classifier, test.x)$pred[,1])
+      pred.train=data.frame(obs=train.y, pred=predict(bastiat.classifier, train.x)$pred[,1])
+      pred.test= data.frame(obs=test.y, pred=predict(bastiat.classifier, test.x)$pred[,1])
 
       ## stats
       c.train=b_cutoff_probability(observations = pred.train$obs, predictions = pred.train$pred)
@@ -106,8 +110,50 @@ bt_estimate_classifier = function(training.data=NULL,
 
   }
 
+  ## storing the information and/or classifier, if called for
+  if(update.log|save.classifier){
+    if(is.null(detective.name) & is.null(detective.number)){
+
+      print("Please specify detective.")
+
+      } else {
+
+      if(is.null(detective.number)){
+        detective.number=max(subset(model, name==detective.name)$detective.no)
+        }
+
+      if(is.null(detective.name)){
+        detective.name=max(subset(model, detective.no==detective.number)$name)
+        }
+
+      }
+    }
+
+  if(update.log){
+
+    if(is.null(detective.number)){print("Need detective number to store result. Result NOT stored.")} else {
+
+      load("content/0 core/Classifier statistics & history.Rdata")
+
+      new.stats=classifier.performance
+      new.stats$detective.no=detective.number
+      new.stats$date=Sys.Date()
+
+      stats=rbind(stats,
+                  new.stats[,names(stats)])
+      save(model, stats, file="content/0 core/Classifier statistics & history.Rdata")
+
+    }
+
+
+  }
+
+  if(save.classifier){
+    save(bastiat.classifier, file=paste("content/0 core/",Sys.Date()," - ",detective," classifier.Rdata", sep=""))
+  }
+
   output.list<- list("performance"=classifier.performance,
-                     "classifier"=new.classifier)
+                     "classifier"=bastiat.classifier)
   return(output.list)
 
 }
