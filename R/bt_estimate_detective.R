@@ -23,6 +23,7 @@ bt_estimate_detective = function(detective.name=NULL,
     print(paste("Starting",detective))
 
     detective.characteristics=bt_get_detective_characteristics(detective.name=detective)
+    print("Got characteristics")
 
     detective.data=bt_create_estimation_data(bid=training$bid,
                                           evaluation=training$evaluation,
@@ -36,6 +37,8 @@ bt_estimate_detective = function(detective.name=NULL,
                                           act.values=detective.characteristics$vars.incl.act.value,
                                           is.td=detective.characteristics$vars.incl.td,
                                           keywords=detective.characteristics$vars.incl.keywords)
+
+    print("Prepared data")
 
     detective.classifier=bt_estimate_classifier(training.data=detective.data$estimation.data,
                                              training.id="bid",
