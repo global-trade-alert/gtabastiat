@@ -26,20 +26,12 @@ bt_get_detective_characteristics <- function(detective.name=NULL,
   }
 
   variables=unique(unlist(strsplit(as.character(subset(model, name==detective.name & detective.no==detective.number)$my.vars), ";")))
-  kw=any(c("pos.word","pos.word.char", "neg.word", "neg.word.char") %in% variables)
-  td="is.td" %in% variables
-
-  the.model=subset(model, name==detective.name & detective.no==detective.number)$estimation.method
-  dt.incl=subset(model, name==detective.name & detective.no==detective.number)$dtm.incl
-  dt.mtrc=subset(model, name==detective.name & detective.no==detective.number)$dtm.metric
-  nr.of.terms=subset(model, name==detective.name & detective.no==detective.number)$dtm.terms
 
   if("acting.agency" %in% variables){
     aa=as.character(training$acting.agency)
   } else {
     aa=NULL
   }
-
 
   if("has.value" %in% variables){
     av=training$act.values
@@ -52,12 +44,12 @@ bt_get_detective_characteristics <- function(detective.name=NULL,
                      "variables"=variables,
                      "vars.incl.acting.agency"=aa,
                      "vars.incl.act.value"=av,
-                     "vars.incl.keywords"=kw,
-                     "vars.incl.td"=td,
-                     "dtmatrix.included"=dt.incl,
-                     "dtmatrix.metric"=dt.mtrc,
-                     "dtmatrix.term.count"=nr.of.terms,
-                     "estimation.model"=the.model)
+                     "vars.incl.keywords"=any(c("pos.word","pos.word.char", "neg.word", "neg.word.char") %in% variables),
+                     "vars.incl.td"="is.td" %in% variables,
+                     "dtmatrix.included"=subset(model, name==detective.name & detective.no==detective.number)$dtm.incl,
+                     "dtmatrix.metric"=subset(model, name==detective.name & detective.no==detective.number)$dtm.metric,
+                     "dtmatrix.term.count"=subset(model, name==detective.name & detective.no==detective.number)$dtm.terms,
+                     "estimation.model"=subset(model, name==detective.name & detective.no==detective.number)$estimation.method)
 
   return(output.list)
 }
