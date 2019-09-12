@@ -14,6 +14,7 @@ bt_detective_prediction = function(detective=NULL,
                                    prediction.data.id=NULL,
                                    prediction.data.evaluation=NULL,
                                    prediction.data.text=NULL,
+                                   prediction.acting.agency=NULL,
                                    train.share=.82){
 
 
@@ -23,18 +24,13 @@ bt_detective_prediction = function(detective=NULL,
   detective.characteristics=bt_get_detective_characteristics(detective.name=detective)
   print("Got characteristics")
 
+
   detective.data=bt_create_estimation_data(bid=prediction.data.id,
                                            evaluation=prediction.data.evaluation,
                                            text=prediction.data.text,
+                                           acting.agency = prediction.acting.agency,
                                            train.share = train.share,
-                                           variables=detective.characteristics$variables,
-                                           dtm.incl=detective.characteristics$dtmatrix.included,
-                                           dtm.metric=detective.characteristics$dtmatrix.metric,
-                                           dtm.terms=detective.characteristics$dtmatrix.term.count,
-                                           acting.agency=detective.characteristics$vars.incl.acting.agency,
-                                           act.values=detective.characteristics$vars.incl.act.value,
-                                           is.td=detective.characteristics$vars.incl.td,
-                                           keywords=detective.characteristics$vars.incl.keywords)
+                                           detective.name=detective)
 
   print("Prepared data")
 
