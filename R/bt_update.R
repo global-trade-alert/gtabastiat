@@ -8,8 +8,9 @@
 #' @references www.globaltradealert.org
 #' @author Global Trade Alert
 
-b_update = function(x){
+bt_update = function(x){
   devtools::install_github("global-trade-alert/gtabastiat", force=T)
+  detach("package:gtabastiat", unload=TRUE)
   library("gtabastiat")
   print("You are up to date.")
 }
