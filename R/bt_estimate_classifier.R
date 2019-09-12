@@ -39,8 +39,8 @@ bt_estimate_classifier = function(training.data=NULL,
 
       train.split=sample(unique(training.data[,c(training.id)]), ceiling(nrow(training.data)*train.share))
 
-      eval(parse(text = paste("train.x =subset(squad.result, ",training.id," %in% train.split)",sep="")))
-      eval(parse(text = paste("test.x =subset(squad.result, !",training.id," %in% train.split)",sep="")))
+      eval(parse(text = paste("train.x =subset(training.data, ",training.id," %in% train.split)",sep="")))
+      eval(parse(text = paste("test.x =subset(training.data, !",training.id," %in% train.split)",sep="")))
 
       test.y=test.x[,c(training.y)]
       test.x=test.x[,setdiff(names(test.x),c(training.id, training.y))]
