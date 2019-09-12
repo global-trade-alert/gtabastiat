@@ -11,6 +11,8 @@
 
 bt_estimate_squad = function(squad.level=.7,
                              train.share=.82,
+                             squad.model="XGB",
+                             squad.robustness=0,
                              detective.log="content/0 core/Classifier statistics & history.Rdata",
                              squad.log="content/0 core/Squad statistics & history.Rdata",
                              estimation.data="data/classifier/training data.Rdata"
@@ -105,8 +107,8 @@ bt_estimate_squad = function(squad.level=.7,
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
                                           training.y="evaluation",
-                                          estimation.model="XGB",
-                                          robustness.turns=0,
+                                          estimation.model=squad.model,
+                                          robustness.turns=squad.robustness,
                                           train.share=train.share)
 
   classifier=squad.estimation$classifier
