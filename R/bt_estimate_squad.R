@@ -81,16 +81,15 @@ bt_estimate_squad = function(squad.level=.7,
 
   squad.predictions=merge(squad.predictions, unique(training[,c("bid", "evaluation")]), by="bid", all.x=T)
 
-  squad.result=reshape(squad.predictions, idvar = c("bid", "evaluation"), timevar = "detective", direction="wide")
-  rm(squad.predictions)
+  squad.predictions=reshape(squad.predictions, idvar = c("bid", "evaluation"), timevar = "detective", direction="wide")
 
   # Estimating squad classifier
-  squad.estimation=bt_estimate_classifier(training.data=squad.result,
+  squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
                                           training.y="evaluation",
                                           estimation.model="XGB",
                                           robustness.turns=0,
-                                          train.share=.82)
+                                          train.share=train.share)
 
   classifier=squad.estimation$classifier
   cutoff=squad.estimation$cutoff
