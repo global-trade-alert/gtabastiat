@@ -18,12 +18,11 @@ bt_estimate_detective = function(detective.name=NULL,
                                  ){
 
 
+  load("data/classifier/training data.Rdata")
   for(detective in detective.name){
     print(paste("Starting",detective))
 
     detective.characteristics=bt_get_detective_characteristics(detective.name=detective)
-
-    load("data/classifier/training data.Rdata")
 
     detective.data=bt_create_estimation_data(bid=training$bid,
                                           evaluation=training$evaluation,
