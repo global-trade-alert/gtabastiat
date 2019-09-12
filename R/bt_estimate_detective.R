@@ -18,7 +18,7 @@ bt_estimate_detective = function(detective.name=NULL,
                                  ){
 
 
-  load("data/classifier/training data.Rdata")
+  load(training.data)
   for(detective in detective.name){
     print(paste("Starting",detective))
 
