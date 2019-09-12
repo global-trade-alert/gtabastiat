@@ -9,7 +9,7 @@
 
 # Function infos and parameters  --------------------------------------------
 
-bt_estimate_classifier = function(training.data=training,
+bt_estimate_classifier = function(training.data=NULL,
                                   training.id="bid",
                                   training.y="evaluation",
                                   estimation.model="XGB",
@@ -17,10 +17,11 @@ bt_estimate_classifier = function(training.data=training,
                                   train.share=.82
                                   ){
 
+  if(is.null(training.data)){stop("Please provide training data.")}
 
   classifier.performance=data.frame()
 
-    algorithm.dictionary=data.frame(short=c("XGB","KNN","RNF", "SVM"),
+  algorithm.dictionary=data.frame(short=c("XGB","KNN","RNF", "SVM"),
                                   full=c("SL.xgboost", "SL.kernelKnn", "SL.randomForest", "SL.ksvm"),
                                   stringsAsFactors = F)
 
