@@ -37,6 +37,23 @@ bt_estimate_squad = function(squad.level=.7,
   bt.squad$classifier.location[bt.squad$member.name=="incumbent"]="content/0 core/Bastiat classifier.Rdata"
   bt.squad$member.name[bt.squad$member.name=="incumbent"]=model$name[nrow(model)]
 
+  if(any(is.na(bt.squad$classifier.location))){
+    need.classifier=bt.squad$member.name[is.na(bt.squad$classifier.location)]
+    bt_estimate_detective(detective.name=need.classifier)
+
+    model.files=list.files(path = "content/0 core/", pattern = ".Rdata",  full.names = T)
+    model.files=model.files[grepl(paste(contenders, collapse="|"), model.files)]
+
+    for(i in 1:nrow(bt.squad)){
+      bt.squad$classifier.location[i]=model.files[grepl( bt.squad$member.name[i], model.files)][1]
+    }
+
+    if(any(is.na(bt.squad$classifier.location))){
+      still.need.classifier=bt.squad$member.name[is.na(bt.squad$classifier.location)]
+      stop(paste("We are missing classifiers of",paste(still.need.classifier, collapse=",")))}
+
+  }
+
 
   ## comparing with existing squad
   load(squad.log)
