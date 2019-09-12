@@ -48,6 +48,8 @@ bt_create_estimation_data <- function(bid=NULL,
   var.is.td=detective.characteristics$vars.incl.td
   keywords=detective.characteristics$vars.incl.keywords
 
+  return.vars=variables
+
   ## ensuring I have all acting agencies, if called for
   if(var.acting.agency){
     while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
