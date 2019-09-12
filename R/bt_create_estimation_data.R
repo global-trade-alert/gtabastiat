@@ -42,7 +42,7 @@ bt_create_estimation_data <- function(bid=NULL,
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
 
   variables=detective.characteristics$variables
-  return.vars=variables
+  estimation.variables=variables
 
   ## ensuring I have all acting agencies, if called for
   if(detective.characteristics$vars.incl.acting.agency){
@@ -52,7 +52,7 @@ bt_create_estimation_data <- function(bid=NULL,
       print("resplitting to ensure presence of all agencies")
     }
 
-    return.vars=c(variables[!variables %in% "acting.agency"],agency.dummies.col.names)
+    estimation.variables=c(estimation.variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
   tf=unnest_tokens(tf, word, text, drop=F)
@@ -450,9 +450,9 @@ bt_create_estimation_data <- function(bid=NULL,
 
   ## cleaning out tf.agg
   if(is.null(evaluation)){
-    tf.agg=tf.agg[,c(return.vars, "bid")]
+    tf.agg=tf.agg[,c(estimation.variables, "bid")]
   } else {
-    tf.agg=tf.agg[,c(return.vars, "bid","evaluation")]
+    tf.agg=tf.agg[,c(estimation.variables, "bid","evaluation")]
   }
 
   ## DTM, if called for
@@ -478,12 +478,12 @@ bt_create_estimation_data <- function(bid=NULL,
     tf.agg=merge(tf.agg, tf.dtm[,c("bid", model.words)], by="bid", all.x=T)
 
 
-    variables=c(return.vars, names(tf.agg)[!names(tf.agg) %in% c(return.vars, "bid","evaluation")])
+    estimation.variables=c(estimation.variables, names(tf.agg)[!names(tf.agg) %in% c(estimation.variables, "bid","evaluation")])
   }
 
 
 
-  output.list<- list("variables"=variables,
+  output.list<- list("estimation.variables"=estimation.variables,
                      "word.score"=word.score,
                      "estimation.data"=tf.agg,
                      "detective.characteristics"=detective.characteristics)

@@ -39,7 +39,7 @@ bt_detective_prediction = function(detective=NULL,
 
   predict.bid=detective.data$estimation.data$bid
 
-  predict.data=detective.data$estimation.data[,c(detective.data$variables)]
+  predict.data=detective.data$estimation.data[,c(detective.data$estimation.variables)]
 
 
   ## prediction
