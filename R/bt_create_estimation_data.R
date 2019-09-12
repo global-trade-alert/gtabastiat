@@ -41,17 +41,10 @@ bt_create_estimation_data <- function(bid=NULL,
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
 
   variables=detective.characteristics$variables
-  dtm.incl=detective.characteristics$dtmatrix.included
-  dtm.metric=detective.characteristics$dtmatrix.metric
-  dtm.terms=detective.characteristics$dtmatrix.term.count
-  var.acting.agency=detective.characteristics$vars.incl.acting.agency
-  var.is.td=detective.characteristics$vars.incl.td
-  keywords=detective.characteristics$vars.incl.keywords
-
   return.vars=variables
 
   ## ensuring I have all acting agencies, if called for
-  if(var.acting.agency){
+  if(detective.characteristics$vars.incl.acting.agency){
     while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
       rm(train.split)
       train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
@@ -101,7 +94,7 @@ bt_create_estimation_data <- function(bid=NULL,
     # I could exclude features by GINI value. Does not seem to do much, so I skip it here.
     # If reconsidered, need to add those BIDs removed due to lack of high-GINI words into the estimation results by assigning 0/1 randomnly.
 
-    # if("gini.normalised" %in% unique(c(variables, dtm.metric))){
+    # if("gini.normalised" %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
 
     gini=as.data.frame(table(subset(tf, bid %in% train.split)$word))
     names(gini)=c("word","freq.total")
@@ -128,7 +121,7 @@ bt_create_estimation_data <- function(bid=NULL,
     # }
 
     ### delta
-    # if(sum(as.numeric(grepl("gta.gini", unique(c(variables, dtm.metric)))))>0){
+    # if(sum(as.numeric(grepl("gta.gini", unique(c(variables, detective.characteristics$dtmatrix.metric)))))>0){
 
     gta.gini.threshold=100
     nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
@@ -220,7 +213,7 @@ bt_create_estimation_data <- function(bid=NULL,
     # }
 
     ### odds ratio
-    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, dtm.metric)))))>0){
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, detective.characteristics$dtmatrix.metric)))))>0){
 
     odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
     names(odds)=c("word","freq.total")
@@ -319,12 +312,12 @@ bt_create_estimation_data <- function(bid=NULL,
 
     ## packing word score DF
 
-    # if("gini.normalised" %in% unique(c(variables, dtm.metric))){
+    # if("gini.normalised" %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
       word.score=merge(word.score, gini[,c("word","gini.normalised")], by="word", all=T)
     # }
 
     for(gg in c("gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description")){
-      # if(gg %in% unique(c(variables, dtm.metric))){
+      # if(gg %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
 
       g.var=gsub("gta.gini.","",gg)
       word.score=merge(word.score, subset(gta.gini, gta.text==g.var)[,c("word","gta.gini.delta")], by="word", all=T)
@@ -334,16 +327,16 @@ bt_create_estimation_data <- function(bid=NULL,
       # }
     }
 
-    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, dtm.metric)))))>0){
+    # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, detective.characteristics$dtmatrix.metric)))))>0){
       word.score=merge(word.score, odds[,c("word","odds.relevant","odds.irrelevant", "odds.ratio" )], by="word", all=T)
     # }
 
 
-    # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, dtm.metric))))>0){
+    # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, detective.characteristics$dtmatrix.metric))))>0){
 
       gta.words=gtabastiat::gta.corpus
 
-      # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, dtm.metric)))){
+      # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, detective.characteristics$dtmatrix.metric)))){
       for(gs in c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description")){
         g.var=gsub("gta.share.","",gs)
         word.score=merge(word.score, subset(gta.words, text==g.var)[,c("word","gta.share.word")], by="word", all=T)
@@ -390,7 +383,7 @@ bt_create_estimation_data <- function(bid=NULL,
   if(is.null(evaluation)){
 
     for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(variables, dtm.metric))){
+      # if(var %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
       eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
       # }
 
@@ -399,7 +392,7 @@ bt_create_estimation_data <- function(bid=NULL,
   } else {
 
     for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(variables, dtm.metric))){
+      # if(var %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
       eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
       # }
 
@@ -415,7 +408,7 @@ bt_create_estimation_data <- function(bid=NULL,
                                  stringsAsFactors = F)
 
   ## acting.agency
-  if(var.acting.agency){
+  if(detective.characteristics$vars.incl.acting.agency){
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
     aa.dummies = as.data.frame(predict(dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
@@ -429,12 +422,12 @@ bt_create_estimation_data <- function(bid=NULL,
   }
 
   ## is.td
-  if(var.is.td){
+  if(detective.characteristics$vars.incl.td){
     aggregate.variables$is.td=as.numeric(grepl("-[(TD)|(SG)|(AD)|(CVD)]+-",aggregate.variables$bid))
   }
 
   ## keywords
- if(keywords){
+ if(detective.characteristics$vars.incl.keywords){
    print("Generating keyword-related variables ...")
    keyword.variables=b_process_keywords(bid=aggregate.variables$bid,
                                         text=aggregate.variables$text)
@@ -462,12 +455,12 @@ bt_create_estimation_data <- function(bid=NULL,
   }
 
   ## DTM, if called for
-  if(dtm.incl==T){
+  if(detective.characteristics$dtmatrix.included){
 
-    nr.terms=dtm.terms
+    nr.terms=detective.characteristics$dtmatrix.term.count
 
 
-    eval(parse(text=paste("tf=tf[order(tf$",dtm.metric,", decreasing = T),]", sep="")))
+    eval(parse(text=paste("tf=tf[order(tf$",detective.characteristics$dtmatrix.metric,", decreasing = T),]", sep="")))
     model.words=unique(tf$word)[1:nr.terms]
 
     tf.dtm=count(subset(tf, word %in% model.words), vars=c('bid', 'word'))
