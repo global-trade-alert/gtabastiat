@@ -50,6 +50,7 @@ bt_estimate_detective = function(detective.name=NULL,
 
 
     print(paste("Finish",detective))
+    print(paste("Score: ",detective.classifier$performance$score,"; Score adjusted: ",detective.classifier$performance$score.adjusted, sep=""))
   }
 }
 
