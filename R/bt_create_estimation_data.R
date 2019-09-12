@@ -13,7 +13,6 @@ bt_create_estimation_data <- function(bid=NULL,
                                      evaluation=NULL,
                                      text=NULL,
                                      train.share=.82,
-                                     detective.number=NULL,
                                      variables=NULL,
                                      dtm.incl=FALSE,
                                      dtm.metric=NULL,
@@ -53,7 +52,7 @@ bt_create_estimation_data <- function(bid=NULL,
     return.vars=c(variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
-  train.split<<-train.split
+  train.split<-train.split
 
 
   tf=unnest_tokens(tf, word, text, drop=F)
