@@ -48,7 +48,7 @@ bt_estimate_detective = function(detective.name=NULL,
       cutoff=detective.classifier$cutoff
       word.score=detective.data$word.score
 
-      save(classifier, cutoff, word.score, file=paste("content/0 core/",Sys.Date()," - ",detective.name," classifier.Rdata", sep=""))
+      save(classifier, cutoff, word.score, file=paste("content/0 core/",Sys.Date()," - ",detective.data$detective.characteristics$detective.name," classifier.Rdata", sep=""))
     }
 
     print(paste("Finish",detective))
