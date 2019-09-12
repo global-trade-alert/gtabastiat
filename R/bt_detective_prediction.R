@@ -12,7 +12,7 @@
 bt_detective_prediction = function(detective=NULL,
                                    classifier.location=NULL,
                                    prediction.data.id=NULL,
-                                   prediction.data.evaluation=NULL,
+                                   prediction.word.score=NULL,
                                    prediction.data.text=NULL,
                                    prediction.acting.agency=NULL,
                                    train.share=.82){
@@ -24,18 +24,16 @@ bt_detective_prediction = function(detective=NULL,
   detective.characteristics=bt_get_detective_characteristics(detective.name=detective)
   print("Got characteristics")
 
+  load(classifier.location)
 
   detective.data=bt_create_estimation_data(bid=prediction.data.id,
-                                           evaluation=prediction.data.evaluation,
+                                           word.score=prediction.word.score,
                                            text=prediction.data.text,
                                            acting.agency = prediction.acting.agency,
                                            train.share = train.share,
                                            detective.name=detective)
 
   print("Prepared data")
-
-  load(classifier.location)
-
 
 
 

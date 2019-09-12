@@ -16,7 +16,6 @@ bt_estimate_classifier = function(training.data=NULL,
                                   robustness.turns=0,
                                   train.share=.82,
                                   update.log=F,
-                                  save.classifier=F,
                                   detective.name=NULL,
                                   detective.number=NULL
                                   ){
@@ -157,12 +156,6 @@ bt_estimate_classifier = function(training.data=NULL,
     }
 
 
-  }
-
-  if(save.classifier){
-
-
-    save(classifier, cutoff, file=paste("content/0 core/",Sys.Date()," - ",detective.name," classifier.Rdata", sep=""))
   }
 
   output.list<- list("performance"=classifier.performance,

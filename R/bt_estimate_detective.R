@@ -39,9 +39,17 @@ bt_estimate_detective = function(detective.name=NULL,
                                              robustness.turns=robustness.turns,
                                              train.share=train.share,
                                              update.log=save.stats,
-                                             save.classifier=save.classifier,
                                              detective.name=detective.data$detective.characteristics$detective.name)
 
+
+    if(save.classifier){
+
+      classifier=detective.classifier$classifier
+      cutoff=detective.classifier$cutoff
+      word.score=detective.data$word.score
+
+      save(classifier, cutoff, word.score, file=paste("content/0 core/",Sys.Date()," - ",detective.name," classifier.Rdata", sep=""))
+    }
 
     print(paste("Finish",detective))
     print(paste("Score: ",detective.classifier$performance$score,"; Score adjusted: ",detective.classifier$performance$score.adjusted, sep=""))

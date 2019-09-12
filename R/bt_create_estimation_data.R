@@ -11,6 +11,7 @@
 
 bt_create_estimation_data <- function(bid=NULL,
                                       evaluation=NULL,
+                                      word.score=NULL,
                                       text=NULL,
                                       acting.agency=NULL,
                                       train.share=.82,
