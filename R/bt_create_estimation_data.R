@@ -21,7 +21,7 @@ bt_create_estimation_data <- function(bid=NULL,
 
 
   detective.characteristics=bt_get_detective_characteristics(detective.name=detective.name,
-                                                             detective.number=detective.name)
+                                                             detective.number=detective.number)
 
 
   ### word-level variables
