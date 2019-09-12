@@ -10,19 +10,18 @@
 # Function infos and parameters  --------------------------------------------
 
 bt_create_estimation_data <- function(bid=NULL,
-                                     evaluation=NULL,
-                                     text=NULL,
-                                     train.share=.82,
-                                     variables=NULL,
-                                     dtm.incl=FALSE,
-                                     dtm.metric=NULL,
-                                     dtm.terms=NULL,
-                                     acting.agency=NULL,
-                                     act.values=NULL,
-                                     has.value=F,
-                                     is.td=F,
-                                     keywords=F
+                                      evaluation=NULL,
+                                      text=NULL,
+                                      acting.agency=NULL,
+                                      train.share=.82,
+                                      detective.name=NULL,
+                                      detective.number=NULL
                                      ) {
+
+
+
+  detective.characteristics=bt_get_detective_characteristics(detective.name=detective.name,
+                                                             detective.number=detective.name)
 
 
   ### word-level variables
@@ -40,20 +39,25 @@ bt_create_estimation_data <- function(bid=NULL,
   }
 
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-  return.vars=variables
+
+  variables=detective.characteristics$variables
+  dtm.incl=detective.characteristics$dtmatrix.included
+  dtm.metric=detective.characteristics$dtmatrix.metric
+  dtm.terms=detective.characteristics$dtmatrix.term.count
+  var.acting.agency=detective.characteristics$vars.incl.acting.agency
+  var.is.td=detective.characteristics$vars.incl.td
+  keywords=detective.characteristics$vars.incl.keywords
 
   ## ensuring I have all acting agencies, if called for
-  if(is.null(acting.agency)==F){
+  if(var.acting.agency){
     while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
+      rm(train.split)
       train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
       print("resplitting to ensure presence of all agencies")
     }
 
     return.vars=c(variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
-
-  train.split<-train.split
-
 
   tf=unnest_tokens(tf, word, text, drop=F)
 
@@ -409,7 +413,7 @@ bt_create_estimation_data <- function(bid=NULL,
                                  stringsAsFactors = F)
 
   ## acting.agency
-  if(is.null(acting.agency)==F){
+  if(var.acting.agency){
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
     aa.dummies = as.data.frame(predict(dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
@@ -422,13 +426,8 @@ bt_create_estimation_data <- function(bid=NULL,
     rm(aa.dummies)
   }
 
-  ## has.value
-  if(is.null(act.values)==F){
-    aggregate.variables$has.value=as.numeric(is.na(act.values)==F)
-  }
-
   ## is.td
-  if(is.td){
+  if(var.is.td){
     aggregate.variables$is.td=as.numeric(grepl("-[(TD)|(SG)|(AD)|(CVD)]+-",aggregate.variables$bid))
   }
 
@@ -490,6 +489,7 @@ bt_create_estimation_data <- function(bid=NULL,
 
   output.list<- list("variables"=variables,
                      "word.score"=word.score,
-                     "estimation.data"=tf.agg)
+                     "estimation.data"=tf.agg,
+                     "detective.characteristics"=detective.characteristics)
   return(output.list)
 }

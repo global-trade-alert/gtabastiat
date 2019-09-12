@@ -28,22 +28,15 @@ bt_get_detective_characteristics <- function(detective.name=NULL,
   variables=unique(unlist(strsplit(as.character(subset(model, name==detective.name & detective.no==detective.number)$my.vars), ";")))
 
   if("acting.agency" %in% variables){
-    aa=as.character(training$acting.agency)
+    aa=TRUE
   } else {
-    aa=NULL
-  }
-
-  if("has.value" %in% variables){
-    av=training$act.values
-  } else {
-    av=NULL
+    aa=FALSE
   }
 
   output.list<- list("detective.name"=detective.name,
                      "detective.number"=detective.number,
                      "variables"=variables,
                      "vars.incl.acting.agency"=aa,
-                     "vars.incl.act.value"=av,
                      "vars.incl.keywords"=any(c("pos.word","pos.word.char", "neg.word", "neg.word.char") %in% variables),
                      "vars.incl.td"="is.td" %in% variables,
                      "dtmatrix.included"=subset(model, name==detective.name & detective.no==detective.number)$dtm.incl,
