@@ -22,7 +22,7 @@ bt_get_detective_characteristics <- function(detective.name=NULL,
   }
 
   if(is.null(detective.name)){
-    detective.name=max(subset(model, detective.no==detective.number)$name)
+    detective.name=subset(model, detective.no==detective.number)$name
   }
 
   variables=unique(unlist(strsplit(as.character(subset(model, name==detective.name & detective.no==detective.number)$my.vars), ";")))

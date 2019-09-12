@@ -118,13 +118,15 @@ bt_estimate_classifier = function(training.data=NULL,
 
       } else {
 
-      if(is.null(detective.number)){
-        detective.number=max(subset(model, name==detective.name)$detective.no)
-        }
+        load("content/0 core/Classifier statistics & history.Rdata")
 
-      if(is.null(detective.name)){
-        detective.name=max(subset(model, detective.no==detective.number)$name)
-        }
+        if(is.null(detective.number)){
+          detective.number=max(subset(model, name==detective.name)$detective.no)
+          }
+
+        if(is.null(detective.name)){
+          detective.name=subset(model, detective.no==detective.number)$name
+          }
 
       }
     }
