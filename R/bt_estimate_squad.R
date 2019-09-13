@@ -74,7 +74,7 @@ bt_estimate_squad = function(squad.level=.7,
 
     all.squads=rbind(all.squads, new.sq)
     rm(new.sq)
-    save(all.squads, file="content/0 core/Squad statistics & history.Rdata")
+    save(all.squads, squad.statistics, file=squad.log)
   }
 
 
@@ -119,7 +119,7 @@ bt_estimate_squad = function(squad.level=.7,
 
   classifier=squad.estimation$classifier
   cutoff=squad.estimation$cutoff
-  squad.stats=squad.stats$performance
+  squad.stats=squad.estimation$performance
 
   print(paste("New score is",squad.stats$score," and ",squad.stats$score.adjusted, " (adjusted)"))
   save(classifier, bt.squad, cutoff, file="content/0 core/Bastiat squad classifier.Rdata")
