@@ -421,6 +421,12 @@ bt_create_estimation_data <- function(bid=NULL,
     names(aa.dummies)=tolower(gsub(" ","-",gsub("acting.agency\\.?","",names(aa.dummies))))
     aa.dummies$bid=bid
 
+    if(any(! agency.dummies.col.names %in% names(aa.dummies))){
+      for(miss.aa in setdiff(agency.dummies.col.names, names(aa.dummies))){
+        eval(parse(text=paste("aa.dummies$",miss.aa,"=0",sep="")))      }
+
+    }
+
 
     aggregate.variables$acting.agency=NULL
     aggregate.variables=merge(aggregate.variables, aa.dummies, by="bid", all.x=T)
