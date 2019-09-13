@@ -41,20 +41,14 @@ bt_squad_prediction = function(prediction.data.id=NULL,
   # currently only use prediction probability, not whether it is classified as relevant.
   squad.predictions$relevant=NULL
 
-  squad.predictions=merge(squad.predictions,
-                          unique(data.frame(bid=prediction.data.id,
-                                            evaluation=prediction.data.evaluation,
-                                            stringsAsFactors = F)),
-                          by="bid", all.x=T)
-
-  squad.predictions=reshape(squad.predictions, idvar = c("bid", "evaluation"), timevar = "detective", direction="wide")
+  squad.predictions=reshape(squad.predictions, idvar = c("bid"), timevar = "detective", direction="wide")
 
   # Preidcting using squad classifier
 
 
   predict.bid=squad.predictions$estimation.data$bid
 
-  predict.data=squad.predictions[,setdiff(names(squad.predictions),c("bid","evaluation"))]
+  predict.data=squad.predictions[,setdiff(names(squad.predictions),c("bid"))]
 
 
   ## prediction
