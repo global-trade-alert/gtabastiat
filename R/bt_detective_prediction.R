@@ -48,6 +48,7 @@ bt_detective_prediction = function(detective=NULL,
                                 prediction=predict(classifier, predict.data)$pred[,1],
                                 stringsAsFactors = F)
 
+  prediction.result$prediction[is.na(prediction.result$prediction)]=0
   prediction.result$relevant=as.numeric(prediction.result$prediction>cutoff)
 
   print(paste("Finish",detective))
