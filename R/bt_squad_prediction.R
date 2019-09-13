@@ -46,9 +46,10 @@ bt_squad_prediction = function(prediction.data.id=NULL,
   # Preidcting using squad classifier
 
 
-  predict.bid=squad.predictions$estimation.data$bid
+  predict.bid=squad.predictions$bid
 
   predict.data=squad.predictions[,setdiff(names(squad.predictions),c("bid"))]
+  names(squad.predictions)=gsub(" ","", tolower(names(squad.predictions)))
 
 
   ## prediction

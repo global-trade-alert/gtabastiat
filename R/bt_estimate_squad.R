@@ -108,6 +108,8 @@ bt_estimate_squad = function(squad.level=.7,
 
   squad.predictions=reshape(squad.predictions, idvar = c("bid", "evaluation"), timevar = "detective", direction="wide")
 
+  names(squad.predictions)=gsub(" ","", tolower(names(squad.predictions)))
+
   print("Estimating squad classifier ...")
   # Estimating squad classifier
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
