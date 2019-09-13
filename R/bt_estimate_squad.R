@@ -87,7 +87,7 @@ bt_estimate_squad = function(squad.level=.7,
                             bt_detective_prediction(detective=squad.member,
                                                     classifier.location=bt.squad$classifier.location[bt.squad$member.name==squad.member],
                                                     prediction.data.id=training$bid,
-                                                    prediction.data.evaluation=training$evaluation,
+                                                    word.score=prediction.word.score,
                                                     prediction.data.text=training$text,
                                                     prediction.acting.agency=training$acting.agency,
                                                     train.share=train.share))
