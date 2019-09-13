@@ -79,10 +79,15 @@ bt_estimate_squad = function(squad.level=.7,
 
 
   ## getting squad member predictions
+  print(paste("Squad members are:",paste(bt.squad$member.name, collapse="; ")))
+
   squad.predictions=data.frame()
 
   load(estimation.data)
   for(squad.member in bt.squad$member.name){
+
+    load(bt.squad$classifier.location[bt.squad$member.name==squad.member])
+    rm(classifier, cutoff)
     squad.predictions=rbind(squad.predictions,
                             bt_detective_prediction(detective=squad.member,
                                                     classifier.location=bt.squad$classifier.location[bt.squad$member.name==squad.member],
@@ -94,7 +99,7 @@ bt_estimate_squad = function(squad.level=.7,
 
   }
 
-
+  print("Squad members made their predictions.")
   ## squad variable selection here
   # currently only use prediction probability, not whether it is classified as relevant.
   squad.predictions$relevant=NULL
@@ -103,6 +108,7 @@ bt_estimate_squad = function(squad.level=.7,
 
   squad.predictions=reshape(squad.predictions, idvar = c("bid", "evaluation"), timevar = "detective", direction="wide")
 
+  print("Estimating squad classifier ...")
   # Estimating squad classifier
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
@@ -113,7 +119,7 @@ bt_estimate_squad = function(squad.level=.7,
 
   classifier=squad.estimation$classifier
   cutoff=squad.estimation$cutoff
-  squad.stats$performance
+  squad.stats=squad.stats$performance
 
   print(paste("New score is",squad.stats$score," and ",squad.stats$score.adjusted, " (adjusted)"))
   save(classifier, bt.squad, cutoff, file="content/0 core/Bastiat squad classifier.Rdata")
