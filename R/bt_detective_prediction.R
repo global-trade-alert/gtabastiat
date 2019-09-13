@@ -31,7 +31,8 @@ bt_detective_prediction = function(detective=NULL,
                                            text=prediction.data.text,
                                            acting.agency = prediction.acting.agency,
                                            train.share = train.share,
-                                           detective.name=detective)
+                                           detective.name=detective,
+                                           for.training=F)
 
   print("Prepared data")
 

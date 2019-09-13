@@ -16,7 +16,8 @@ bt_create_estimation_data <- function(bid=NULL,
                                       acting.agency=NULL,
                                       train.share=.82,
                                       detective.name=NULL,
-                                      detective.number=NULL
+                                      detective.number=NULL,
+                                      for.training=T
                                      ) {
 
 
@@ -46,11 +47,15 @@ bt_create_estimation_data <- function(bid=NULL,
 
   ## ensuring I have all acting agencies, if called for
   if(detective.characteristics$vars.incl.acting.agency){
-    while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
-      rm(train.split)
-      train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-      print("resplitting to ensure presence of all agencies")
+
+    if(for.training){
+      while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
+        rm(train.split)
+        train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+        print("resplitting to ensure presence of all agencies")
+      }
     }
+
 
     estimation.variables=c(estimation.variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
