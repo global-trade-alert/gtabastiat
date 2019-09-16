@@ -417,7 +417,7 @@ bt_create_estimation_data <- function(bid=NULL,
   if(detective.characteristics$vars.incl.acting.agency){
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=as.factor(aggregate.variables$acting.agency)
-    aa.dummies = as.data.frame(predict(dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
+    aa.dummies = as.data.frame(predict(caret::dummyVars(~ acting.agency, data = aggregate.variables), newdata = aggregate.variables))
     names(aa.dummies)=tolower(gsub(" ","",gsub("acting.agency\\.?","",names(aa.dummies))))
     aa.dummies$bid=bid
 
