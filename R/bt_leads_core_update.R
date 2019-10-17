@@ -40,10 +40,19 @@ bt_leads_core_update = function(update.df){
       lc.update$bin.recovered=0
 
       ## upload
-      gta_sql_append_table(append.table = "leads.core",
-                                   append.by.df = "lc.update")
+      if(any(!names(lc.update) %in% lc.cols)){
 
-      print(past0(nrow(lc.update), " new records added."))
+        print(paste0("Mising columns: ", paste(names(lc.update)[!names(lc.update) %in% lc.cols], collapse=";")))
+
+      } else {
+
+        gta_sql_append_table(append.table = "leads.core",
+                             append.by.df = "lc.update")
+
+        print(past0(nrow(lc.update), " new records added."))
+
+      }
+
 
       rm(lc.update)
 
