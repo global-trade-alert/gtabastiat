@@ -29,7 +29,7 @@ bt_leads_core_update = function(update.df){
                                    FROM bt_leads_core
                                    LIMIT 1;"))
 
-      lc.update=lc.update[,lc.cols]
+      lc.update=lc.update[,lc.cols[lc.cols %in% names(lc.update)]]
 
       ## adding leads-checker columns
       lc.update$relevance.probability=NA
@@ -42,12 +42,13 @@ bt_leads_core_update = function(update.df){
       ## upload
       gta_sql_append_table(append.table = "leads.core",
                                    append.by.df = "lc.update")
-      rm(lc.update)
 
       print(past0(nrow(lc.update), " new records added."))
 
+      rm(lc.update)
+
+
+
     }
-
-
 
 }
