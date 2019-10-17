@@ -49,7 +49,7 @@ bt_leads_core_update = function(update.df){
         gta_sql_append_table(append.table = "leads.core",
                              append.by.df = "lc.update")
 
-        print(past0(nrow(lc.update), " new records added."))
+        print(paste0(nrow(lc.update), " new records added."))
 
       }
 
