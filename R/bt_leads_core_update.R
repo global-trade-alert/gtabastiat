@@ -8,16 +8,37 @@
 #' @references www.globaltradealert.org
 #' @author Global Trade Alert
 
-bt_leads_core_update = function(update.df){
+bt_leads_core_update = function(update.df=NULL,
+                                exclude.by="act.url"){
 
   ## removing URLs already recorded
-  query="SELECT act_url
-  FROM bt_leads_core"
 
-  lc.urls=unique(gta_sql_get_value(query))
-  rm(query)
+  if(exclude.by=="act.url"){
+    query="SELECT act_url
+           FROM bt_leads_core"
 
-  lc.update=subset(update.df, ! act.url %in% lc.urls)
+    lc.urls=unique(gta_sql_get_value(query))
+    rm(query)
+
+    eval(parse(text=paste("lc.update<<-subset(",update.df,", ! act.url %in% lc.urls)",sep="")))
+    rm(lc.urls)
+  }
+
+  if(exclude.by=="bid"){
+    query="SELECT bid
+          FROM bt_leads_core"
+
+    lc.bids=unique(gta_sql_get_value(query))
+    rm(query)
+
+    eval(parse(text=paste("lc.update<<-subset(",update.df,", ! bid %in% lc.bids)",sep="")))
+    rm(lc.bids)
+
+  }
+
+
+
+
 
   if(nrow(lc.update)==0){
     print("All leads recorded already.")
@@ -45,6 +66,7 @@ bt_leads_core_update = function(update.df){
         print(paste0("Mising columns: ", paste(names(lc.update)[!names(lc.update) %in% lc.cols], collapse=";")))
 
       } else {
+        lc.update<<-lc.update
 
         gta_sql_append_table(append.table = "leads.core",
                              append.by.df = "lc.update")
