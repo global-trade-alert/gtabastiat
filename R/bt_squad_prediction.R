@@ -56,6 +56,7 @@ bt_squad_prediction = function(prediction.data.id=NULL,
   predict.data=squad.predictions[,c(classifier$fitLibrary$SL.xgboost_All$object$feature_names)]
   prediction.result= data.frame(text.id=predict.bid,
                                 relevant=as.numeric(predict(classifier, predict.data)$pred[,1]>=cutoff),
+                                relevance.probability=predict(classifier, predict.data)$pred[,1],
                                 stringsAsFactors = F)
 
   return(prediction.result)
