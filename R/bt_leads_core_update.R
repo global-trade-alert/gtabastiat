@@ -61,6 +61,7 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$bin.recovered=0
 
       lc.update$sent.out=as.numeric(lc.update$relevant==0)
+      lc.update$evaluation=NA
 
       ## upload
       if(any(!names(lc.update) %in% lc.cols)){
