@@ -25,7 +25,7 @@ b_load_site=function(xpath=NULL,
   while(refreshed==F & as.numeric(Sys.time()-t)<=wait){
     print("... waiting ...")
     Sys.sleep(wait.interval)
-    html <- htmlParse(remDr$getSource()[[1]], asText=T)
+    html = htmlParse(remDr$getSource()[[1]], asText=T)
 
     refreshed=length(xpathSApply(html, xpath, xmlValue))>0
 
@@ -34,6 +34,7 @@ b_load_site=function(xpath=NULL,
   if(refreshed){
 
     print("Site's fresh!")
+    assign.global("html", html)
 
   }else {
 
