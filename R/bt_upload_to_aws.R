@@ -19,6 +19,8 @@ bt_upload_to_aws = function(upload.file=NULL,
 
 
   aws.url=paste0("http://s3-eu-west-1.amazonaws.com/",upload.destination,upload.file)
+
+
   return(aws.url)
 }
 

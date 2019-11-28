@@ -11,6 +11,8 @@ bt_extract_url = function(string){
 
   if(length(urls)==0){urls=NA}
 
+  if(get.tld){tld=str_extract(urls,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+")}
+
   return(urls)
 
 }
