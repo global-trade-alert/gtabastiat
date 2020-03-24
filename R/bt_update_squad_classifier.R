@@ -3,6 +3,7 @@ bt_update_squad_classifier=function(update.training.data=T,
                                     update.detective.classifiers=T,
                                     detective.log="content/0 core/Classifier statistics & history.Rdata"){
   library(data.table)
+  library(tidytext)
 
   ## updating training data
   if(update.training.data){

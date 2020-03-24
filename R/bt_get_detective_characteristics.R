@@ -17,6 +17,8 @@ bt_get_detective_characteristics <- function(detective.name=NULL,
 
   if(is.null(detective.name) & is.null(detective.number)){stop("Please specify detective.")}
 
+  if(detective.name=="incumbent"){detective.name=model$name[nrow(model)]}
+
   if(is.null(detective.number)){
     detective.number=max(subset(model, name==detective.name)$detective.no)
   }

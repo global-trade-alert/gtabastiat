@@ -5,6 +5,8 @@ bt_update_training_data=function(update.gta.words=T,
   library(gtasql)
   library(pool)
   library(RMariaDB)
+  library(data.table)
+  library(tidytext)
 
   if(is.null(db.connection)){
     database="ricardomain"

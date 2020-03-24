@@ -55,6 +55,12 @@ bt_estimate_detective = function(detective.name=NULL,
       word.score=detective.data$word.score
 
       save(classifier, cutoff, word.score, file=paste("content/0 core/",Sys.Date()," - ",detective.data$detective.characteristics$detective.name," classifier.Rdata", sep=""))
+
+      if(detective=="incumbent"){
+
+        save(classifier, cutoff, word.score, file="content/0 core/Bastiat classifier.Rdata")
+
+      }
     }
 
     print(paste("Finish",detective))
