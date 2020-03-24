@@ -6,7 +6,7 @@ bt_update_squad_classifier=function(update.training.data=T,
   ## updating training data
   if(update.training.data){
     print("Updating training data ... ")
-    bt_training_data_update()
+    bt_update_training_data()
     print("Updating training data ... complete.")
   }
 
