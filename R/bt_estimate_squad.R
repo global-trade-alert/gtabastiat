@@ -9,26 +9,29 @@
 
 # Function infos and parameters  --------------------------------------------
 
-bt_estimate_squad = function(squad.level=.7,
+bt_estimate_squad = function(detectives=NULL,
+                             squad.level=.7,
                              train.share=.82,
                              squad.model="XGB",
                              squad.robustness=0,
                              detective.log="content/0 core/Classifier statistics & history.Rdata",
                              squad.log="content/0 core/Squad statistics & history.Rdata",
                              estimation.data="data/classifier/training data.Rdata"
-                                 ){
+                             ){
 
-  load(detective.log)
+  if(is.null(detectives)){
 
+    load(detective.log)
+    detectives=c("incumbent", setdiff(unique(subset(model, detective.no %in% subset(stats, date>="2019-03-08" & (score>=squad.level|score.adjusted>=squad.level))$detective.no)$name),
+                                      c("Wallander","Tin Tin",model$name[nrow(model)])))
 
-  contenders=c("incumbent", setdiff(unique(subset(model, detective.no %in% subset(stats, date>="2019-03-08" & (score>=squad.level|score.adjusted>=squad.level))$detective.no)$name),
-                                    c("Wallander","Tin Tin",model$name[nrow(model)])))
+  }
 
 
   model.files=list.files(path = "content/0 core/", pattern = ".Rdata",  full.names = T)
-  model.files=model.files[grepl(paste(contenders, collapse="|"), model.files)]
+  model.files=model.files[grepl(paste(detectives, collapse="|"), model.files)]
 
-  bt.squad=data.frame(member.name=contenders,
+  bt.squad=data.frame(member.name=detectives,
                       classifier.location=NA,
                       stringsAsFactors = F)
 
@@ -44,7 +47,7 @@ bt_estimate_squad = function(squad.level=.7,
     bt_estimate_detective(detective.name=need.classifier)
 
     model.files=list.files(path = "content/0 core/", pattern = ".Rdata",  full.names = T)
-    model.files=model.files[grepl(paste(contenders, collapse="|"), model.files)]
+    model.files=model.files[grepl(paste(detectives, collapse="|"), model.files)]
 
     for(i in 1:nrow(bt.squad)){
       bt.squad$classifier.location[i]=model.files[grepl( bt.squad$member.name[i], model.files)][1]
