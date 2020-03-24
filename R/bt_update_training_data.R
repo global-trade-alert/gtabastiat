@@ -1,4 +1,4 @@
-bt_training_data_update=function(update.gta.words=T,
+bt_update_training_data=function(update.gta.words=T,
                                  db.connection=NULL){
 
   library(gtalibrary)

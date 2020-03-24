@@ -14,11 +14,17 @@ bt_estimate_detective = function(detective.name=NULL,
                                  train.share=.82,
                                  save.stats=T,
                                  save.classifier=T,
-                                 training.data="data/classifier/training data.Rdata"
+                                 training.data.path="data/classifier/training data.Rdata",
+                                 training.data.update=F
                                  ){
 
 
-  load(training.data)
+  load(training.data.path)
+
+  if(training.data.update){
+    bt_update_training_data()
+  }
+
   for(detective in detective.name){
     print(paste("Starting",detective))
 
