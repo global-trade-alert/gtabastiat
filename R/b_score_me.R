@@ -9,7 +9,10 @@
 
 # Function infos and parameters  --------------------------------------------
 
-b_score_me=function(value.capture, value.reduction){
+b_score_me=function(value.capture=NULL,
+                    value.reduction=NULL,
+                    capture.cutoff=.97,
+                    capture.weight=2){
   if(round(value.capture, 2)<capture.cutoff){
     return(0)
   } else {

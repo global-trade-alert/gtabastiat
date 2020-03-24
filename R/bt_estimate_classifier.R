@@ -20,6 +20,8 @@ bt_estimate_classifier = function(training.data=NULL,
                                   detective.number=NULL
                                   ){
 
+  library(SuperLearner)
+
   if(is.null(training.data)){stop("Please provide training data.")}
 
   classifier.performance=data.frame()

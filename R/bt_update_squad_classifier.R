@@ -21,11 +21,10 @@ bt_update_squad_classifier=function(update.training.data=T,
   ## Updating detecitve classifiers if necessary
   if(update.detective.classifiers){
 
-    for(sheriff in detectives){
-      print(paste("Updating", sheriff))
-      bt_estimate_detective(detective.name=sheriff)
-    }
+    print(paste("Updating detectives ..."))
+    bt_estimate_detective(detective.name=detectives)
 
+    print(paste("Updating detectives ... complete"))
   }
 
   ## Updating squad classifier
