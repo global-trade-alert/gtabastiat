@@ -25,10 +25,14 @@ bt_get_detective_characteristics <- function(d.name=NULL,
 
       if(is.null(d.number)){
         detective.number=max(subset(model, name==d.name)$detective.no)
+      } else {
+        detective.number=d.number
       }
 
       if(is.null(d.name)){
         detective.name=subset(model, detective.no==d.number)$name
+      } else {
+        detective.name=d.name
       }
 
 
