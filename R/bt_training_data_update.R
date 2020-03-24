@@ -1,6 +1,11 @@
 bt_training_data_update=function(update.gta.words=T,
                                  db.connection=NULL){
 
+  library(gtalibrary)
+  library(gtasql)
+  library(pool)
+  library(RMariaDB)
+
   if(is.null(db.connection)){
     database="ricardomain"
     gta_sql_pool_open(pool.name="pool",
@@ -168,6 +173,12 @@ bt_training_data_update=function(update.gta.words=T,
   }
 
 
+
+  if(is.null(db.connection)){
+
+    gta_pool_close("pool")
+
+  }
 
 
 }
