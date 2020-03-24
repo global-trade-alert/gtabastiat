@@ -9,23 +9,30 @@
 
 # Function infos and parameters  --------------------------------------------
 
-bt_get_detective_characteristics <- function(detective.name=NULL,
-                                             detective.number=NULL,
+bt_get_detective_characteristics <- function(d.name=NULL,
+                                             d.number=NULL,
                                              detective.log="content/0 core/Classifier statistics & history.Rdata") {
 
   load(detective.log)
 
-  if(is.null(detective.name) & is.null(detective.number)){stop("Please specify detective.")}
+  if(is.null(d.name) & is.null(d.number)){stop("Please specify detective.")}
 
-  if(detective.name=="incumbent"){detective.name=model$name[nrow(model)]}
+  if(d.name=="incumbent"){
+    detective.name=model$name[nrow(model)]
+    detective.number=model$detective.no[nrow(model)]
 
-  if(is.null(detective.number)){
-    detective.number=max(subset(model, name==detective.name)$detective.no)
-  }
+    } else {
 
-  if(is.null(detective.name)){
-    detective.name=subset(model, detective.no==detective.number)$name
-  }
+      if(is.null(d.number)){
+        detective.number=max(subset(model, name==d.name)$detective.no)
+      }
+
+      if(is.null(d.name)){
+        detective.name=subset(model, detective.no==d.number)$name
+      }
+
+
+    }
 
   variables=unique(unlist(strsplit(as.character(subset(model, name==detective.name & detective.no==detective.number)$my.vars), ";")))
 

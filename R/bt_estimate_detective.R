@@ -29,11 +29,11 @@ bt_estimate_detective = function(detective.name=NULL,
     print(paste("Starting",detective))
 
     detective.data=bt_create_estimation_data(bid=training$bid,
-                                          evaluation=training$evaluation,
-                                          text=training$text,
-                                          acting.agency = training$acting.agency,
-                                          train.share = train.share,
-                                          detective.name=detective
+                                            evaluation=training$evaluation,
+                                            text=training$text,
+                                            acting.agency = training$acting.agency,
+                                            train.share = train.share,
+                                            detective.name=detective
                                           )
 
     print("Prepared data")
