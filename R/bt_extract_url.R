@@ -5,7 +5,8 @@
 
 # Function infos and parameters  --------------------------------------------
 
-bt_extract_url = function(string){
+bt_extract_url = function(string,
+                          get.tld=F){
 
   urls=unique(unlist(stringr::str_extract_all(string, "((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9]+")))
 
