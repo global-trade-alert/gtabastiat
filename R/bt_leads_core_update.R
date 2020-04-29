@@ -102,7 +102,9 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update$act.url=as.character(lc.update$act.url)
 
 
+
     for(i in 1:nrow(lc.update)){
+      print(i)
 
       if(grepl("EU-SA",lc.update$bid[i])==F){
 
@@ -111,12 +113,12 @@ bt_leads_core_update = function(update.df=NULL,
         if(is.na(check.url)==F){
 
           ## checking state acts
-          sa.ids=unique(subset(gta.sa, grepl(check.url, source, ignore_case=T))$id)
+          sa.ids=unique(subset(gta.sa, grepl(check.url, source))$id)
 
           if(length(sa.ids)>0){
 
             lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "\n ---- The following state acts have this lead URL among their sources:\n",
-                                              paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
+                                                  paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
 
             if(! is.na(lc.update$act.description.ll[i])){
 
@@ -127,7 +129,7 @@ bt_leads_core_update = function(update.df=NULL,
           }
 
           ## checking hints
-          bt.url.ids=subset(bt.url, grepl(check.url, url, ignore.case = T))$url_id
+          bt.url.ids=subset(bt.url, grepl(check.url, url))$url_id
           if(length(bt.url.ids)>0){
 
             hints=gta_sql_get_value(paste0("SELECT hint_id
