@@ -19,7 +19,7 @@ bt_classify_by_keyword = function(text.to.check=NULL,
   check.df=data.frame(order.nr=1:length(text.id),
                       id=text.id,
                       text=text.to.check,
-                      agency=stringr::str_extract(new.leads$bid[i], "[A-Z]+-[A-Z]+"),
+                      agency=stringr::str_extract(text.id, "[A-Z]+-[A-Z]+"),
                       found.key=F,
                       stringsAsFactors = F)
 
