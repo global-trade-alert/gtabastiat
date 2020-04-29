@@ -21,7 +21,7 @@ bt_detective_prediction = function(detective=NULL,
   print(paste("Starting",detective))
 
   ## loading the estimator
-  detective.characteristics=bt_get_detective_characteristics(detective.name=detective)
+  detective.characteristics=bt_get_detective_characteristics(d.name=detective)
   print("Got characteristics")
 
   load(classifier.location)
