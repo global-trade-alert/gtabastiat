@@ -17,6 +17,12 @@ bt_leads_core_update = function(update.df=NULL,
 
   eval(parse(text=paste("lc.update<<-",update.df,sep="")))
 
+  ## date check
+  if(any(!is.Date(lc.update$act.date))){
+
+    lc.update$act.date=as.Date(as.numeric(as.character(lc.update$act.date)), origin="1970-01-01")
+
+  }
 
   if(nrow(lc.update)==0){
     print("All leads recorded already.")
@@ -58,10 +64,10 @@ bt_leads_core_update = function(update.df=NULL,
 
     } else {
       lc.update$is.covid=0
-      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.title.en, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.title.ll, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.description.en, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.description.ll, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.en, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.ll, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.en, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.ll, ignore.case = T)]=1
       lc.update$is.covid[lc.update$act.date<="2019-12-01"]=0
 
 
