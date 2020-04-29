@@ -495,6 +495,8 @@ bt_leads_core_update = function(update.df=NULL,
 
     rm(lc.update)
 
+    print("UPLOAD complete")
+
 
   }
 
