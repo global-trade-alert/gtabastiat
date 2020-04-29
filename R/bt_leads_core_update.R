@@ -174,6 +174,7 @@ bt_leads_core_update = function(update.df=NULL,
       classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
 
       # removing non-ASCII
+      classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
       classify$text=gsub("[^\001-\177]","",classify$text)
 
       classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
