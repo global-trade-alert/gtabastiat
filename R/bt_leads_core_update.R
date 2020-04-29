@@ -54,24 +54,24 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(all.covid){
 
-      lc.update$is_covid=1
+      lc.update$is.covid=1
 
     } else {
-      lc.update$is_covid=0
-      lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.title.en, ignore.case = T)]=1
-      lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.title.ll, ignore.case = T)]=1
-      lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.description.en, ignore.case = T)]=1
-      lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.description.ll, ignore.case = T)]=1
-      lc.update$is_covid[lc.update$act.date<="2019-12-01"]=0
+      lc.update$is.covid=0
+      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.title.en, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.title.ll, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.description.en, ignore.case = T)]=1
+      lc.update$is.covid[grepl("( covid)|( corona)", lc.update$act.description.ll, ignore.case = T)]=1
+      lc.update$is.covid[lc.update$act.date<="2019-12-01"]=0
 
 
     }
 
     ### COVID correction for trade defence
-    lc.update$is_covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
-    lc.update$is_covid[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]=0
-    lc.update$is_covid[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]=0
-    lc.update$is_covid[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]=0
+    lc.update$is.covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
+    lc.update$is.covid[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]=0
+    lc.update$is.covid[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]=0
+    lc.update$is.covid[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]=0
 
 
     ### Redundancy check
@@ -201,6 +201,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     ## checking for keywords
+    print("checking for negative keywords")
     contains.negative.key=bt_classify_by_keyword(text.to.check=lc.update$act.title.en,
                                                  text.id=lc.update$bid,
                                                  flavour="negative")
@@ -216,7 +217,7 @@ bt_leads_core_update = function(update.df=NULL,
     ## UPLOAD TO RICARDO
     leads.core=gta_sql_get_value("SELECT * FROM bt_leads_core LIMIT 1;")
 
-    if(length(setdiff(names(leads.core)[! names(leads.core) %in% names(lc.update)],c("upload.id", "hint.id" ,  "is.covid")))>0){
+    if(length(setdiff(names(leads.core)[! names(leads.core) %in% names(lc.update)],c("upload.id", "hint.id")))>0){
       stop("Error: not all columns of leads.core present in input.")
     }
 
