@@ -97,7 +97,7 @@ bt_leads_core_update = function(update.df=NULL,
                              db.connection = "main.pool")
     gta_sql_pool_close("main.pool")
     gta.sa$source=as.character(gta.sa$source)
-    gta.sa$source=stringi::stri_trans_general(gta.sa$source[1], "latin-ascii")
+    gta.sa$source=stringi::stri_trans_general(gta.sa$source, "latin-ascii")
 
 
     lc.update$background.url=as.character(lc.update$background.url)
