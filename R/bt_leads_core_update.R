@@ -23,6 +23,16 @@ bt_leads_core_update = function(update.df=NULL,
 
   } else{
 
+    ######### CLEANING & PREPARATION
+
+    ### trade defence country correction
+    td.phrases="antidumping|anti-?dumping|countervailing|anti-?subsidy"
+
+    lc.update$country.lead[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]="Vatican"
+    lc.update$country.lead[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]="Vatican"
+    lc.update$country.lead[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]="Vatican"
+    lc.update$country.lead[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]="Vatican"
+
 
     ## adding leads-checker columns
     lc.update$relevance.probability=NA
@@ -55,10 +65,152 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$is_covid[lc.update$act.date<="2019-12-01"]=0
 
 
+      }
+
+    ### COVID correction for trade defence
+    lc.update$is_covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
+    lc.update$is_covid[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]=0
+    lc.update$is_covid[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]=0
+    lc.update$is_covid[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]=0
+
+
+    ### Redundancy check
+    ### is it already in bt_url_log? If so, what hints?
+
+    bt.url=gta_sql_get_value("SELECT *
+                              FROM bt_url_log;")
+    bt.url$url=as.character(bt.url$url)
+
+
+    database <<- "gtamain"
+    gta_sql_pool_open(pool.name="main.pool",
+                      db.title=database,
+                      db.host = gta_pwd(database)$host,
+                      db.name = gta_pwd(database)$name,
+                      db.user = gta_pwd(database)$user,
+                      db.password = gta_pwd(database)$password,
+                      table.prefix = "bt_")
+
+
+    gta.sa=gta_sql_get_value("SELECT id, source
+                              FROM gta_measure;",
+                             db.connection = "main.pool")
+    gta_sql_pool_close("main.pool")
+    gta.sa$source=as.character(gta.sa$source)
+
+    lc.update$background.url=as.character(lc.update$background.url)
+    lc.update$act.url=as.character(lc.update$act.url)
+
+
+    for(i in 1:nrow(lc.update)){
+
+      if(grepl("EU-SA",lc.update$bid[i])==F){
+
+        check.url=gsub("(https?://www.)|(/$)","",lc.update$act.url[i])
+
+        if(is.na(check.url)==F){
+
+          ## checking state acts
+          sa.ids=unique(subset(gta.sa, grepl(check.url, source, ignore_case=T))$id)
+
+          if(length(sa.ids)>0){
+
+            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "\n ---- The following state acts have this lead URL among their sources:\n",
+                                              paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
+
+            if(! is.na(lc.update$act.description.ll[i])){
+
+              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "\n ---- The following state acts have this lead URL among their sources:\n",
+                                                    paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
+            }
+
+          }
+
+          ## checking hints
+          bt.url.ids=subset(bt.url, grepl(check.url, url, ignore.case = T))$url_id
+          if(length(bt.url.ids)>0){
+
+            hints=gta_sql_get_value(paste0("SELECT hint_id
+                                            FROM bt_hint_url
+                                            WHERE url_id IN (",paste(bt.url.ids, collapse=","),");"))
+            hints=unique(hints[!is.na(hints)])
+
+            if(length(hints)>0){
+
+              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "\n ---- The following hint IDs have this URL among their sources:\n",
+                                                    paste(hints, collapse=","), sep="")
+
+              if(! is.na(lc.update$act.description.ll[i])){
+
+                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "\n ---- The following hint IDs have this URL among their sources:\n",
+                                                      paste(hints, collapse=","), sep="")
+              }
+
+            }
+            rm(hints)
+          }
+        }
+
+
+      }
+
     }
 
 
-    ## upload
+
+
+
+    ## classifying results
+    classify=subset(lc.update, classify==1 & relevant==1 & country.lead!="Vatican")
+
+    if(nrow(classify)>0){
+
+
+      classify$text=classify$act.title.en
+      classify$text[is.na(classify$act.description.en)==F]=paste(classify$text[is.na(classify$act.description.en)==F], classify$act.description.en[is.na(classify$act.description.en)==F], sep=" ")
+      classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
+
+      # removing non-ASCII
+      classify$text=gsub("[^\001-\177]","",classify$text)
+
+      classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
+                                                prediction.data.text=classify$text,
+                                                prediction.acting.agency=classify$acting.agency)
+      classify$relevant=NULL
+      classify$relevance.probability=NULL
+      classify$text=NULL
+
+      classify=merge(classify, classification.result, by.x="bid",by.y="text.id")
+
+      classified.bids=classify$bid
+      classified.lids=classify$lead.id
+      classified.relevance=classify$relevant
+      classified.rel.prob=round(classify$relevance.probability,4)
+
+      lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
+                      classify)
+
+
+
+    }
+
+
+
+
+    ## checking for keywords
+    contains.negative.key=bt_classify_by_keyword(text.to.check=lc.update$act.title.en,
+                                                 text.id=lc.update$bid,
+                                                 flavour="negative")
+
+
+    if(any(contains.negative.key)){
+      lc.update$relevant[contains.negative.key]=0
+
+    }
+
+
+
+    ## UPLOAD TO RICARDO
     leads.core=gta_sql_get_value("SELECT * FROM bt_leads_core LIMIT 1;")
 
     if(length(names(leads.core)[! names(leads.core) %in% names(lc.update)])>0){
@@ -79,11 +231,6 @@ bt_leads_core_update = function(update.df=NULL,
                                  FROM bt_leads_core_temp;
                                  DROP TABLE IF EXISTS bt_leads_core_temp;"),1)
 
-
-    rm(lc.update)
-
-    ## parse
-    ## parse
 
     parsing.query="
                /* Avoiding duplicate hints from BT */
@@ -341,7 +488,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     gta_sql_multiple_queries(parsing.query,1)
 
-
+    rm(lc.update)
 
 
   }
