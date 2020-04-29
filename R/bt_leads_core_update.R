@@ -56,7 +56,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       lc.update$is_covid=1
 
-      } else {
+    } else {
       lc.update$is_covid=0
       lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.title.en, ignore.case = T)]=1
       lc.update$is_covid[grepl("( covid)|( corona)", lc.update$act.title.ll, ignore.case = T)]=1
@@ -65,7 +65,7 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$is_covid[lc.update$act.date<="2019-12-01"]=0
 
 
-      }
+    }
 
     ### COVID correction for trade defence
     lc.update$is_covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
@@ -97,10 +97,11 @@ bt_leads_core_update = function(update.df=NULL,
                              db.connection = "main.pool")
     gta_sql_pool_close("main.pool")
     gta.sa$source=as.character(gta.sa$source)
+    gta.sa$source=stringi::stri_trans_general(gta.sa$source[1], "latin-ascii")
+
 
     lc.update$background.url=as.character(lc.update$background.url)
     lc.update$act.url=as.character(lc.update$act.url)
-
 
 
     for(i in 1:nrow(lc.update)){
@@ -215,7 +216,7 @@ bt_leads_core_update = function(update.df=NULL,
     ## UPLOAD TO RICARDO
     leads.core=gta_sql_get_value("SELECT * FROM bt_leads_core LIMIT 1;")
 
-    if(length(names(leads.core)[! names(leads.core) %in% names(lc.update)])>0){
+    if(length(setdiff(names(leads.core)[! names(leads.core) %in% names(lc.update)],c("upload.id", "hint.id" ,  "is.covid")))>0){
       stop("Error: not all columns of leads.core present in input.")
     }
 
