@@ -11,7 +11,8 @@
 bt_leads_core_update = function(update.df=NULL,
                                 exclude.by="act.url",
                                 all.covid=F,
-                                force.create=F){
+                                force.create=F,
+                                set.official=T){
 
 
 
@@ -46,8 +47,12 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update$relevance.probability[lc.update$classify==0 & lc.update$relvant==0]=0
 
     ## act_url_official
-    non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
-    lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
+    if(set.official){
+      non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
+      lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
+
+    }
+
 
     ## force_create
     if(! "force.create" %in% names(lc.update)){
