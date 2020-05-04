@@ -14,7 +14,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 force.create=F,
                                 set.official=T){
 
-
+  library(lubridate)
 
   eval(parse(text=paste("lc.update<<-",update.df,sep="")))
 
