@@ -15,6 +15,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 set.official=T){
 
   library(lubridate)
+  library(stringr)
 
   eval(parse(text=paste("lc.update<<-",update.df,sep="")))
 
@@ -111,8 +112,91 @@ bt_leads_core_update = function(update.df=NULL,
     gta.sa$source=stringi::stri_trans_general(gta.sa$source, "latin-ascii")
 
 
+    ## URL cleanout
     lc.update$background.url=as.character(lc.update$background.url)
     lc.update$act.url=as.character(lc.update$act.url)
+
+    lc.urls=data.frame()
+    for(i in 1:nrow(lc.update)){
+
+      ## checking act.url
+      this.source=lc.update$act.url[i]
+
+      if(is.na(nchar(this.source))|is.na(this.source)){
+        ## source field is empty
+
+        url.description=NA
+        url.value="No direct source provided. Please check background URL in description or discard."
+
+      } else {
+
+        this.act.url=unique(bt_extract_url(this.source))
+
+        url.description= str_replace_all(this.source, "((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,]+", "<br />[source URL]")
+
+        url.description=gsub("\\s+"," ", gsub("(Viewed at:?)","", url.description))
+
+        if(nchar(gsub("(<br />\\[source URL\\])|\\s+|","",url.description))<5){
+          url.description=NA
+
+        } else {
+
+          lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br />The source was described as: '", url.description," '.", sep="")
+
+          if(! is.na(lc.update$act.description.ll[i])){
+
+            lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br />The source was described as: '", url.description," '.", sep="")
+          }
+
+        }
+
+
+        if(length(this.act.url)==1 & any(is.na(this.act.url))){
+
+          url.value="No specific URL was provided for this hint. All information is stated in the description."
+
+        } else {
+
+          url.value=this.act.url
+
+        }
+
+
+
+      }
+
+
+      lc.urls=rbind(lc.urls,
+                    data.frame(bid=lc.update$bid[i],
+                               url=url.value,
+                               url.description=url.description,
+                               stringsAsFactors = F))
+
+      ## checking background.
+      this.source=lc.update$background.url[i]
+
+      if(is.na(this.source)==F | is.na(nchar(this.source))==F ){
+
+
+        this.act.url=unique(bt_extract_url(this.source))
+
+        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+
+        if(! is.na(lc.update$act.description.ll[i])){
+
+          lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br />More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+        }
+
+
+      }
+
+    }
+
+
+    lc.urls$url=gsub("^\\s+|\\s+$","",lc.urls$url)
+
+    lc.update=merge(lc.update, lc.urls[,c("bid","url")], by="bid", all.x=T)
+    lc.update$act.url=lc.update$url
 
 
     for(i in 1:nrow(lc.update)){
@@ -120,7 +204,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       if(grepl("EU-SA",lc.update$bid[i])==F){
 
-        check.url=gsub("(https?://www.)|(/$)","",lc.update$act.url[i])
+        check.url=str_extract(gs.update$act.url[i],"((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,]+")
 
         if(is.na(check.url)==F){
 
@@ -129,12 +213,12 @@ bt_leads_core_update = function(update.df=NULL,
 
           if(length(sa.ids)>0){
 
-            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "\n ---- The following state acts have this lead URL among their sources:\n",
+            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:\n",
                                                   paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
 
             if(! is.na(lc.update$act.description.ll[i])){
 
-              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "\n ---- The following state acts have this lead URL among their sources:\n",
+              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:\n",
                                                     paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
             }
 
@@ -151,12 +235,12 @@ bt_leads_core_update = function(update.df=NULL,
 
             if(length(hints)>0){
 
-              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "\n ---- The following hint IDs have this URL among their sources:\n",
+              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br /> The following hint IDs have this URL among their sources:\n",
                                                     paste(hints, collapse=","), sep="")
 
               if(! is.na(lc.update$act.description.ll[i])){
 
-                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "\n ---- The following hint IDs have this URL among their sources:\n",
+                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following hint IDs have this URL among their sources:\n",
                                                       paste(hints, collapse=","), sep="")
               }
 
@@ -236,6 +320,14 @@ bt_leads_core_update = function(update.df=NULL,
 
     lc.update=lc.update[,names(lc.update)[names(lc.update) %in% names(leads.core)]]
     lc.update=unique(lc.update)
+
+    ## splitting away mutli-links
+    multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
+    lc.update.multi=subset(lc.update, bid %in% multi.links)
+    save(lc.update.multi, file=paste0(gsub("\\D+", "", Sys.time()) ," RIC-COVID-MULTI only JF touches this.Rdata"))
+
+    lc.update=subset(lc.update,! bid %in% multi.links)
+
     names(lc.update)=gsub("\\.","_",names(lc.update))
 
     gta_sql_multiple_queries("DROP TABLE IF EXISTS bt_leads_core_temp;
@@ -397,8 +489,137 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
-
     gta_sql_multiple_queries(parsing.query,1)
+
+
+    ## assign collections to multi-link hints
+    multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
+
+    if(length(multi.links)>1){
+      source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
+
+      for(new.col in names(table(lc.update$bid))[table(lc.update$bid)>1]){
+
+        col.country=unique(lc.update$country[lc.update$bid==new.col])
+
+        col.name=paste0(col.country, ": ")
+
+        col.title=unique(lc.update$act.title.en[lc.update$bid==new.col])
+
+        if(! is.na(col.title)){
+
+          if(nchar(col.title)>50){
+
+            col.name=paste0(col.name, substr(col.title, 1,50),"... ")
+
+          } else {
+
+            col.name=paste0(col.name, col.title)
+          }
+
+        } else {
+
+          col.title=unique(lc.update$act.title.ll[lc.update$bid==new.col])
+
+          if(! is.na(col.title)){
+
+            if(nchar(col.title)>50){
+
+              col.name=paste0(col.name, substr(col.title, 1,50),"... ")
+
+            } else {
+
+              col.name=paste0(col.name, col.title)
+            }
+
+          } else {
+
+            col.title=unique(lc.update$act.description.en[lc.update$bid==new.col])
+
+
+            if(! is.na(col.title)){
+
+              if(nchar(col.title)>50){
+
+                col.name=paste0(col.name, substr(col.title, 1,50),"... ")
+
+              } else {
+
+                col.name=paste0(col.name, col.title)
+              }
+
+            } else {
+
+              col.title=unique(lc.update$act.description.ll[lc.update$bid==new.col])
+
+              if(! is.na(col.title)){
+
+                if(nchar(col.title)>50){
+
+                  col.name=paste0(col.name, substr(col.title, 1,50),"... ")
+
+                } else {
+
+                  col.name=paste0(col.name, col.title)
+                }
+
+              } else {
+
+                col.name=paste0(col.name, "AUTO-GENERATED COLLECTION, PLEASE CORRECT")
+
+
+
+              }
+
+
+
+            }
+
+
+          }
+
+
+
+        }
+
+        Sys.setlocale("LC_ALL","English")
+
+
+
+
+        col.name=paste0(col.country,": ", col.title," (",format(unique(lc.update$act.date[lc.update$bid==new.col]),"%B %Y") ,")")
+
+        col.hints=gta_sql_get_value(paste0("SELECT hint_id
+                                 FROM bt_hint_bid
+                                 WHERE bid IN (",paste(paste0("'",new.col,"'"), collapse=", "),");"))
+
+        if(is.na(col.hints)){
+          stop(paste0("No hints for this BID: ", new.col))
+        }
+
+        b221_process_collections_hints(is.freelancer = FALSE,
+                                       user.id = 70,
+                                       new.collection.name = col.name,
+                                       collection.id = NULL,
+                                       hints.id = col.hints,
+                                       country = col.country,
+                                       product = NULL,
+                                       intervention = NULL,
+                                       assessment = NULL,
+                                       relevance = NULL,
+                                       collection.unchanged = F)
+
+
+      }
+
+
+
+    }
+
+
+
+
+
 
     rm(lc.update)
 
