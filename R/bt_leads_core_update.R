@@ -340,11 +340,13 @@ bt_leads_core_update = function(update.df=NULL,
                                  DROP TABLE IF EXISTS bt_leads_core_temp;"),1)
 
 
+    # /* ASSUMES NO FORCE_CREATE! */
+    #   DELETE bt_leads_core FROM bt_leads_core
+    # JOIN bt_url_log ON bt_leads_core.act_url = bt_url_log.url WHERE bt_leads_core.force_create=0;
+    #
+
     parsing.query="
                /* Avoiding duplicate hints from BT */
-              /* ASSUMES NO FORCE_CREATE! */
-              DELETE bt_leads_core FROM bt_leads_core
-              JOIN bt_url_log ON bt_leads_core.act_url = bt_url_log.url WHERE bt_leads_core.force_create=0;
 
               /* Writing into hint_log */
               INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_date, hint_values, upload_id)
