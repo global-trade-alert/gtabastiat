@@ -347,6 +347,10 @@ bt_leads_core_update = function(update.df=NULL,
 
     parsing.query="
                /* Avoiding duplicate hints from BT */
+               /* REMOVES DUPLICATE BIDs*/
+              DELETE bt_leads_core FROM bt_leads_core
+              JOIIN bt_hint_bid ON bt_leads_core.bid = bt_hint_log.bid WHERE bt_leads_core.force_create=0;
+
 
               /* Writing into hint_log */
               INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_date, hint_values, upload_id)
