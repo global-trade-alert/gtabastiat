@@ -195,7 +195,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     lc.urls$url=gsub("^\\s+|\\s+$","",lc.urls$url)
 
-    lc.update=merge(lc.update, lc.urls[,c("bid","url")], by="bid", all.x=T)
+    lc.update=merge(lc.update, unique(lc.urls[,c("bid","url")]), by="bid", all.x=T)
     lc.update$act.url=lc.update$url
 
 
@@ -213,13 +213,13 @@ bt_leads_core_update = function(update.df=NULL,
 
           if(length(sa.ids)>0){
 
-            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:\n",
-                                                  paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
+            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:<br />",
+                                                  paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
 
             if(! is.na(lc.update$act.description.ll[i])){
 
-              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:\n",
-                                                    paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="\n"), sep="")
+              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:<br />",
+                                                    paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
             }
 
           }
@@ -235,13 +235,13 @@ bt_leads_core_update = function(update.df=NULL,
 
             if(length(hints)>0){
 
-              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br /> The following hint IDs have this URL among their sources:\n",
-                                                    paste(hints, collapse=","), sep="")
+              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
+                                                    paste(hints, collapse=", "),".", sep="")
 
               if(! is.na(lc.update$act.description.ll[i])){
 
-                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following hint IDs have this URL among their sources:\n",
-                                                      paste(hints, collapse=","), sep="")
+                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
+                                                      paste(hints, collapse=", "),".", sep="")
               }
 
             }
