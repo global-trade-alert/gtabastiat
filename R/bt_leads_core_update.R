@@ -349,7 +349,7 @@ bt_leads_core_update = function(update.df=NULL,
                /* Avoiding duplicate hints from BT */
                /* REMOVES DUPLICATE BIDs*/
               DELETE bt_leads_core FROM bt_leads_core
-              JOIIN bt_hint_bid ON bt_leads_core.bid = bt_hint_log.bid WHERE bt_leads_core.force_create=0;
+              JOIN bt_hint_bid ON bt_leads_core.bid = bt_hint_bid.bid WHERE bt_leads_core.force_create=0;
 
 
               /* Writing into hint_log */
@@ -501,7 +501,8 @@ bt_leads_core_update = function(update.df=NULL,
     ## assign collections to multi-link hints
     multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
 
-    if(length(multi.links)>1){
+    if(1>1){
+    # if(length(multi.links)>1){
       source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
 
       for(new.col in names(table(lc.update$bid))[table(lc.update$bid)>1]){
