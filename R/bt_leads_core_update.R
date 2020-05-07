@@ -622,7 +622,8 @@ bt_leads_core_update = function(update.df=NULL,
                                        intervention = NULL,
                                        assessment = NULL,
                                        relevance = NULL,
-                                       collection.unchanged = F)
+                                       collection.unchanged = F,
+                                       starred.hint.id = NA)
 
 
       }
