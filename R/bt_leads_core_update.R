@@ -204,7 +204,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       if(grepl("EU-SA",lc.update$bid[i])==F){
 
-        check.url=str_extract(gs.update$act.url[i],"((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,]+")
+        check.url=str_extract(lc.update$act.url[i],"((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,]+")
 
         if(is.na(check.url)==F){
 
