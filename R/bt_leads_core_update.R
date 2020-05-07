@@ -322,11 +322,11 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update=unique(lc.update)
 
     ## splitting away mutli-links
-    multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
-    lc.update.multi=subset(lc.update, bid %in% multi.links)
-    save(lc.update.multi, file=paste0(gsub("\\D+", "", Sys.time()) ," RIC-COVID-MULTI only JF touches this.Rdata"))
-
-    lc.update=subset(lc.update,! bid %in% multi.links)
+    # multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
+    # lc.update.multi=subset(lc.update, bid %in% multi.links)
+    # save(lc.update.multi, file=paste0(gsub("\\D+", "", Sys.time()) ," RIC-COVID-MULTI only JF touches this.Rdata"))
+    #
+    # lc.update=subset(lc.update,! bid %in% multi.links)
 
     names(lc.update)=gsub("\\.","_",names(lc.update))
 
@@ -353,8 +353,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_date, hint_values, upload_id)
-              SELECT 1 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_date, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
+              SELECT 1 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -370,6 +370,11 @@ bt_leads_core_update = function(update.df=NULL,
               /* some odd NULL rows in first iteration*/
               DELETE FROM bt_leads_core
               WHERE collection_date IS NULL;
+
+              /* add bt_hint_date */
+              INSERT INTO bt_hint_date(hint_id, date, date_type_id)
+              SELECT hint_id, act_date, 1 AS date_type_id
+              FROM bt_leads_core;
 
               /* in descending priority order */
               /* state 8 if  relevant = 0*/
@@ -497,15 +502,18 @@ bt_leads_core_update = function(update.df=NULL,
 
     gta_sql_multiple_queries(parsing.query,1)
 
+    print("SINGLE-LINK UPLOAD complete")
 
     ## assign collections to multi-link hints
     multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
 
-    if(1>1){
-    # if(length(multi.links)>1){
+    if(length(multi.links)>1){
       source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
 
-      for(new.col in names(table(lc.update$bid))[table(lc.update$bid)>1]){
+
+      lc.update=subset(lc.update, bid %in% multi.links)
+
+      for(new.col in unique(lc.update$bid)){
 
         col.country=unique(lc.update$country[lc.update$bid==new.col])
 
@@ -630,7 +638,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     rm(lc.update)
 
-    print("UPLOAD complete")
+    print("FULL UPLOAD complete")
 
 
   }
