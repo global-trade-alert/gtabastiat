@@ -391,7 +391,7 @@ bt_leads_core_update = function(update.df=NULL,
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NOT NULL AND bt_leads_core.relevant = 1 AND bt_leads_core.act_url_official = 0 AND bt_leads_core.is_covid = 0 THEN 3
               				     ELSE 5 END);
 
-              /* Writing into classificatin log*/
+              /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
               SELECT hint_id, 70 AS user_id, 11 AS hint_state_id
               FROM bt_leads_core;
@@ -460,13 +460,13 @@ bt_leads_core_update = function(update.df=NULL,
               SELECT DISTINCT * FROM
               (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
               FROM bt_leads_core blc
-              WHERE act_title_en IS NOT NULL
-              OR act_description_en IS NOT NULL
+              WHERE act_title_en != 'NA'
+              OR act_description_en != 'NA'
               UNION
               SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
               FROM bt_leads_core blc
-              WHERE act_title_ll IS NOT NULL
-              OR act_description_ll IS NOT NULL) hint_text_entries;
+              WHERE act_title_ll != 'NA'
+              OR act_description_ll != 'NA') hint_text_entries;
 
               /* cleaning up */
               DELETE FROM bt_leads_core WHERE 1 = 1;"
