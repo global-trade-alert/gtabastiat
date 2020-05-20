@@ -330,14 +330,14 @@ bt_leads_core_update = function(update.df=NULL,
 
     names(lc.update)=gsub("\\.","_",names(lc.update))
 
-    gta_sql_multiple_queries("DROP TABLE IF EXISTS bt_leads_core_temp;
+    gta_sql_multiple_queries("DELETE FROM bt_leads_core_temp WHERE 1 = 1;
                               DELETE FROM bt_leads_core WHERE 1 = 1;",1)
-    dbWriteTable(conn = pool, name = "bt_leads_core_temp", value = lc.update, row.names=F, append=F, overwrite=T)
+    dbWriteTable(conn = pool, name = "bt_leads_core_temp", value = lc.update, row.names=F, append=T, overwrite=F)
 
     gta_sql_multiple_queries(paste0("INSERT INTO bt_leads_core(",paste(names(lc.update), collapse=","),")
                                  SELECT ",paste(names(lc.update), collapse=","),"
                                  FROM bt_leads_core_temp;
-                                 DROP TABLE IF EXISTS bt_leads_core_temp;"),1)
+                                 DELETE FROM bt_leads_core_temp WHERE 1 = 1;"),1)
 
 
     # /* ASSUMES NO FORCE_CREATE! */
