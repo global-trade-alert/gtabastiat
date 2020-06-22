@@ -12,7 +12,12 @@ bt_leads_core_update = function(update.df=NULL,
                                 exclude.by="act.url",
                                 all.covid=F,
                                 force.create=F,
-                                set.official=T){
+                                set.official=T,
+                                destination="b221"){
+
+  if(! destination %in% c("parking","b221","leads")){
+    stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
+  }
 
   library(lubridate)
   library(stringr)
@@ -345,7 +350,8 @@ bt_leads_core_update = function(update.df=NULL,
     # JOIN bt_url_log ON bt_leads_core.act_url = bt_url_log.url WHERE bt_leads_core.force_create=0;
     #
 
-    parsing.query="
+    if(destination=="b221"){
+      parsing.query="
                /* Avoiding duplicate hints from BT */
                /* REMOVES DUPLICATE BIDs*/
               DELETE bt_leads_core FROM bt_leads_core
@@ -470,6 +476,239 @@ bt_leads_core_update = function(update.df=NULL,
 
               /* cleaning up */
               DELETE FROM bt_leads_core WHERE 1 = 1;"
+
+    }
+
+    if(destination=="parking"){
+
+      parsing.query="
+               /* Avoiding duplicate hints from BT */
+               /* REMOVES DUPLICATE BIDs*/
+              DELETE bt_leads_core FROM bt_leads_core
+              JOIN bt_hint_bid ON bt_leads_core.bid = bt_hint_bid.bid WHERE bt_leads_core.force_create=0;
+
+
+              /* Writing into hint_log */
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
+              SELECT 1 AS hint_type_id, 10 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              FROM bt_leads_core;
+
+              /* store hint_id & bid pairs*/
+              UPDATE bt_leads_core blc
+              JOIN bt_hint_log bhl
+              ON bhl.upload_id = blc.upload_id
+              SET blc.hint_id = bhl.hint_id;
+
+              UPDATE bt_hint_log
+              JOIN bt_leads_core ON bt_leads_core.hint_id = bt_hint_log.hint_id AND is_covid = 1
+              SET hint_type_id=2;
+
+              /* some odd NULL rows in first iteration*/
+              DELETE FROM bt_leads_core
+              WHERE collection_date IS NULL;
+
+              /* add bt_hint_date */
+              INSERT INTO bt_hint_date(hint_id, date, date_type_id)
+              SELECT hint_id, act_date, 1 AS date_type_id
+              FROM bt_leads_core;
+
+              /* Writing into classification log*/
+              INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
+              SELECT hint_id, 70 AS user_id, 10 AS hint_state_id
+              FROM bt_leads_core;
+
+              /* adding act_urls */
+              /** update bt_url_log **/
+              INSERT INTO bt_url_log(url)
+              SELECT DISTINCT url FROM
+              (SELECT act_url AS url
+              FROM bt_leads_core blc
+              WHERE act_url IS NOT NULL
+              AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.act_url = bt_url_log.url)
+              UNION
+              SELECT background_url AS url
+              FROM bt_leads_core blc
+              WHERE background_url IS NOT NULL
+              AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.background_url = bt_url_log.url)) new_urls;
+
+              /** update bt_hint_url **/
+              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_user)
+              SELECT DISTINCT blc.hint_id, bul.url_id,
+              (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
+              (CASE WHEN blc.relevant = 1 AND blc.act_url_official = 1 THEN 1 ELSE NULL END) AS url_accepted,
+              (CASE WHEN blc.relevant = 1 AND blc.act_url_official = 1 THEN 70 ELSE NULL END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_url_log bul ON blc.act_url=bul.url
+              JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
+              WHERE blc.act_url IS NOT NULL;
+
+              /** update bt_hint_background_url **/
+              INSERT INTO bt_hint_background_url(hint_id, url_id)
+              SELECT DISTINCT hint_id, url_id
+              FROM bt_leads_core blc
+              JOIN bt_url_log bul
+              ON blc.background_url=bul.url;
+
+              /* Writing into bt_hint_jurisdiction */
+              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_user)
+              SELECT DISTINCT bcl.hint_id, bcl.classification_id, gta_jurisdiction_list.jurisdiction_id,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS jurisdiction_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
+              JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
+
+              /* bt_hint_bid */
+              INSERT INTO bt_hint_bid (hint_id, bid)
+              SELECT DISTINCT hint_id, bid
+              FROM bt_leads_core
+              WHERE bid IS NOT NULL;
+
+              /* bt_hint_relevance */
+              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_user)
+              SELECT DISTINCT bcl.hint_id, bcl.classification_id, blc.relevant AS relevance, blc.relevance_probability,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS relevance_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
+              WHERE blc.relevant IS NOT NULL;
+
+              /* Writing into bt_hint_text*/
+              /** English **/
+              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id)
+              SELECT DISTINCT * FROM
+              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
+              FROM bt_leads_core blc
+              WHERE act_title_en != 'NA'
+              OR act_description_en != 'NA'
+              UNION
+              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
+              FROM bt_leads_core blc
+              WHERE act_title_ll != 'NA'
+              OR act_description_ll != 'NA') hint_text_entries;
+
+              /* cleaning up */
+              DELETE FROM bt_leads_core WHERE 1 = 1;"
+
+    }
+
+    if(destination=="leads"){
+
+      parsing.query="
+               /* Avoiding duplicate hints from BT */
+               /* REMOVES DUPLICATE BIDs*/
+              DELETE bt_leads_core FROM bt_leads_core
+              JOIN bt_hint_bid ON bt_leads_core.bid = bt_hint_bid.bid WHERE bt_leads_core.force_create=0;
+
+
+              /* Writing into hint_log */
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
+              SELECT 1 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              FROM bt_leads_core;
+
+              /* store hint_id & bid pairs*/
+              UPDATE bt_leads_core blc
+              JOIN bt_hint_log bhl
+              ON bhl.upload_id = blc.upload_id
+              SET blc.hint_id = bhl.hint_id;
+
+              UPDATE bt_hint_log
+              JOIN bt_leads_core ON bt_leads_core.hint_id = bt_hint_log.hint_id AND is_covid = 1
+              SET hint_type_id=2;
+
+              /* some odd NULL rows in first iteration*/
+              DELETE FROM bt_leads_core
+              WHERE collection_date IS NULL;
+
+              /* add bt_hint_date */
+              INSERT INTO bt_hint_date(hint_id, date, date_type_id)
+              SELECT hint_id, act_date, 1 AS date_type_id
+              FROM bt_leads_core;
+
+              /* Writing into classification log*/
+              INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
+              SELECT hint_id, 70 AS user_id, 11 AS hint_state_id
+              FROM bt_leads_core;
+
+              /* adding act_urls */
+              /** update bt_url_log **/
+              INSERT INTO bt_url_log(url)
+              SELECT DISTINCT url FROM
+              (SELECT act_url AS url
+              FROM bt_leads_core blc
+              WHERE act_url IS NOT NULL
+              AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.act_url = bt_url_log.url)
+              UNION
+              SELECT background_url AS url
+              FROM bt_leads_core blc
+              WHERE background_url IS NOT NULL
+              AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.background_url = bt_url_log.url)) new_urls;
+
+              /** update bt_hint_url **/
+              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_user)
+              SELECT DISTINCT blc.hint_id, bul.url_id,
+              (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
+              (CASE WHEN blc.relevant = 1 AND blc.act_url_official = 1 THEN 1 ELSE NULL END) AS url_accepted,
+              (CASE WHEN blc.relevant = 1 AND blc.act_url_official = 1 THEN 70 ELSE NULL END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_url_log bul ON blc.act_url=bul.url
+              JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
+              WHERE blc.act_url IS NOT NULL;
+
+              /** update bt_hint_background_url **/
+              INSERT INTO bt_hint_background_url(hint_id, url_id)
+              SELECT DISTINCT hint_id, url_id
+              FROM bt_leads_core blc
+              JOIN bt_url_log bul
+              ON blc.background_url=bul.url;
+
+              /* Writing into bt_hint_jurisdiction */
+              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_user)
+              SELECT DISTINCT bcl.hint_id, bcl.classification_id, gta_jurisdiction_list.jurisdiction_id,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS jurisdiction_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
+              JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
+
+              /* bt_hint_bid */
+              INSERT INTO bt_hint_bid (hint_id, bid)
+              SELECT DISTINCT hint_id, bid
+              FROM bt_leads_core
+              WHERE bid IS NOT NULL;
+
+              /* bt_hint_relevance */
+              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_user)
+              SELECT DISTINCT bcl.hint_id, bcl.classification_id, blc.relevant AS relevance, blc.relevance_probability,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS relevance_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
+              WHERE blc.relevant IS NOT NULL;
+
+              /* Writing into bt_hint_text*/
+              /** English **/
+              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id)
+              SELECT DISTINCT * FROM
+              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
+              FROM bt_leads_core blc
+              WHERE act_title_en != 'NA'
+              OR act_description_en != 'NA'
+              UNION
+              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
+              FROM bt_leads_core blc
+              WHERE act_title_ll != 'NA'
+              OR act_description_ll != 'NA') hint_text_entries;
+
+              /* cleaning up */
+              DELETE FROM bt_leads_core WHERE 1 = 1;"
+
+    }
+
 
 
     reset.query="SET FOREIGN_KEY_CHECKS = 0;
