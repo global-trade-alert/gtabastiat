@@ -13,7 +13,8 @@ bt_leads_core_update = function(update.df=NULL,
                                 all.covid=F,
                                 force.create=F,
                                 set.official=T,
-                                destination="b221"){
+                                destination="b221",
+                                incl.kanji=F){
 
   if(! destination %in% c("parking","b221","leads")){
     stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
@@ -324,6 +325,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     lc.update=lc.update[,names(lc.update)[names(lc.update) %in% names(leads.core)]]
+    lc.update=lc.update[,names(leads.core)[names(leads.core) %in% names(lc.update)]]
     lc.update=unique(lc.update)
 
     ## splitting away mutli-links
@@ -333,11 +335,72 @@ bt_leads_core_update = function(update.df=NULL,
     #
     # lc.update=subset(lc.update,! bid %in% multi.links)
 
+
     names(lc.update)=gsub("\\.","_",names(lc.update))
+
 
     gta_sql_multiple_queries("DELETE FROM bt_leads_core_temp WHERE 1 = 1;
                               DELETE FROM bt_leads_core WHERE 1 = 1;",1)
-    dbWriteTable(conn = pool, name = "bt_leads_core_temp", value = lc.update, row.names=F, append=T, overwrite=F)
+
+    ## cleaning apostrophes
+    lc.update$act_description_en=gsub("\\'","",lc.update$act_description_en)
+    lc.update$act_title_en=gsub("\\'","",lc.update$act_title_en)
+    lc.update$act_description_ll=gsub("\\'","",lc.update$act_description_ll)
+    lc.update$act_title_ll=gsub("\\'","",lc.update$act_title_ll)
+    lc.update$acting_agency=gsub("\\'","",lc.update$acting_agency)
+
+
+    ## converting variables to SQL values
+    char.vars=c("bid", "country","country_lead", "act_title_en","act_description_en",
+                "act_url", "email_language", "background_url","acting_agency")
+    date.vars=c("collection_date","act_date")
+
+    for(var in c(char.vars, date.vars)){
+
+      eval(parse(text=paste0("lc.update$",var,"=paste0(\"'\",lc.update$",var,",\"'\")")))
+
+    }
+
+    kanji.candidates=c("act_description_ll","act_title_ll")
+
+    for(var in kanji.candidates){
+
+      if(incl.kanji){
+        eval(parse(text=paste0("lc.update$",var,"=paste0(\"N'\",lc.update$",var,",\"'\")")))
+
+      } else {
+
+        eval(parse(text=paste0("lc.update$",var,"=paste0(\"'\",lc.update$",var,",\"'\")")))
+
+      }
+
+
+    }
+
+
+    num.vars=c("act_url_official","relevant","act_values", "classify","relevance_probability", "is_covid","force_create")
+
+    for(var in  num.vars ){
+
+      eval(parse(text=paste0("lc.update$",var,"=as.numeric(lc.update$",var,")")))
+
+    }
+
+    row.values=c()
+
+    for(i in 1:nrow(lc.update)){
+      row.values=c(row.values,
+                   paste0("(",paste(lc.update[i,], collapse=","),")"))
+    }
+    row.values=paste(row.values, collapse=",")
+
+
+    row.values=gsub("NA","NULL",row.values)
+    row.values=gsub("'NULL'","NULL",row.values)
+
+    gta_sql_update_table(paste0("INSERT INTO bt_leads_core_temp(",paste(names(lc.update), collapse=","),")
+                                 VALUES ",row.values,""))
+
 
     gta_sql_multiple_queries(paste0("INSERT INTO bt_leads_core(",paste(names(lc.update), collapse=","),")
                                  SELECT ",paste(names(lc.update), collapse=","),"
