@@ -207,8 +207,6 @@ bt_sync_leads = function(){
 
 
 
-  # TO DO
-
   # (2) add site-submitted leads to b221
   site.submit=gta_sql_get_value("SELECT id, hint_id, bastiat_id AS bid, is_remove, removal_reason, jurisdiction_id
                                FROM gta_leads gl
