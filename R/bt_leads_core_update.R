@@ -278,9 +278,11 @@ bt_leads_core_update = function(update.df=NULL,
       classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
       classify$text=gsub("[^\001-\177]","",classify$text)
 
+
       classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
-                                                prediction.data.text=classify$text,
-                                                prediction.acting.agency=classify$acting.agency)
+                                               prediction.data.text=classify$text,
+                                               prediction.acting.agency=classify$acting.agency)
+
       classify$relevant=NULL
       classify$relevance.probability=NULL
       classify$text=NULL
@@ -320,7 +322,8 @@ bt_leads_core_update = function(update.df=NULL,
     leads.core=gta_sql_get_value("SELECT * FROM bt_leads_core LIMIT 1;")
 
     if(length(setdiff(names(leads.core)[! names(leads.core) %in% names(lc.update)],c("upload.id", "hint.id")))>0){
-      stop("Error: not all columns of leads.core present in input.")
+      stop(paste0("Error: not all columns of leads.core present in input. Missing: ",
+                  paste(setdiff(names(leads.core)[! names(leads.core) %in% names(lc.update)],c("upload.id", "hint.id")), collapse=";")))
     }
 
 
