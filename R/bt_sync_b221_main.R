@@ -5,7 +5,7 @@
 
 # Function infos and parameters  --------------------------------------------
 
-bt_sync_leads = function(){
+bt_sync_221_main = function(){
 
   library(gtasql)
   library(gtalibrary)
@@ -174,7 +174,7 @@ bt_sync_leads = function(){
   nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
   nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
 
-  xlsx::write.xlsx(nl.xlsx, file=paste0("BT leads - ",Sys.Date(),".xlsx"), row.names = F, showNA = F)
+  xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
   rm(nl.xlsx)
 
   ## upload in chunks
@@ -289,7 +289,7 @@ bt_sync_leads = function(){
 
 
   gta_sql_pool_close("main")
-  gta_sql_pool_close("ricdb")
+  gta_sql_pool_close()
 
 
 }
