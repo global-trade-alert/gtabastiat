@@ -96,9 +96,13 @@ bt_sync_leads = function(){
                                     AND date_type_id=3) bhdr
                               ON nh.hint_id = bhdr.hint_id
                               WHERE bhj.jurisdiction_accepted = 1
-                              AND b2ha.assessment_accepted = 1
-                              AND bhu.url_accepted=1
+                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
+                              AND (bhu.url_accepted=1)
                               AND bht.language_id=1")
+
+  ## correct for hints from collections that are already on the site
+  main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads;","main")
+  new.leads=subset(new.leads, ! bid %in% main.bid)
 
 
   ## (1b) upload into gtamain leads section
@@ -148,7 +152,7 @@ bt_sync_leads = function(){
   new.leads$source.type[new.leads$url.type.name!="official"]=4
 
   ## lead.date (R misbehving badly, hence the for loop :/ )
-  new.leads$lead.date=sys.Date()
+  new.leads$lead.date=Sys.Date()
 
   for(i in 1:nrow(new.leads)){
 
@@ -161,6 +165,17 @@ bt_sync_leads = function(){
   new.leads$lead.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]=new.leads$registration.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]
 
   new.leads=unique(new.leads)
+  Encoding(new.leads$hint.title)="UTF-8"
+  Encoding(new.leads$hint.description)="UTF-8"
+
+
+  nl.xlsx=new.leads
+  nl.xlsx$priority="yes"
+  nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
+  nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
+
+  xlsx::write.xlsx(nl.xlsx, file=paste0("BT leads - ",Sys.Date(),".xlsx"), row.names = F, showNA = F)
+  rm(nl.xlsx)
 
   ## upload in chunks
 
@@ -208,21 +223,21 @@ bt_sync_leads = function(){
 
 
   # (2) add site-submitted leads to b221
-  site.submit=gta_sql_get_value("SELECT id, hint_id, bastiat_id AS bid, is_remove, removal_reason, jurisdiction_id
-                               FROM gta_leads gl
-                               LEFT JOIN gta_lead_jurisdiction glj
-                               ON gl.id = glj.lead_id
-                               WHERE gl.fully_processed=0
-                               AND gl.bastiat_id IS NULL;", "main")
+  # site.submit=gta_sql_get_value("SELECT id, bastiat_id AS bid, is_remove, removal_reason, jurisdiction_id
+  #                              FROM gta_leads gl
+  #                              LEFT JOIN gta_lead_jurisdiction glj
+  #                              ON gl.id = glj.lead_id
+  #                              WHERE gl.bastiat_id IS NULL;", "main")
+  #
+  #
+  #
+  # # (3) check processing status for hints in state 6 and move processed leads into state 7
+  #
+  # # ... and for collections
+  #
+  #
+  # gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
 
-
-
-  # (3) check processing status for hints in state 6 and move processed leads into state 7
-
-  # ... and for collections
-
-
-gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
   ## (4) set gtamain lead priorities
   priority.time=90
   gta_sql_multiple_queries(paste0("UPDATE gta_leads SET is_priority_processing=0;
@@ -256,21 +271,21 @@ gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
   ## Record evaluation
   ## (3)
   ## fetch new evaluations and record them on bt_hint_evaluation
-  useful=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason IS NOT NULL AND removal_reason != 'IRREVELANT';", "main")
-  useless=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason = 'IRREVELANT';", "main")
-
-
-  gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
-                              SET evaluation_id=2
-                              WHERE hint_id IN (SELECT hint_id
-                                                FROM bt_hint_lead
-                                                WHERE lead_id IN(",paste(useful, collapse=","),"));"))
-
-  gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
-                              SET evaluation_id=3
-                              WHERE hint_id IN (SELECT hint_id
-                                                FROM bt_hint_lead
-                                                WHERE lead_id IN(",paste(useless, collapse=","),"));"))
+  # useful=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason IS NOT NULL AND removal_reason != 'IRREVELANT';", "main")
+  # useless=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason = 'IRREVELANT';", "main")
+  #
+  #
+  # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
+  #                             SET evaluation_id=2
+  #                             WHERE hint_id IN (SELECT hint_id
+  #                                               FROM bt_hint_lead
+  #                                               WHERE lead_id IN(",paste(useful, collapse=","),"));"))
+  #
+  # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
+  #                             SET evaluation_id=3
+  #                             WHERE hint_id IN (SELECT hint_id
+  #                                               FROM bt_hint_lead
+  #                                               WHERE lead_id IN(",paste(useless, collapse=","),"));"))
 
 
   gta_sql_pool_close("main")
