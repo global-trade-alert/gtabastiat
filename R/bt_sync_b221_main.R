@@ -105,6 +105,9 @@ bt_sync_221_main = function(){
   new.leads=subset(new.leads, ! bid %in% main.bid)
 
 
+  if(nrow(new.leads)==0){stop("No new hints.")}
+
+
   ## (1b) upload into gtamain leads section
 
 
