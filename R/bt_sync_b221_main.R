@@ -105,118 +105,119 @@ bt_sync_221_main = function(){
   new.leads=subset(new.leads, ! bid %in% main.bid)
 
 
-  if(nrow(new.leads)==0){stop("No new hints.")}
+  if(nrow(new.leads)==0){
+    stop("No new hints.")
+  } else {
+
+    ## (1b) upload into gtamain leads section
 
 
-  ## (1b) upload into gtamain leads section
+    # confirming jurisdicition IDs:
 
+    ## ensuring jurisdiciton ID correspondence
+    gta.jur=gtalibrary::country.names[,c("jurisdiction.id","name","un_code")]
+    setnames(gta.jur, "jurisdiction.id","gta.jur.id")
+    setnames(gta.jur, "un_code","un.code")
+    new.leads=merge(new.leads, gta.jur[,c("un.code","gta.jur.id")],by="un.code", all.x=T)
 
-  # confirming jurisdicition IDs:
-
-  ## ensuring jurisdiciton ID correspondence
-  gta.jur=gtalibrary::country.names[,c("jurisdiction.id","name","un_code")]
-  setnames(gta.jur, "jurisdiction.id","gta.jur.id")
-  setnames(gta.jur, "un_code","un.code")
-  new.leads=merge(new.leads, gta.jur[,c("un.code","gta.jur.id")],by="un.code", all.x=T)
-
-  ## assigning one lead jurisdiction for customs unions
-  new.leads$gta.jur.id[new.leads$jurisdiction.id==234]=230 # no jur -> Western Sahara
-  new.leads$gta.jur.id[new.leads$jurisdiction.id==235]=173 # EEU -> RUS
-  new.leads$gta.jur.id[new.leads$jurisdiction.id==236]=118 # EU -> LUX
-  new.leads$gta.jur.id[new.leads$jurisdiction.id==237]=195 # SACU -> ZAR
+    ## assigning one lead jurisdiction for customs unions
+    new.leads$gta.jur.id[new.leads$jurisdiction.id==234]=230 # no jur -> Western Sahara
+    new.leads$gta.jur.id[new.leads$jurisdiction.id==235]=173 # EEU -> RUS
+    new.leads$gta.jur.id[new.leads$jurisdiction.id==236]=118 # EU -> LUX
+    new.leads$gta.jur.id[new.leads$jurisdiction.id==237]=195 # SACU -> ZAR
 
 
 
-  new.leads$hint.description[new.leads$jurisdiction.id==235]=paste0("Eurasian Economic Union: ",new.leads$hint.description[new.leads$jurisdiction.id==235])
-  new.leads$hint.description[new.leads$jurisdiction.id==236]=paste0("European Union: ",new.leads$hint.description[new.leads$jurisdiction.id==236])
-  new.leads$hint.description[new.leads$jurisdiction.id==237]=paste0("South African Customs Union: ",new.leads$hint.description[new.leads$jurisdiction.id==237])
+    new.leads$hint.description[new.leads$jurisdiction.id==235]=paste0("Eurasian Economic Union: ",new.leads$hint.description[new.leads$jurisdiction.id==235])
+    new.leads$hint.description[new.leads$jurisdiction.id==236]=paste0("European Union: ",new.leads$hint.description[new.leads$jurisdiction.id==236])
+    new.leads$hint.description[new.leads$jurisdiction.id==237]=paste0("South African Customs Union: ",new.leads$hint.description[new.leads$jurisdiction.id==237])
 
 
-  ## forming text out of title + description
-  new.leads$hint.text=paste(paste0(new.leads$acting.agency,":   "),
-                            new.leads$hint.title,
-                            new.leads$hint.description,
-                            sep="\n")
-  new.leads$hint.text[!is.na(new.leads$date.announced)]=paste(new.leads$hint.text[!is.na(new.leads$date.announced)],
-                                                              paste0("Announcement date: " ,new.leads$date.announced[!is.na(new.leads$date.announced)]),
+    ## forming text out of title + description
+    new.leads$hint.text=paste(paste0(new.leads$acting.agency,":   "),
+                              new.leads$hint.title,
+                              new.leads$hint.description,
+                              sep="\n")
+    new.leads$hint.text[!is.na(new.leads$date.announced)]=paste(new.leads$hint.text[!is.na(new.leads$date.announced)],
+                                                                paste0("Announcement date: " ,new.leads$date.announced[!is.na(new.leads$date.announced)]),
 
-                                                    sep="\n")
-  new.leads$hint.text[!is.na(new.leads$date.implemented)]=paste(new.leads$hint.text[!is.na(new.leads$date.implemented)],
-                                                                paste0("Implementation date: " ,new.leads$date.implemented[!is.na(new.leads$date.implemented)]),
-                                                    sep="\n")
-  new.leads$hint.text[!is.na(new.leads$date.removal)]=paste(new.leads$hint.text[!is.na(new.leads$date.removal)],
-                                                            paste0("Removal date: " ,new.leads$date.removal[!is.na(new.leads$date.removal)]),
-                                                            sep="\n")
-  new.leads$hint.text=gsub("'","",new.leads$hint.text)
-  new.leads$acting.agency=gsub("'","",new.leads$acting.agency)
+                                                                sep="\n")
+    new.leads$hint.text[!is.na(new.leads$date.implemented)]=paste(new.leads$hint.text[!is.na(new.leads$date.implemented)],
+                                                                  paste0("Implementation date: " ,new.leads$date.implemented[!is.na(new.leads$date.implemented)]),
+                                                                  sep="\n")
+    new.leads$hint.text[!is.na(new.leads$date.removal)]=paste(new.leads$hint.text[!is.na(new.leads$date.removal)],
+                                                              paste0("Removal date: " ,new.leads$date.removal[!is.na(new.leads$date.removal)]),
+                                                              sep="\n")
+    new.leads$hint.text=gsub("'","",new.leads$hint.text)
+    new.leads$acting.agency=gsub("'","",new.leads$acting.agency)
 
-  ## gtamain source types
-  new.leads$source.type=1
-  new.leads$source.type[new.leads$url.type.name!="official"]=4
+    ## gtamain source types
+    new.leads$source.type=1
+    new.leads$source.type[new.leads$url.type.name!="official"]=4
 
-  ## lead.date (R misbehving badly, hence the for loop :/ )
-  new.leads$lead.date=Sys.Date()
+    ## lead.date (R misbehving badly, hence the for loop :/ )
+    new.leads$lead.date=Sys.Date()
 
-  for(i in 1:nrow(new.leads)){
+    for(i in 1:nrow(new.leads)){
 
-    new.leads$lead.date[i]=as.Date(as.numeric(min(c(as.Date(new.leads$date.announced[i]), as.Date(new.leads$date.implemented[i]), Sys.Date()),na.rm = T)), origin="1970-01-01")
-
-
-  }
-
-  new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
-  new.leads$lead.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]=new.leads$registration.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]
-
-  new.leads=unique(new.leads)
-  Encoding(new.leads$hint.title)="UTF-8"
-  Encoding(new.leads$hint.description)="UTF-8"
+      new.leads$lead.date[i]=as.Date(as.numeric(min(c(as.Date(new.leads$date.announced[i]), as.Date(new.leads$date.implemented[i]), Sys.Date()),na.rm = T)), origin="1970-01-01")
 
 
-  nl.xlsx=new.leads
-  nl.xlsx$priority="yes"
-  nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
-  nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
+    }
 
-  xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
-  rm(nl.xlsx)
+    new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
+    new.leads$lead.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]=new.leads$registration.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]
 
-  ## upload in chunks
+    new.leads=unique(new.leads)
+    Encoding(new.leads$hint.title)="UTF-8"
+    Encoding(new.leads$hint.description)="UTF-8"
 
-  for(chunk in seq(1, nrow(new.leads), 50)){
 
-    upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
+    nl.xlsx=new.leads
+    nl.xlsx$priority="yes"
+    nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
+    nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
 
-    gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
+    xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
+    rm(nl.xlsx)
+
+    ## upload in chunks
+
+    for(chunk in seq(1, nrow(new.leads), 50)){
+
+      upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
+
+      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",upload.chunk$hint.text,"','",upload.chunk$bid,"',",upload.chunk$source.type,",'",as.Date(upload.chunk$lead.date),"', CURRENT_TIMESTAMP,'",upload.chunk$acting.agency,"')"), collapse=","),";"),
-                         "main")
+                           "main")
 
-    print("leads")
-
-
-    upload.bids=gta_sql_get_value(paste0("SELECT id as lead_id, bastiat_id as bid FROM gta_leads WHERE bastiat_id IN (",paste(paste0("'",upload.chunk$bid,"'"), collapse=","),");"), "main")
-
-    upload.chunk=merge(upload.chunk, upload.bids, by="bid", all.x=T)
-
-    upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
-
-    upload.chunk=subset(upload.chunk, lead.id>=(max(upload.chunk$lead.id)-49))
+      print("leads")
 
 
-    gta_sql_update_table(paste0("INSERT INTO gta_lead_jurisdiction (lead_id, jurisdiction_id)
+      upload.bids=gta_sql_get_value(paste0("SELECT id as lead_id, bastiat_id as bid FROM gta_leads WHERE bastiat_id IN (",paste(paste0("'",upload.chunk$bid,"'"), collapse=","),");"), "main")
+
+      upload.chunk=merge(upload.chunk, upload.bids, by="bid", all.x=T)
+
+      upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
+
+      upload.chunk=subset(upload.chunk, lead.id>=(max(upload.chunk$lead.id)-49))
+
+
+      gta_sql_update_table(paste0("INSERT INTO gta_lead_jurisdiction (lead_id, jurisdiction_id)
                               VALUES ",paste(paste0("(",upload.chunk$lead.id,",",upload.chunk$gta.jur.id ,")"), collapse=","),";"),
-                         "main")
+                           "main")
 
-    print("leads jurisdictions")
+      print("leads jurisdictions")
 
-    print(chunk)
+      print(chunk)
 
-  }
+    }
 
-  ### (1c) update states of all uploaded hints to 6 (sent out)
-  gta_sql_update_table(paste0("UPDATE bt_hint_log SET hint_state_id = 6 WHERE hint_id IN (",paste(new.leads$hint.id, collapse=","),");"))
+    ### (1c) update states of all uploaded hints to 6 (sent out)
+    gta_sql_update_table(paste0("UPDATE bt_hint_log SET hint_state_id = 6 WHERE hint_id IN (",paste(new.leads$hint.id, collapse=","),");"))
 
-  # ... and for collections
-  gta_sql_update_table(paste0("UPDATE bt_hint_log SET hint_state_id = 6
+    # ... and for collections
+    gta_sql_update_table(paste0("UPDATE bt_hint_log SET hint_state_id = 6
                               WHERE hint_id IN (SELECT hint_id
                                                 FROM b221_hint_collection
                                                 WHERE collection_id IN (SELECT DISTINCT(collection_id)
@@ -225,25 +226,25 @@ bt_sync_221_main = function(){
 
 
 
-  # (2) add site-submitted leads to b221
-  # site.submit=gta_sql_get_value("SELECT id, bastiat_id AS bid, is_remove, removal_reason, jurisdiction_id
-  #                              FROM gta_leads gl
-  #                              LEFT JOIN gta_lead_jurisdiction glj
-  #                              ON gl.id = glj.lead_id
-  #                              WHERE gl.bastiat_id IS NULL;", "main")
-  #
-  #
-  #
-  # # (3) check processing status for hints in state 6 and move processed leads into state 7
-  #
-  # # ... and for collections
-  #
-  #
-  # gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
+    # (2) add site-submitted leads to b221
+    # site.submit=gta_sql_get_value("SELECT id, bastiat_id AS bid, is_remove, removal_reason, jurisdiction_id
+    #                              FROM gta_leads gl
+    #                              LEFT JOIN gta_lead_jurisdiction glj
+    #                              ON gl.id = glj.lead_id
+    #                              WHERE gl.bastiat_id IS NULL;", "main")
+    #
+    #
+    #
+    # # (3) check processing status for hints in state 6 and move processed leads into state 7
+    #
+    # # ... and for collections
+    #
+    #
+    # gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
 
-  ## (4) set gtamain lead priorities
-  priority.time=90
-  gta_sql_multiple_queries(paste0("UPDATE gta_leads SET is_priority_processing=0;
+    ## (4) set gtamain lead priorities
+    priority.time=90
+    gta_sql_multiple_queries(paste0("UPDATE gta_leads SET is_priority_processing=0;
                                    UPDATE gta_leads SET is_priority_processing=1 WHERE announcement_year>='",as.Date(Sys.Date()-priority.time),"';"),1,"main")
 
 
@@ -252,43 +253,49 @@ bt_sync_221_main = function(){
 
 
 
-  ## Syncing databases:
-  ## (1) Update processed leads in RIC
+    ## Syncing databases:
+    ## (1) Update processed leads in RIC
 
 
-  ## (2) Update processed hints in GTA
-  #### (a) declared irrelevant
-  ##### if in collection:
-  #### (b) added intervention
-  #### (c) substituted by new starred item
+    ## (2) Update processed hints in GTA
+    #### (a) declared irrelevant
+    ##### if in collection:
+    #### (b) added intervention
+    #### (c) substituted by new starred item
 
-  ### LEAD-HINT INTERCHANGE
-  ## (1)
-  ## fetch lead.ids that are not in bt_hint_lead from from gta main
-
-
-  ## (2)
-  ## Add processed hints to leads section (incl conflict resolution)
+    ### LEAD-HINT INTERCHANGE
+    ## (1)
+    ## fetch lead.ids that are not in bt_hint_lead from from gta main
 
 
-  ## Record evaluation
-  ## (3)
-  ## fetch new evaluations and record them on bt_hint_evaluation
-  # useful=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason IS NOT NULL AND removal_reason != 'IRREVELANT';", "main")
-  # useless=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason = 'IRREVELANT';", "main")
-  #
-  #
-  # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
-  #                             SET evaluation_id=2
-  #                             WHERE hint_id IN (SELECT hint_id
-  #                                               FROM bt_hint_lead
-  #                                               WHERE lead_id IN(",paste(useful, collapse=","),"));"))
-  #
-  # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
-  #                             SET evaluation_id=3
-  #                             WHERE hint_id IN (SELECT hint_id
-  #                                               FROM bt_hint_lead
-  #                                               WHERE lead_id IN(",paste(useless, collapse=","),"));"))
+    ## (2)
+    ## Add processed hints to leads section (incl conflict resolution)
+
+
+    ## Record evaluation
+    ## (3)
+    ## fetch new evaluations and record them on bt_hint_evaluation
+    # useful=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason IS NOT NULL AND removal_reason != 'IRREVELANT';", "main")
+    # useless=gta_sql_get_value("SELECT id FROM gta_leads WHERE removal_reason = 'IRREVELANT';", "main")
+    #
+    #
+    # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
+    #                             SET evaluation_id=2
+    #                             WHERE hint_id IN (SELECT hint_id
+    #                                               FROM bt_hint_lead
+    #                                               WHERE lead_id IN(",paste(useful, collapse=","),"));"))
+    #
+    # gta_sql_update_table(paste0("UPDATE bt_hint_evaluation
+    #                             SET evaluation_id=3
+    #                             WHERE hint_id IN (SELECT hint_id
+    #                                               FROM bt_hint_lead
+    #                                               WHERE lead_id IN(",paste(useless, collapse=","),"));"))
+
+
+    }
+
+
+
 
 
   gta_sql_pool_close("main")
