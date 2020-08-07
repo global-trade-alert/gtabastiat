@@ -491,6 +491,7 @@ bt_leads_core_update = function(update.df=NULL,
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
               WHERE blc.act_url IS NOT NULL;
 
               /** update bt_hint_background_url **/
@@ -606,6 +607,7 @@ bt_leads_core_update = function(update.df=NULL,
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
               WHERE blc.act_url IS NOT NULL;
 
               /** update bt_hint_background_url **/
@@ -721,6 +723,7 @@ bt_leads_core_update = function(update.df=NULL,
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
               WHERE blc.act_url IS NOT NULL;
 
               /** update bt_hint_background_url **/
