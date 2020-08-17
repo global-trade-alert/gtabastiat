@@ -531,13 +531,13 @@ bt_leads_core_update = function(update.df=NULL,
               /** English **/
               INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
@@ -649,13 +649,13 @@ bt_leads_core_update = function(update.df=NULL,
               /** English **/
               INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
@@ -767,13 +767,13 @@ bt_leads_core_update = function(update.df=NULL,
               /** English **/
               INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
