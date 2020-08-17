@@ -311,7 +311,7 @@ bt_create_estimation_data <- function(bid=NULL,
     word.score$exclusive.ir=as.numeric(word.score$word %in% subset(word.score, score.r.idf==0)$word)
 
 
-    ### ToDo: Adjust exclusiveness for probability of appearance (e.g. inverse tf-idf in own corpus (it's really rare here, too))
+    ### ToDo: Adjust exclusiveness for probability of appearance (e.g. inverse tf-idf in own corpus (=it's really rare here, too))
 
     #### Dampening features
     ## transform by natural log or square-root to smooth outliers
@@ -386,23 +386,9 @@ bt_create_estimation_data <- function(bid=NULL,
   setnames(tf.agg, "exclusive.ir","exclusive.ir.max")
 
 
-  if(is.null(evaluation)){
+  for(var in intersect(estimation.variables, c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio"))){
 
-    for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
-      eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
-      # }
-
-    }
-
-  } else {
-
-    for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
-      # if(var %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
-      eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
-      # }
-
-    }
+    eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
 
   }
 
