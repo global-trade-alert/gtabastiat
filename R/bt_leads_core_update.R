@@ -498,11 +498,11 @@ bt_leads_core_update = function(update.df=NULL,
               AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.background_url = bt_url_log.url)) new_urls;
 
               /** update bt_hint_url **/
-              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_user)
+              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_classification)
               SELECT DISTINCT blc.hint_id, bul.url_id,
               (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
               (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 1 ELSE NULL END) AS url_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 70 ELSE NULL END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN bcl.classification_id ELSE NULL END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
@@ -517,10 +517,10 @@ bt_leads_core_update = function(update.df=NULL,
               ON blc.background_url=bul.url;
 
               /* Writing into bt_hint_jurisdiction */
-              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_user)
+              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, gta_jurisdiction_list.jurisdiction_id,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS jurisdiction_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
@@ -533,10 +533,10 @@ bt_leads_core_update = function(update.df=NULL,
               WHERE bid IS NOT NULL;
 
               /* bt_hint_relevance */
-              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_user)
+              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, blc.relevant AS relevance, blc.relevance_probability,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS relevance_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
@@ -544,15 +544,17 @@ bt_leads_core_update = function(update.df=NULL,
 
               /* Writing into bt_hint_text*/
               /** English **/
-              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id)
+              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
               OR act_description_ll != 'NA') hint_text_entries;
 
@@ -614,11 +616,11 @@ bt_leads_core_update = function(update.df=NULL,
               AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.background_url = bt_url_log.url)) new_urls;
 
               /** update bt_hint_url **/
-              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_user)
+              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_classification)
               SELECT DISTINCT blc.hint_id, bul.url_id,
               (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
               (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 1 ELSE NULL END) AS url_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 70 ELSE NULL END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN bcl.classification_id ELSE NULL END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
@@ -633,10 +635,10 @@ bt_leads_core_update = function(update.df=NULL,
               ON blc.background_url=bul.url;
 
               /* Writing into bt_hint_jurisdiction */
-              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_user)
+              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, gta_jurisdiction_list.jurisdiction_id,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS jurisdiction_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
@@ -649,10 +651,10 @@ bt_leads_core_update = function(update.df=NULL,
               WHERE bid IS NOT NULL;
 
               /* bt_hint_relevance */
-              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_user)
+              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, blc.relevant AS relevance, blc.relevance_probability,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS relevance_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
@@ -660,15 +662,17 @@ bt_leads_core_update = function(update.df=NULL,
 
               /* Writing into bt_hint_text*/
               /** English **/
-              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id)
+              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
               OR act_description_ll != 'NA') hint_text_entries;
 
@@ -730,11 +734,11 @@ bt_leads_core_update = function(update.df=NULL,
               AND NOT EXISTS (SELECT NULL FROM bt_url_log WHERE blc.background_url = bt_url_log.url)) new_urls;
 
               /** update bt_hint_url **/
-              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_user)
+              INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_classification)
               SELECT DISTINCT blc.hint_id, bul.url_id,
               (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
               (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 1 ELSE NULL END) AS url_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 70 ELSE NULL END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN bcl.classification_id ELSE NULL END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
@@ -749,10 +753,10 @@ bt_leads_core_update = function(update.df=NULL,
               ON blc.background_url=bul.url;
 
               /* Writing into bt_hint_jurisdiction */
-              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_user)
+              INSERT INTO bt_hint_jurisdiction(hint_id, classification_id, jurisdiction_id, jurisdiction_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, gta_jurisdiction_list.jurisdiction_id,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS jurisdiction_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
@@ -765,10 +769,10 @@ bt_leads_core_update = function(update.df=NULL,
               WHERE bid IS NOT NULL;
 
               /* bt_hint_relevance */
-              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_user)
+              INSERT INTO bt_hint_relevance (hint_id, classification_id, relevance, relevance_probability, relevance_accepted, validation_classification)
               SELECT DISTINCT bcl.hint_id, bcl.classification_id, blc.relevant AS relevance, blc.relevance_probability,
               (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS relevance_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 70 END) AS validation_user
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id
@@ -776,15 +780,17 @@ bt_leads_core_update = function(update.df=NULL,
 
               /* Writing into bt_hint_text*/
               /** English **/
-              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id)
+              INSERT INTO bt_hint_text(hint_id, hint_title, hint_description, language_id, classification_id, description_accepted, validation_classification)
               SELECT DISTINCT * FROM
-              (SELECT hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id
+              (SELECT blc.hint_id, (CASE WHEN act_title_en IS NULL THEN '[hint without title]' ELSE act_title_en END) AS hint_title, act_description_en AS hint_description, 1 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_en != 'NA'
               OR act_description_en != 'NA'
               UNION
-              SELECT hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id
+              SELECT blc.hint_id, act_title_ll AS hint_title, act_description_ll AS hint_description, 2 AS language_id, bcl.classification_id, 1 AS description_accepted, bcl.classification_id AS validation_classification
               FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               WHERE act_title_ll != 'NA'
               OR act_description_ll != 'NA') hint_text_entries;
 
