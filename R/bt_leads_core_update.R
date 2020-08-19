@@ -943,7 +943,7 @@ bt_leads_core_update = function(update.df=NULL,
                                  FROM bt_hint_bid
                                  WHERE bid IN (",paste(paste0("'",new.col,"'"), collapse=", "),");"))
 
-        if(is.na(col.hints)){
+        if(all(is.na(col.hints))){
           stop(paste0("No hints for this BID: ", new.col))
         }
 
