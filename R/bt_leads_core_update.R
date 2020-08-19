@@ -350,6 +350,9 @@ bt_leads_core_update = function(update.df=NULL,
     #
     # lc.update=subset(lc.update,! bid %in% multi.links)
 
+    #save lc.update in its current R-friendly state for use later when processing the multi-links
+
+    lc.update.copy = lc.update
 
     names(lc.update)=gsub("\\.","_",names(lc.update))
 
@@ -824,10 +827,16 @@ bt_leads_core_update = function(update.df=NULL,
 
     print("SINGLE-LINK UPLOAD complete")
 
+    #get lc.update back in its normal formatting (w/o vars surrounded by apostrophes etc.)
+    lc.update = lc.update.copy
+    rm(lc.update.copy)
+
     ## assign collections to multi-link hints
     multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
 
     if(length(multi.links)>1){
+
+
       source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
 
 
@@ -943,7 +952,8 @@ bt_leads_core_update = function(update.df=NULL,
                                        assessment = NULL,
                                        relevance = NULL,
                                        collection.unchanged = F,
-                                       starred.hint.id = NA)
+                                       starred.hint.id = NA,
+                                       empty.attributes = T)
 
 
       }
