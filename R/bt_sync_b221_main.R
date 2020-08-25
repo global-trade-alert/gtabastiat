@@ -270,6 +270,81 @@ bt_sync_221_main = function(){
 
     ## (2)
     ## Add processed hints to leads section (incl conflict resolution)
+    leads.checked=gta_sql_get_value("SELECT bastiat_id, removal_reason
+                                 FROM gta_leads
+                                 WHERE creation_time>='2020-08-01'
+                                 AND is_remove=1","main")
+
+    hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason!="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
+
+
+    if(length(hints.relevant)>0){
+
+      gta_sql_update_table(paste("UPDATE bt_hint_log
+                                SET hint_state_id=7
+                                WHERE hint_id IN (",paste(hints.relevant, collapse=","),")"))
+
+      # ... and for collections
+      gta_sql_update_table(paste("UPDATE bt_hint_log
+                                SET hint_state_id=7
+                                WHERE hint_id IN (SELECT hint_id
+                                                  FROM b221_hint_collection
+                                                  WHERE collection_id IN (SELECT collection_id FROM b221_hint_collection
+                                                                          WHERE hint_id IN (",paste(hints.relevant, collapse=","),")))"))
+
+
+    }
+
+
+
+    hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
+
+    if(length(hints.irrelevant)>0){
+
+      gta_sql_update_table(paste("UPDATE bt_hint_log
+                                SET hint_state_id=9
+                                WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")"))
+
+      gta_sql_get_value(paste("INSERT INTO bt_hint_relevance (hint_id, relevance,classification_id, relevance_accepted, validation_classification, confirm_status)
+                              SELECT hint_id, 0 as relevance, validation_classification as classification_id, 1 as relevance_accepted, validation_classification, 0 as confirm_status
+                              FROM bt_hint_relevance
+                              WHERE relevance=1
+                              AND hint_id IN (",paste(hints.irrelevant, collapse=","),")"))
+
+      gta_sql_get_value(paste("UPDATE bt_hint_relevance
+                             SET relevance_accepted=0
+                             WHERE relevance=1
+                             AND hint_id IN (",paste(hints.irrelevant, collapse=","),")"))
+
+      # ... and for collections
+      gta_sql_update_table(paste("UPDATE bt_hint_log
+                                SET hint_state_id=9
+                                WHERE hint_id IN (SELECT hint_id
+                                                  FROM b221_hint_collection
+                                                  WHERE collection_id IN (SELECT collection_id FROM b221_hint_collection
+                                                                          WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")))"))
+
+      gta_sql_get_value(paste("INSERT INTO bt_hint_relevance (hint_id, relevance,classification_id, relevance_accepted, validation_classification, confirm_status)
+                              SELECT hint_id, 0 as relevance, validation_classification as classification_id, 1 as relevance_accepted, validation_classification, 0 as confirm_status
+                              FROM bt_hint_relevance
+                              WHERE relevance=1
+                              AND hint_id IN (SELECT hint_id
+                                              FROM b221_hint_collection
+                                              WHERE collection_id IN (SELECT collection_id FROM b221_hint_collection
+                                                                      WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")))"))
+
+      gta_sql_get_value(paste("UPDATE bt_hint_relevance
+                             SET relevance_accepted=0
+                             WHERE relevance=1
+                             AND hint_id IN (SELECT hint_id
+                                             FROM b221_hint_collection
+                                             WHERE collection_id IN (SELECT collection_id FROM b221_hint_collection
+                                                                     WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")))"))
+
+
+    }
 
 
     ## Record evaluation
