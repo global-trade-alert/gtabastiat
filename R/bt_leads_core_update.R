@@ -131,6 +131,10 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     ## URL cleanout
+
+    #get standard regex for identifying urls
+    load(file = "data/regex_url.rda")
+
     lc.update$background.url=as.character(lc.update$background.url)
     lc.update$act.url=as.character(lc.update$act.url)
 
@@ -150,7 +154,7 @@ bt_leads_core_update = function(update.df=NULL,
 
         this.act.url=unique(bt_extract_url(this.source))
 
-        url.description= str_replace_all(this.source, "((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,#!]+", "<br />[source URL]")
+        url.description= str_replace_all(this.source, regex_url)
 
         url.description=gsub("\\s+"," ", gsub("(Viewed at:?)","", url.description))
 
@@ -222,7 +226,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       if(grepl("EU-SA",lc.update$bid[i])==F){
 
-        check.url=str_extract(lc.update$act.url[i],"((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,]+")
+        check.url=str_extract(lc.update$act.url[i], regex_url)
 
         if(is.na(check.url)==F){
 

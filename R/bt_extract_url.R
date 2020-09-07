@@ -7,8 +7,8 @@
 
 bt_extract_url = function(string,
                           get.tld=F){
-
-  urls=unique(unlist(stringr::str_extract_all(string, "((https?://)|(www\\.))[A-Za-z/\\.\\-_0-9%:\\?=&\\+~,#!]+")))
+  load(file = "data/regex_url.rda")
+  urls=unique(unlist(stringr::str_extract_all(string, regex_url)))
 
   urls=gsub(",$","",urls)
 
