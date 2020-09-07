@@ -23,13 +23,23 @@ bt_update_training_data=function(update.gta.words=T,
   }
 
 
-  ## lead core &  evaluations
-  leads.core=gta_sql_get_value("SELECT *
-                             FROM bt_leads_core;",
-                               db.connection = db.connection)
-  leads.core$evaluation=NULL
+  ## Source 1: import from ricardomain
+  ### B221-based hints
+  ## variables needed: bid, acting.agency, act.title.en, act.description.en, act.values, evaluation
+
+  ### legacy leads.core (temporary patch)
+  leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
 
 
+
+  ## Source 2: Import from XLSX sent out to team members
+  team.leads=read.csv("data/training/bid training.csv", sep=";")
+  team.training=merge(leads.core, team.leads[,c("bid","evaluation")], by="bid")
+  rm(team.leads)
+
+
+  ## Source 3: import from gtamain
+  ### leads
   database="gtamain"
   gta_sql_pool_open(pool.name="main.pool",
                     db.title=database,
@@ -39,10 +49,20 @@ bt_update_training_data=function(update.gta.words=T,
                     db.password = gta_pwd(database)$password,
                     table.prefix = "bt_")
 
-  leads=gta_sql_get_value("SELECT *
+  gta.leads=gta_sql_get_value("SELECT *
                           FROM gta_leads;",
                           db.connection = "main.pool")
 
+  setnames(gta.leads, "bastiat.id", "bid")
+
+  gta.training=merge(leads.core, subset(gta.leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
+  gta.training$evaluation=1
+  gta.training$evaluation[gta.training$removal.reason=="IRREVELANT"]=0
+  gta.training$removal.reason=NULL
+  gta.training=subset(gta.training, !bid %in% team.training$bid)
+  rm(gta.leads)
+
+  ## gta text, if called for
   if(update.gta.words){
     gta.sa=gta_sql_get_value("SELECT *
                           FROM gta_measure;",
@@ -53,42 +73,42 @@ bt_update_training_data=function(update.gta.words=T,
 
   }
 
-  setnames(leads, "bastiat.id", "bid")
   gta_sql_pool_close("main.pool")
 
 
-  trained=read.csv("data/training/bid training.csv", sep=";")
-  trained=merge(leads.core, trained[,c("bid","evaluation")], by="bid")
 
-  training=merge(leads.core, subset(leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
-  training$evaluation=1
-  training$evaluation[training$removal_reason=="IRREVELANT"]=0
-  training$removal.reason=NULL
 
-  training=rbind(subset(training, !bid %in% trained$bid), trained)
-  rm(trained, leads)
-
-  ## adding those removed by Bastiat
-  removed=subset(leads.core, relevant==0 &
+  ## Source 4: those manually removed via Bastiat (i.e. assigned relevance = 0 in processing)
+  bt.training=subset(leads.core, relevant==0 &
                    grepl("(WTO)|(EU-SA)|(EIB)",bid, ignore.case = T)==F &
                    country.lead!="Vatican" &
                    grepl("dumpin",act.description.en, ignore.case = T)==F &
                    grepl("dumpin",act.title.en, ignore.case = T)==F &
-                   collection.date>="2018-11-01")
-  removed$evaluation=0
-  training=rbind(training, removed)
-  rm(removed,leads.core)
+                   collection.date>="2018-11-01" &
+                   ! bid %in% c(gta.training$bid, team.training$bid))
+  bt.training$evaluation=0
 
-  ## generating the text
+
+
+  ## PROCESSING
+  ### joining the sources
+  training=unique(rbind(team.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
+                        gta.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
+                        bt.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")]))
+  rm(team.training, gta.training, bt.training)
+
+
+  ### generating the text
   training$text=training$act.title.en
   training$text[is.na(training$act.description.en)==F]=paste(training$text[is.na(training$act.description.en)==F], training$act.description.en[is.na(training$act.description.en)==F], sep=" ")
   training$text[is.na(training$act.values)==F]=paste(training$text[is.na(training$act.values)==F], training$act.values[is.na(training$act.values)==F], sep=" ")
+  training=training[,c("bid","evaluation","text","acting.agency")]
 
-  ## processing the text
-  training=unique(training[,c("bid","evaluation","text","acting.agency")])
+  ### processing the acting agencies
   source("code/daily/infrastructure/Bastiat base.R")
   training$acting.agency[!training$acting.agency %in% agency.dummies]="Other"
 
+  ### store new data.
   save(training, file="data/classifier/training data.Rdata")
 
 
