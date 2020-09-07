@@ -154,7 +154,7 @@ bt_leads_core_update = function(update.df=NULL,
 
         this.act.url=unique(bt_extract_url(this.source))
 
-        url.description= str_replace_all(this.source, regex_url)
+        url.description= str_replace_all(this.source, regex_url, "<br />\\[source URL\\])")
 
         url.description=gsub("\\s+"," ", gsub("(Viewed at:?)","", url.description))
 
