@@ -133,7 +133,7 @@ bt_leads_core_update = function(update.df=NULL,
     ## URL cleanout
 
     #get standard regex for identifying urls
-    load(file = "data/regex_url.rda")
+    regex_url = gtabastiat::regex_url
 
     lc.update$background.url=as.character(lc.update$background.url)
     lc.update$act.url=as.character(lc.update$act.url)

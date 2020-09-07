@@ -7,7 +7,8 @@
 
 bt_extract_url = function(string,
                           get.tld=F){
-  load(file = "data/regex_url.rda")
+  regex_url = gtabastiat::regex_url
+
   urls=unique(unlist(stringr::str_extract_all(string, regex_url)))
 
   urls=gsub(",$","",urls)
