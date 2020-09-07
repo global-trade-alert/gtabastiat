@@ -47,7 +47,7 @@ bt_update_training_data=function(update.gta.words=T,
                     db.name = gta_pwd(database)$name,
                     db.user = gta_pwd(database)$user,
                     db.password = gta_pwd(database)$password,
-                    table.prefix = "bt_")
+                    table.prefix = "gta_")
 
   gta.leads=gta_sql_get_value("SELECT *
                           FROM gta_leads;",
