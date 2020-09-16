@@ -39,6 +39,15 @@ bt_leads_core_update = function(update.df=NULL,
 
     ######### CLEANING & PREPARATION
 
+    ## ad-hoc irrelevance decisions based on noisy sources
+    noise.agencies=c("Radio Petrer 107,2 fm", "Business Post",
+                     "Radio hong kong","Tek'n'Life", "Stand news",
+                     "El Pas", "StrandGazetteDe", "TV Serien News",
+                     "Corriente Alterna", "Munchen Zeitung", "hkcnews.com")
+
+    lc.update$relevant[lc.update$acting.agency %in% noise.agencies]=0
+
+
     ### trade defence country correction
 
     #USA/Canada TD cases handled by USA/Canada editor: do not send these to Vatican.
