@@ -4,6 +4,25 @@ bt_update_squad_classifier=function(update.training.data=T,
                                     detective.log="content/0 core/Classifier statistics & history.Rdata"){
   library(data.table)
   library(tidytext)
+  library(stringr)
+  library("stats")
+  library("httr")
+  library(tm)
+  library(tokenizers)
+  library(splitstackshape)
+  library(stringr)
+  library(randomForest)
+  library(xgboost)
+  library(mailR)
+  library(tidytext)
+  library(plyr)
+  library(kernlab)
+  library(class)
+  library(e1071)
+  library(udpipe)
+  library(SuperLearner)
+  library(caret)
+  source("code/daily/infrastructure/Bastiat base.R")
 
   ## updating training data
   if(update.training.data){
