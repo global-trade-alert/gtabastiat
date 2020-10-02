@@ -605,11 +605,6 @@ bt_leads_core_update = function(update.df=NULL,
               DELETE FROM bt_leads_core
               WHERE collection_date IS NULL;
 
-              /* add bt_hint_date */
-              INSERT INTO bt_hint_date(hint_id, date, date_type_id)
-              SELECT hint_id, act_date, 1 AS date_type_id
-              FROM bt_leads_core;
-
               /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
               SELECT hint_id, 70 AS user_id, 10 AS hint_state_id
@@ -656,6 +651,15 @@ bt_leads_core_update = function(update.df=NULL,
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
+
+              /* Writing into bt_hint_date */
+              INSERT INTO bt_hint_date(hint_id, date, date_type_id, classification_id, date_accepted, validation_classification)
+              SELECT DISTINCT bcl.hint_id, act_date, 1 AS date_type_id, bcl.classification_id,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS date_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
 
               /* bt_hint_bid */
@@ -723,11 +727,6 @@ bt_leads_core_update = function(update.df=NULL,
               DELETE FROM bt_leads_core
               WHERE collection_date IS NULL;
 
-              /* add bt_hint_date */
-              INSERT INTO bt_hint_date(hint_id, date, date_type_id)
-              SELECT hint_id, act_date, 1 AS date_type_id
-              FROM bt_leads_core;
-
               /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
               SELECT hint_id, 70 AS user_id, 11 AS hint_state_id
@@ -774,6 +773,15 @@ bt_leads_core_update = function(update.df=NULL,
               FROM bt_leads_core blc
               JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN gta_jurisdiction_list ON gta_jurisdiction_list.jurisdiction_name = blc.country_lead
+              JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
+
+              /* Writing into bt_hint_date */
+              INSERT INTO bt_hint_date(hint_id, date, date_type_id, classification_id, date_accepted, validation_classification)
+              SELECT DISTINCT bcl.hint_id, act_date, 1 AS date_type_id, bcl.classification_id,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS date_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
+              FROM bt_leads_core blc
+              JOIN bt_classification_log bcl ON blc.hint_id = bcl.hint_id
               JOIN bt_hint_log ON blc.hint_id = bt_hint_log.hint_id;
 
               /* bt_hint_bid */
