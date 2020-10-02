@@ -633,8 +633,8 @@ bt_leads_core_update = function(update.df=NULL,
               INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_classification)
               SELECT DISTINCT blc.hint_id, bul.url_id,
               (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 1 ELSE NULL END) AS url_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN bcl.classification_id ELSE NULL END) AS validation_classification
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS url_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
@@ -751,8 +751,8 @@ bt_leads_core_update = function(update.df=NULL,
               INSERT INTO bt_hint_url(hint_id, url_id, url_type_id, classification_id, url_accepted, validation_classification)
               SELECT DISTINCT blc.hint_id, bul.url_id,
               (CASE WHEN blc.act_url_official = 1 THEN 1 ELSE 2 END) AS url_type_id, bcl.classification_id,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN 1 ELSE NULL END) AS url_accepted,
-              (CASE WHEN bt_hint_log.hint_state_id IN (3,4,5) THEN bcl.classification_id ELSE NULL END) AS validation_classification
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE 1 END) AS url_accepted,
+              (CASE WHEN bt_hint_log.hint_state_id = 1 THEN NULL ELSE bcl.classification_id END) AS validation_classification
               FROM bt_leads_core blc
               JOIN bt_url_log bul ON blc.act_url=bul.url
               JOIN bt_classification_log bcl ON blc.hint_id=bcl.hint_id
