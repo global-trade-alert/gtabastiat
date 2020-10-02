@@ -96,7 +96,7 @@ bt_sync_221_main = function(){
                                     AND date_type_id=3) bhdr
                               ON nh.hint_id = bhdr.hint_id
                               WHERE bhj.jurisdiction_accepted = 1
-                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
+                              AND (b2ha.assessment_accepted = 1)
                               AND (bhu.url_accepted=1)
                               AND bht.language_id=1")
 
@@ -171,7 +171,7 @@ bt_sync_221_main = function(){
     new.leads=unique(new.leads)
     Encoding(new.leads$hint.title)="UTF-8"
     Encoding(new.leads$hint.description)="UTF-8"
-
+    new.leads=unique(new.leads)
 
     nl.xlsx=new.leads
     nl.xlsx$priority="yes"
