@@ -463,10 +463,6 @@ bt_leads_core_update = function(update.df=NULL,
               ON bhl.upload_id = blc.upload_id
               SET blc.hint_id = bhl.hint_id;
 
-              UPDATE bt_hint_log
-              JOIN bt_leads_core ON bt_leads_core.hint_id = bt_hint_log.hint_id AND is_covid = 1
-              SET hint_type_id=2;
-
               /* some odd NULL rows in first iteration*/
               DELETE FROM bt_leads_core
               WHERE collection_date IS NULL;
