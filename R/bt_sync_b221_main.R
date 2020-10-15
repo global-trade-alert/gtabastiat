@@ -42,7 +42,7 @@ bt_sync_221_main = function(){
   ## (1) sending entries on lift-off states to leads section
 
   # (1a) select those that are on state 3: 5 and, for those that are in collection, only use starred item.
-  new.leads=gta_sql_get_value("SELECT nh.hint_id, acting_agency, registration_date, bid, gjl.jurisdiction_id, jurisdiction_name, un_code, assessment_name,
+  new.leads=gta_sql_get_value("SELECT DISTINCT nh.hint_id, acting_agency, registration_date, bid, gjl.jurisdiction_id, jurisdiction_name, un_code, assessment_name,
                                       hint_title, hint_description, url, url_type_name, date_announced, date_implemented, date_removed
                                FROM ( SELECT bhl.hint_id, acting_agency, registration_date
                                       FROM bt_hint_log bhl
@@ -95,14 +95,14 @@ bt_sync_221_main = function(){
                                     WHERE date_accepted=1
                                     AND date_type_id=3) bhdr
                               ON nh.hint_id = bhdr.hint_id
-                              WHERE bhj.jurisdiction_accepted = 1
-                              AND (b2ha.assessment_accepted = 1)
-                              AND (bhu.url_accepted=1)
+                              WHERE (bhj.jurisdiction_accepted = 1)
+                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
+                              AND (bhu.url_accepted=1 OR bhu.url_accepted IS NULL)
                               AND bht.language_id=1")
 
   ## correct for hints from collections that are already on the site
-  main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads;","main")
-  new.leads=subset(new.leads, ! bid %in% main.bid)
+  main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads WHERE creation_time>='2020-08-01';","main")
+  new.leads=unique(subset(new.leads, ! bid %in% main.bid))
 
 
   if(nrow(new.leads)==0){
@@ -127,10 +127,20 @@ bt_sync_221_main = function(){
     new.leads$gta.jur.id[new.leads$jurisdiction.id==237]=195 # SACU -> ZAR
 
 
+    if(235 %in% unique(new.leads$jurisdiction.id)){
+      new.leads$hint.description[new.leads$jurisdiction.id==235]=paste0("Eurasian Economic Union: ",new.leads$hint.description[new.leads$jurisdiction.id==235])
+    }
 
-    new.leads$hint.description[new.leads$jurisdiction.id==235]=paste0("Eurasian Economic Union: ",new.leads$hint.description[new.leads$jurisdiction.id==235])
-    new.leads$hint.description[new.leads$jurisdiction.id==236]=paste0("European Union: ",new.leads$hint.description[new.leads$jurisdiction.id==236])
-    new.leads$hint.description[new.leads$jurisdiction.id==237]=paste0("South African Customs Union: ",new.leads$hint.description[new.leads$jurisdiction.id==237])
+
+    if(236 %in% unique(new.leads$jurisdiction.id)){
+      new.leads$hint.description[new.leads$jurisdiction.id==236]=paste0("European Union: ",new.leads$hint.description[new.leads$jurisdiction.id==236])
+    }
+
+
+    if(237 %in% unique(new.leads$jurisdiction.id)){
+      new.leads$hint.description[new.leads$jurisdiction.id==237]=paste0("South African Customs Union: ",new.leads$hint.description[new.leads$jurisdiction.id==237])
+    }
+
 
 
     ## forming text out of title + description
@@ -367,7 +377,7 @@ bt_sync_221_main = function(){
     #                                               WHERE lead_id IN(",paste(useless, collapse=","),"));"))
 
 
-    }
+  }
 
 
 
