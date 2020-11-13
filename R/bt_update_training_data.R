@@ -73,7 +73,7 @@ AND btht.hint_id = bthr.hint_id
 
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
-AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 8)
+AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9)
 AND btht.language_id = 1;")
 
   #reminder:
@@ -114,7 +114,7 @@ AND btht.language_id = 1;")
   gta.training=merge(leads.core, subset(gta.leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
   gta.training$evaluation=1
   gta.training$evaluation[gta.training$removal.reason=="IRREVELANT"]=0
-  gta.training$evaluation[gta.training$relevant==0]=1 #mark the state 8 (trash) leads as evaluated irrelevant
+  gta.training$evaluation[gta.training$relevant==0]=0 #mark the state 8 (trash) leads as evaluated irrelevant
   gta.training$removal.reason=NULL
   gta.training=subset(gta.training, !bid %in% team.training$bid)
   rm(gta.leads)
