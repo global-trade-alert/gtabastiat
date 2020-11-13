@@ -40,7 +40,7 @@ bt_update_training_data=function(update.gta.words=T,
   leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
 
   #the below sql generates a df that is the same as the old 'leads.core' using the NF tables we now use.
-
+  print("Fetching data for leads.core...")
   leads.core2=gta_sql_get_value(
   "SELECT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthr.relevance
 FROM bt_hint_log bthl,
@@ -105,6 +105,8 @@ AND btht.language_id = 1;")
                     db.password = gta_pwd(database)$password,
                     table.prefix = "gta_")
 
+  print("Fetching data from GTA leads...")
+
   gta.leads=gta_sql_get_value("SELECT *
                           FROM gta_leads;",
                           db.connection = "main.pool")
@@ -121,6 +123,7 @@ AND btht.language_id = 1;")
 
   ## gta text, if called for
   if(update.gta.words){
+    print("Fetching gta.words...")
     gta.sa=gta_sql_get_value("SELECT *
                           FROM gta_measure;",
                              db.connection = "main.pool")
