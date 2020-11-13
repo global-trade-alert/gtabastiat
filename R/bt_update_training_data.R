@@ -27,10 +27,66 @@ bt_update_training_data=function(update.gta.words=T,
   ### B221-based hints
   ## variables needed: bid, acting.agency, act.title.en, act.description.en, act.values, evaluation
 
+  leads.core.columns = c("bid",
+                         "acting.agency",
+                         "act.title.en",
+                         "act.description.en",
+                         "act.values",
+                         "collection.date",
+                         "country.lead",
+                         "relevant")
+
   ### legacy leads.core (temporary patch)
   leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
 
+  #the below sql generates a df that is the same as the old 'leads.core' using the NF tables we now use.
 
+  leads.core2=gta_sql_get_value(
+  "SELECT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthr.relevance
+FROM bt_hint_log bthl,
+	bt_hint_bid btbid,
+	bt_hint_text btht,
+	bt_hint_date bthd,
+	bt_hint_jurisdiction bthj,
+	bt_jurisdiction_list btjl,
+	bt_hint_relevance bthr
+
+WHERE bthl.hint_id = btbid.hint_id
+AND bthl.hint_id = bthd.hint_id
+AND bthl.hint_id = bthj.hint_id
+AND bthl.hint_id = btht.hint_id
+AND bthl.hint_id = bthr.hint_id
+
+AND btbid.hint_id = bthd.hint_id
+AND btbid.hint_id = bthj.hint_id
+AND btbid.hint_id = btht.hint_id
+AND btbid.hint_id = bthr.hint_id
+
+AND bthd.hint_id = bthj.hint_id
+AND bthd.hint_id = btht.hint_id
+AND bthd.hint_id = bthr.hint_id
+
+AND bthj.hint_id = btht.hint_id
+AND bthj.hint_id = bthr.hint_id
+
+AND btht.hint_id = bthr.hint_id
+
+AND bthj.jurisdiction_id = btjl.jurisdiction_id
+
+AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 8)
+AND btht.language_id = 1;")
+
+  #reminder:
+  #state 7 = processed by editors
+  #state 8 = entered trash bin i.e. not relevant
+
+  #rename the cols to match leads.core
+  colnames(leads.core2) = leads.core.columns
+
+
+  leads.core = rbind(leads.core, leads.core2)
+
+  rm(leads.core2)
 
   ## Source 2: Import from XLSX sent out to team members
   team.leads=read.csv("data/training/bid training.csv", sep=";")
@@ -58,6 +114,7 @@ bt_update_training_data=function(update.gta.words=T,
   gta.training=merge(leads.core, subset(gta.leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
   gta.training$evaluation=1
   gta.training$evaluation[gta.training$removal.reason=="IRREVELANT"]=0
+  gta.training$evaluation[gta.training$relevant==0]=1 #mark the state 8 (trash) leads as evaluated irrelevant
   gta.training$removal.reason=NULL
   gta.training=subset(gta.training, !bid %in% team.training$bid)
   rm(gta.leads)
