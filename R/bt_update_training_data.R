@@ -40,7 +40,7 @@ bt_update_training_data=function(update.gta.words=T,
   leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
 
   #the below sql generates a df that is the same as the old 'leads.core' using the NF tables we now use.
-  print("Fetching data for leads.core...")
+  print("Fetching data for leads.core... (this may take several minutes)")
   leads.core2=gta_sql_get_value(
   "SELECT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthr.relevance
 FROM bt_hint_log bthl,
@@ -174,6 +174,8 @@ AND btht.language_id = 1;")
 
   ## Creating file for GTA word frequencies
   if(update.gta.words){
+
+    library(stopwords)
 
     title=unique(gta.sa[,c("id","title")])
     # title$title=iconv(title$title, from="ANSI_X3.4-1986", to="UTF-8")
