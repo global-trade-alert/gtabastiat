@@ -428,6 +428,11 @@ bt_create_estimation_data <- function(bid=NULL,
   ## keywords
  if(detective.characteristics$vars.incl.keywords){
    print("Generating keyword-related variables ...")
+
+   #this causes an error if you don't set the locale when run on the server due to some encoding problem.
+
+   Sys.setlocale(category = "LC_ALL", locale = "C")
+
    keyword.variables=b_process_keywords(bid=aggregate.variables$bid,
                                         text=aggregate.variables$text)
 
