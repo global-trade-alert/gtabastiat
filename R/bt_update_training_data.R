@@ -34,59 +34,49 @@ bt_update_training_data=function(update.gta.words=T,
                          "act.values",
                          "collection.date",
                          "country.lead",
-                         "relevant")
-
-  ### legacy leads.core (temporary patch)
-  leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
+                         "evaluation")
 
   #the below sql generates a df that is the same as the old 'leads.core' using the NF tables we now use.
-  print("Fetching data for leads.core... (this may take several minutes)")
+  print("Fetching data for leads.core2...")
   leads.core2=gta_sql_get_value(
-  "SELECT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthr.relevance
+    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthl.hint_state_id
 FROM bt_hint_log bthl,
 	bt_hint_bid btbid,
 	bt_hint_text btht,
-	bt_hint_date bthd,
 	bt_hint_jurisdiction bthj,
-	bt_jurisdiction_list btjl,
-	bt_hint_relevance bthr
+	bt_jurisdiction_list btjl
 
 WHERE bthl.hint_id = btbid.hint_id
-AND bthl.hint_id = bthd.hint_id
-AND bthl.hint_id = bthj.hint_id
 AND bthl.hint_id = btht.hint_id
-AND bthl.hint_id = bthr.hint_id
+AND bthl.hint_id = bthj.hint_id
 
-AND btbid.hint_id = bthd.hint_id
 AND btbid.hint_id = bthj.hint_id
 AND btbid.hint_id = btht.hint_id
-AND btbid.hint_id = bthr.hint_id
-
-AND bthd.hint_id = bthj.hint_id
-AND bthd.hint_id = btht.hint_id
-AND bthd.hint_id = bthr.hint_id
 
 AND bthj.hint_id = btht.hint_id
-AND bthj.hint_id = bthr.hint_id
-
-AND btht.hint_id = bthr.hint_id
 
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
-AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9)
-AND btht.language_id = 1;")
+AND btht.language_id = 1
+AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9);")
 
   #reminder:
   #state 7 = processed by editors
   #state 8 = entered trash bin i.e. not relevant
 
-  #rename the cols to match leads.core
+  leads.core2$evaluation = leads.core2$hint.state.id == 7
+  leads.core2$hint.state.id = NULL
+
+  #rename the cols to match leads.core etc
   colnames(leads.core2) = leads.core.columns
 
 
-  leads.core = rbind(leads.core, leads.core2)
+  ### legacy leads.core (temporary patch)
+  leads.core=gta_sql_get_value("SELECT bid, acting_agency, act_title_en, act_description_en, act_values, collection_date, country_lead, relevant FROM bt_leads_core_200421;")
 
-  rm(leads.core2)
+
+
+
 
   ## Source 2: Import from XLSX sent out to team members
   team.leads=read.csv("data/training/bid training.csv", sep=";")
@@ -152,10 +142,12 @@ AND btht.language_id = 1;")
 
   ## PROCESSING
   ### joining the sources
-  training=unique(rbind(team.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
+  training=unique(rbind(leads.core2[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
+                        team.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
                         gta.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")],
                         bt.training[,c("bid","evaluation","act.title.en","act.description.en", "act.values","acting.agency")]))
-  rm(team.training, gta.training, bt.training)
+
+  rm(leads.core2, team.training, gta.training, bt.training)
 
 
   ### generating the text
