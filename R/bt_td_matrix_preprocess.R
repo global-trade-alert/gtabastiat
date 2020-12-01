@@ -23,7 +23,9 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, as.df=
   
   library(keras)
   
-  tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(text)
+  if(!exists("mrs.hudson.tokeniser")){
+    stop("Mrs Hudson's text tokeniser not loaded! Text cannot be tokenised for preprocessing.")
+  }
   
   text_seqs = texts_to_sequences(tokeniser, text)
   padded = text_seqs %>% pad_sequences(maxlen = max_length)

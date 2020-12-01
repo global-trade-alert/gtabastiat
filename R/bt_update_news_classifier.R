@@ -18,7 +18,7 @@
 bt_update_news_classifier = function(db.connection=NULL,
                                      show.text.summary=T,
                                      create.training.testing.split=F,
-                                     training.testing.split = 0.8){
+                                     training.testing.split = 0.9){
   
   
   #ML packages
@@ -80,7 +80,7 @@ AND bthj.hint_id = btht.hint_id
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
 AND btht.language_id = 1
-AND (bthl.hint_state_id IN (6, 7, 8, 9))
+AND (bthl.hint_state_id IN (2, 5, 6, 7, 8, 9))
 AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
   
   gta_sql_pool_close()
@@ -105,12 +105,21 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
   training.b221.full = data.frame(bid = leads.core.b221$bid,
                                   text = paste(leads.core.b221$acting.agency, leads.core.b221$hint.title, leads.core.b221$hint.description),
                                   acting.agency = leads.core.b221$acting.agency,
-                                  evaluation = leads.core.b221$hint.state.id == 6 | leads.core.b221$hint.state.id == 7
+                                  evaluation = leads.core.b221$hint.state.id %in% c(2, 5, 6, 7)
   )
   
   #in case there are duplicates
   training.b221.full = subset(training.b221.full, !duplicated(training.b221.full$bid))
   
+  
+  #show summary of the text
+  if(show.text.summary){
+    print("Summary of training corpus documents word counts:")
+    training.b221.full$text %>% 
+      strsplit(" ") %>% 
+      sapply(length) %>% 
+      summary()
+  }
   
   
   #random ids to separate into training/testing sets (if desired)
@@ -129,21 +138,12 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
   }
   
   
-  #show summary of the text
-  if(show.text.summary){
-    print("Summary of training corpus documents word counts:")
-    training.b221.full$text %>% 
-      strsplit(" ") %>% 
-      sapply(length) %>% 
-      summary()
-  }
-  
   #parameters
   num_words = 15000 #vocab size (def = 10k)
   max_length = 100 #length of each item. longer will be chopped. shorter will be zero-padded
   
   
- 
+  
   #This is now in a separate function.
   
   
@@ -165,10 +165,14 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
   # }
   
   
-  #x is our sparse vector TD matrix
+  #x is our sparse vector TD matrix this ensures the same tokeniser is used each
+  #time when evaluating new leads - i.e. that the same words will have the same
+  #values assigned to them
+  mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(training.b221$text)
+  
   x.train = bt_td_matrix_preprocess(num_words = num_words, 
-                                                  max_length = max_length, 
-                                                  text = training.b221$text)
+                                    max_length = max_length, 
+                                    text = training.b221$text)
   
   set.seed(100)
   x.train$evaluation = as.factor(training.b221$evaluation)
@@ -176,9 +180,9 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
   print("Creating new model...")
   mrs.hudson.model = randomForest(evaluation ~ ., data=x.train)
   
-  model.file.name = paste0("content/0 core/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson.Rdata")
-  print(paste("New model created! Saving to", model.file.name))
-  save(mrs.hudson.model, file = model.file.name)
+  mrs.hudson.file.name = paste0("content/0 core/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson.Rdata")
+  print(paste("New model created! Saving to", mrs.hudson.file.name))
+  save(mrs.hudson.model, mrs.hudson.tokeniser, file = mrs.hudson.file.name)
   
   #testing
   if(create.training.testing.split){
@@ -187,7 +191,7 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
                                      text = testing.b221$text)
     
     x.test$evaluation = as.factor(testing.b221$evaluation)
-    predictRF = predict(rf.model.b221, newdata=x.test)
+    predictRF = predict(mrs.hudson.model, newdata=x.test)
     table(x.test$evaluation, predictRF)
     
     testing.b221 = cbind(testing.b221, predictRF)

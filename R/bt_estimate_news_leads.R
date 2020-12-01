@@ -8,7 +8,7 @@
 #' @references www.globaltradealert.org
 #' @Author Callum Campbell for Global Trade Alert.
 #'   
-bt_evaluate_news_leads = function(leads.core.news){
+bt_estimate_news_leads = function(leads.core.news){
   
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     stop("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
@@ -16,11 +16,12 @@ bt_evaluate_news_leads = function(leads.core.news){
   
   library(randomForest)
   
+  #load the model and the tokeniser
   classifiers = paste0("content/0 core/", list.files(path = "content/0 core"))
   
-  mrs.hudson.model.file = classifiers[grepl("Mrs Hudson", classifiers)][1]
+  mrs.hudson.file.name = classifiers[grepl("Mrs Hudson", classifiers)][1]
 
-  load(file = mrs.hudson.model.file)
+  load(file = mrs.hudson.file.name)
   
   acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))]
   act.title.en = leads.core.news[,match("act.title.en", colnames(leads.core.news))]
