@@ -13,23 +13,23 @@
 #' @return sparse document TD matrix, as a dataframe, or matrix if as.df=F
 #' @references www.globaltradealert.org
 #' @Author Callum Campbell for Global Trade Alert
-#'   
+#'
 
 bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, as.df=T){
-  
+
   #keras is very good at this. for reference:
   #https://rdrr.io/cran/keras/man/text_tokenizer.html
-  
-  
+
+
   library(keras)
-  
+
   if(!exists("mrs.hudson.tokeniser")){
     stop("Mrs Hudson's text tokeniser not loaded! Text cannot be tokenised for preprocessing.")
   }
-  
-  text_seqs = texts_to_sequences(tokeniser, text)
+
+  text_seqs = texts_to_sequences(mrs.hudson.tokeniser, text)
   padded = text_seqs %>% pad_sequences(maxlen = max_length)
-  
+
   if(as.df){
     return(as.data.frame(padded))
   } else {

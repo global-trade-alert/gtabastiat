@@ -5,8 +5,7 @@
 #' Syncs your local library with our latest GTA GitHub release.
 #'
 #' @return Be up to date with our latest functions.
-#' @references www.globaltradealert.org
-#' @author Global Trade Alert
+
 
 bt_leads_core_update = function(update.df=NULL,
                                 exclude.by="act.url",
@@ -14,7 +13,8 @@ bt_leads_core_update = function(update.df=NULL,
                                 force.create=F,
                                 set.official=T,
                                 destination="b221",
-                                incl.kanji=F){
+                                incl.kanji=F,
+                                invoke.mrs.hudson=F){
 
   if(! destination %in% c("parking","b221","leads")){
     stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
@@ -286,7 +286,25 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
 
+    #Mrs Hudson
+    #Use on leads from google news search and reuters.
+    if(invoke.mrs.hudson){
 
+      #add col with the rating
+      lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update)
+
+      #in the SQL later on, leads that are is.covid = 0 and relevant = 0 are
+      #sent directly to state 8
+      lc.update$relevant[lc.update$mrs.hudson.rating==0] = 0
+      lc.update$is.covid[lc.update$mrs.hudson.rating==0] = 0
+
+      #ensure classify = 0 for good measure
+      lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
+
+      #remove column
+      lc.update$mrs.hudson.rating = NULL
+
+    }
 
 
     ## classifying results
