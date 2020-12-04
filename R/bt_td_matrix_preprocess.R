@@ -25,7 +25,7 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, as.df=
   current.wd = getwd()
   setwd("content/0 core/Mrs Hudson/")
 
-  mrs.hudson.tokeniser.list = list.files()[grepl("Mrs Hudson tokeniser", classifiers)]
+  mrs.hudson.tokeniser.list = list.files()[grepl("Mrs Hudson tokeniser", list.files())]
   mrs.hudson.tokeniser.file.name = mrs.hudson.tokeniser.list[length(mrs.hudson.tokeniser.list)]
   mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
 
