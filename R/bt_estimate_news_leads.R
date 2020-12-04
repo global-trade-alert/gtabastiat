@@ -13,7 +13,7 @@ bt_estimate_news_leads = function(leads.core.news, confidence.interval = 0.5){
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     stop("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
   }
-  library(keras)
+
   library(randomForest)
 
   #load the most recent model and the tokeniser
@@ -23,16 +23,6 @@ bt_estimate_news_leads = function(leads.core.news, confidence.interval = 0.5){
   mrs.hudson.model.list = classifiers[grepl("Mrs Hudson model", classifiers)]
   mrs.hudson.model.file.name = mrs.hudson.model.list[length(mrs.hudson.model.list)]
   load(mrs.hudson.model.file.name)
-
-  #load tokeniser. load_text_tokeniser has to setwd() first for it to work annoyingly
-  current.wd = getwd()
-  setwd("content/0 core/Mrs Hudson/")
-
-  mrs.hudson.tokeniser.list = list.files()[grepl("Mrs Hudson tokeniser", classifiers)]
-  mrs.hudson.tokeniser.file.name = mrs.hudson.tokeniser.list[length(mrs.hudson.tokeniser.list)]
-  mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
-
-  setwd(current.wd)
 
   #construct text
   acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))]
