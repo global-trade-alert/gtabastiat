@@ -14,8 +14,8 @@ bt_leads_core_update = function(update.df=NULL,
                                 set.official=T,
                                 destination="b221",
                                 incl.kanji=F,
-                                invoke.mrs.hudson=F,
-                                mrs.hudson.confidence.interval=0.5){
+                                invoke.mrs.hudson=T,
+                                mrs.hudson.confidence.interval=0.25){
 
   if(! destination %in% c("parking","b221","leads")){
     stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
@@ -289,7 +289,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     #Mrs Hudson
     #Use on leads from google news search and reuters.
-    if(invoke.mrs.hudson){
+    if(invoke.mrs.hudson & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))){
 
       #add col with the rating
       lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update, mrs.hudson.confidence.interval)
