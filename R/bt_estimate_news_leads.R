@@ -13,7 +13,7 @@ bt_estimate_news_leads = function(leads.core.news, confidence.interval = 0.5){
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     stop("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
   }
-
+  library(keras)
   library(randomForest)
 
   #load the most recent model and the tokeniser
