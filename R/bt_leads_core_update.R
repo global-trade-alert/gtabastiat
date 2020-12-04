@@ -14,7 +14,8 @@ bt_leads_core_update = function(update.df=NULL,
                                 set.official=T,
                                 destination="b221",
                                 incl.kanji=F,
-                                invoke.mrs.hudson=F){
+                                invoke.mrs.hudson=F,
+                                mrs.hudson.confidence.interval=0.5){
 
   if(! destination %in% c("parking","b221","leads")){
     stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
@@ -291,7 +292,7 @@ bt_leads_core_update = function(update.df=NULL,
     if(invoke.mrs.hudson){
 
       #add col with the rating
-      lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update)
+      lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update, mrs.hudson.confidence.interval)
 
       #in the SQL later on, leads that are is.covid = 0 and relevant = 0 are
       #sent directly to state 8
