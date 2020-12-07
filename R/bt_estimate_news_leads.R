@@ -2,13 +2,16 @@
 #'
 #' @param leads.core.news A dataframe of leads in the standard format. Requires
 #'   acting.agency, act.title.en, act.description.en
+#' @param keep.results.ratio what fraction of the results you want to keep. 1 =
+#'   keep all, 0 = discard all. the ones with lowest relevance prob will be
+#'   discarded.
 #'
 #' @return A vector of Mrs. Hudson's predictions.
 #'
 #' @references www.globaltradealert.org
 #' @Author Callum Campbell for Global Trade Alert.
 #'
-bt_estimate_news_leads = function(leads.core.news, confidence.interval = 0.5){
+bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     stop("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
@@ -40,7 +43,10 @@ bt_estimate_news_leads = function(leads.core.news, confidence.interval = 0.5){
 
 
   predictRF = as.data.frame(predictRF)
-  return(sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.interval))
+
+  confidence.quantile = quantile(predictRF$`TRUE`, keep.results.ratio)
+
+  return(sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.quantile))
 
   #below was for 'response' prediction type, now is superseded
   #for some reason casting directly to numeric gives 1s and 2s

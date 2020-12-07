@@ -80,8 +80,9 @@ AND bthj.hint_id = btht.hint_id
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
 AND btht.language_id = 1
-AND (bthl.hint_state_id IN (2, 5, 6, 7, 8, 9))
-AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
+AND (bthl.hint_state_id IN (2, 5, 6, 7, 8))
+AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
+AND (bthl.hint_id < 250000);")
 
   gta_sql_pool_close()
 
@@ -172,7 +173,8 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
 
   x.train = bt_td_matrix_preprocess(num_words = num_words,
                                     max_length = max_length,
-                                    text = training.b221$text)
+                                    text = training.b221$text,
+                                    tokeniser = mrs.hudson.tokeniser)
 
   set.seed(100)
   x.train$evaluation = as.factor(training.b221$evaluation)
@@ -182,7 +184,7 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
 
   #tokeniser must be saved with the specific function.
   mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
-  mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser.Rdata")
+  mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
 
   print(paste("New model created! Saving to", mrs.hudson.model.file.name))
 
@@ -196,8 +198,8 @@ AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%');")
                                      text = testing.b221$text)
 
     x.test$evaluation = as.factor(testing.b221$evaluation)
-    predictRF = predict(mrs.hudson.model, newdata=x.test)
-    table(x.test$evaluation, predictRF)
+    predictRF = as.logical(predict(mrs.hudson.model, newdata=x.test))
+    #table(x.test$evaluation, predictRF)
 
     testing.b221 = cbind(testing.b221, predictRF)
     testing.b221$correct.rf = testing.b221$evaluation == testing.b221$predictRF
