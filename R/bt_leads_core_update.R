@@ -14,7 +14,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 set.official=T,
                                 destination="b221",
                                 incl.kanji=F,
-                                invoke.mrs.hudson=F,
+                                invoke.mrs.hudson=T,
                                 keep.results.ratio=0.95){
 
   if(! destination %in% c("parking","b221","leads")){
