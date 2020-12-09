@@ -44,7 +44,7 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95){
 
   predictRF = as.data.frame(predictRF)
 
-  confidence.quantile = quantile(predictRF$`TRUE`, keep.results.ratio)
+  confidence.quantile = quantile(predictRF$`TRUE`, 1-keep.results.ratio)
 
   return(sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.quantile))
 
