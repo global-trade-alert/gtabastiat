@@ -99,7 +99,7 @@ bt_sync_221_main = function(){
                               AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
                               LEFT JOIN b221_assessment_list b2al
                               ON b2ha.assessment_id=b2al.assessment_id
-                              LEFT JOIN bt_hint_text bht
+                              INNER JOIN bt_hint_text bht
                               ON nh.hint_id = bht.hint_id
                               AND bht.language_id=1
                               LEFT JOIN bt_hint_url bhu
