@@ -81,31 +81,38 @@ bt_sync_221_main = function(){
                               AND bhj.jurisdiction_accepted = 1
                               LEFT JOIN gta_jurisdiction_list gjl
                               ON bhj.jurisdiction_id = gjl.jurisdiction_id
-                              INNER JOIN (
-                              	SELECT bal.hint_id AS hint_id, bal.assessment_id AS assessment_id, bal.assessment_accepted 
-                  								FROM b221_hint_assessment bal
-                  								INNER JOIN (
-                  								    SELECT hint_id, assessment_id, MAX(classification_id) AS classification_id
-                  								    FROM b221_hint_assessment
-                  								    WHERE assessment_accepted = 1
-                  								    GROUP BY hint_id
-                  								) bal2 ON bal.classification_id = bal2.classification_id
+                              LEFT JOIN (
+                                SELECT bal.hint_id AS hint_id, bal.assessment_id AS assessment_id, bal.assessment_accepted 
+                    								FROM b221_hint_assessment bal
+                    								INNER JOIN (
+                    								    SELECT hint_id, assessment_id, MAX(classification_id) AS classification_id
+                    								    FROM b221_hint_assessment
+                    								    WHERE assessment_accepted = 1 OR (hint_id IN (SELECT hint_id
+                    								    	FROM b221_hint_assessment bhint 
+                    								    	WHERE bhint.assessment_accepted IS NULL 
+                    								    	GROUP BY bhint.hint_id HAVING COUNT(DISTINCT bhint.hint_id) = 1))
+                    								    GROUP BY hint_id
+                    								) bal2 ON bal.classification_id = bal2.classification_id
+                    								AND (bal.assessment_accepted = 1 OR bal.assessment_accepted IS NULL)
                               ) b2ha
                               ON nh.hint_id = b2ha.hint_id
-                              AND (b2ha.assessment_accepted = 1 OR (b2ha.assessment_accepted != 1 AND b2ha.assessment_accepted IS NULL))
+                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
                               LEFT JOIN b221_assessment_list b2al
                               ON b2ha.assessment_id=b2al.assessment_id
-                              INNER JOIN bt_hint_text bht
+                              LEFT JOIN bt_hint_text bht
                               ON nh.hint_id = bht.hint_id
                               AND bht.language_id=1
                               LEFT JOIN bt_hint_url bhu
                               ON nh.hint_id = bhu.hint_id
-                              AND (bhu.url_accepted=1 OR (bhu.url_accepted != 1 AND bhu.url_accepted IS NULL))
+                              AND (bhu.url_accepted=1 OR (bhu.hint_id IN (SELECT bhu2.hint_id
+          											FROM bt_hint_url bhu2
+          											WHERE bhu2.url_accepted IS NULL 
+          											GROUP BY bhu2.hint_id HAVING COUNT(DISTINCT bhu2.hint_id) = 1)))
                               LEFT JOIN bt_url_log bul
                               ON bhu.url_id = bul.url_id
                               LEFT JOIN bt_url_type_list butl
                               ON bhu.url_type_id = butl.url_type_id
-              							  INNER JOIN (
+              							  LEFT JOIN (
                 							  SELECT a.hint_id AS hint_id, a.date AS date, a.date_type_id AS date_type_id, a.date_accepted AS date_accepted
                   								FROM bt_hint_date a
                   								INNER JOIN (
