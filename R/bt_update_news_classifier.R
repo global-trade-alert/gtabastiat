@@ -28,7 +28,7 @@ bt_update_news_classifier = function(db.connection=NULL,
   #gta packages
   library(gtasql)
   library(gtabastiat)
-  #library(gtalibrary)
+  library(gtalibrary)
 
   #sql packages
   library(xml2)
@@ -80,7 +80,7 @@ AND bthj.hint_id = btht.hint_id
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
 AND btht.language_id = 1
-AND (bthl.hint_state_id IN (2, 5, 6, 7, 8))
+AND (bthl.hint_state_id IN (5, 6, 7, 8))
 AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
 AND (bthl.hint_id < 250000);")
 
@@ -145,7 +145,7 @@ AND (bthl.hint_id < 250000);")
 
 
 
-  #This is now in a separate function.
+  #The tokeniser is now in a separate function.
 
 
   #tokenising the words. this overcomes the encoding problems because I preprocess
@@ -176,7 +176,9 @@ AND (bthl.hint_id < 250000);")
                                     text = training.b221$text,
                                     tokeniser = mrs.hudson.tokeniser)
 
-  set.seed(100)
+  #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
+  #i used the number of mrs hudson's house here ;)
+  set.seed(221)
   x.train$evaluation = as.factor(training.b221$evaluation)
 
   print("Creating new model...")
@@ -195,13 +197,15 @@ AND (bthl.hint_id < 250000);")
   if(create.training.testing.split){
     x.test = bt_td_matrix_preprocess(num_words = num_words,
                                      max_length = max_length,
-                                     text = testing.b221$text)
+                                     text = testing.b221$text,
+                                     tokeniser = mrs.hudson.tokeniser)
 
     x.test$evaluation = as.factor(testing.b221$evaluation)
-    predictRF = as.logical(predict(mrs.hudson.model, newdata=x.test))
+    predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test, type = "prob"))
     #table(x.test$evaluation, predictRF)
 
     testing.b221 = cbind(testing.b221, predictRF)
+    testing.b221$predictRF = testing.b221$`TRUE` > quantile(testing.b221$`TRUE`, 0.1)
     testing.b221$correct.rf = testing.b221$evaluation == testing.b221$predictRF
 
     pr.metrics=bt_generate_pr_metrics(model.prediction = testing.b221$predictRF,
