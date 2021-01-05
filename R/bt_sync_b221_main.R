@@ -43,7 +43,10 @@ bt_sync_221_main = function(){
 
   # (1a) select those that are on state 3: 5 and, for those that are in collection, only use starred item.
   new.leads=gta_sql_get_value("SELECT DISTINCT nh.hint_id, acting_agency, registration_date, bid, gjl.jurisdiction_id, jurisdiction_name, un_code, assessment_name,
-                                      hint_title, hint_description, url, url_type_name, date_announced, date_implemented, date_removed
+                                      hint_title, hint_description, url, url_type_name,
+                                      MAX(IF(bhda2.date_type_id = 1, bhda2.date, NULL )) AS date_announced,
+                    									MAX(IF(bhda2.date_type_id = 2, bhda2.date, NULL )) AS date_implemented,
+                    									MAX(IF(bhda2.date_type_id = 3, bhda2.date, NULL )) AS date_removed
                                FROM ( SELECT bhl.hint_id, acting_agency, registration_date
                                       FROM bt_hint_log bhl
                                       WHERE NOT EXISTS (SELECT NULL FROM b221_hint_collection WHERE  b221_hint_collection.hint_id = bhl.hint_id)
@@ -64,41 +67,63 @@ bt_sync_221_main = function(){
                                       ) nh
                               LEFT JOIN bt_hint_bid bhb
                               on nh.hint_id = bhb.hint_id
-                              LEFT JOIN bt_hint_jurisdiction bhj
+                              INNER JOIN (
+                              SELECT bhj2.hint_id AS hint_id, bhj2.jurisdiction_id AS jurisdiction_id, bhj2.jurisdiction_accepted AS jurisdiction_accepted
+                								FROM bt_hint_jurisdiction bhj2
+                								INNER JOIN (
+                								    SELECT hint_id, jurisdiction_id, MAX(classification_id) AS classification_id
+                								    FROM bt_hint_jurisdiction
+                								    WHERE jurisdiction_accepted = 1
+                								    GROUP BY hint_id
+                								) bhj3 ON bhj2.classification_id = bhj3.classification_id
+                						    	) bhj
                               ON nh.hint_id = bhj.hint_id
+                              AND bhj.jurisdiction_accepted = 1
                               LEFT JOIN gta_jurisdiction_list gjl
                               ON bhj.jurisdiction_id = gjl.jurisdiction_id
-                              LEFT JOIN b221_hint_assessment b2ha
+                              LEFT JOIN (
+                                SELECT bal.hint_id AS hint_id, bal.assessment_id AS assessment_id, bal.assessment_accepted 
+                    								FROM b221_hint_assessment bal
+                    								INNER JOIN (
+                    								    SELECT hint_id, assessment_id, MAX(classification_id) AS classification_id
+                    								    FROM b221_hint_assessment
+                    								    WHERE assessment_accepted = 1 OR (hint_id IN (SELECT hint_id
+                    								    	FROM b221_hint_assessment bhint 
+                    								    	WHERE bhint.assessment_accepted IS NULL 
+                    								    	GROUP BY bhint.hint_id HAVING COUNT(DISTINCT bhint.hint_id) = 1))
+                    								    GROUP BY hint_id
+                    								) bal2 ON bal.classification_id = bal2.classification_id
+                    								AND (bal.assessment_accepted = 1 OR bal.assessment_accepted IS NULL)
+                              ) b2ha
                               ON nh.hint_id = b2ha.hint_id
+                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
                               LEFT JOIN b221_assessment_list b2al
                               ON b2ha.assessment_id=b2al.assessment_id
-                              LEFT JOIN bt_hint_text bht
+                              INNER JOIN bt_hint_text bht
                               ON nh.hint_id = bht.hint_id
+                              AND bht.language_id=1
                               LEFT JOIN bt_hint_url bhu
                               ON nh.hint_id = bhu.hint_id
+                              AND (bhu.url_accepted=1 OR (bhu.hint_id IN (SELECT bhu2.hint_id
+          											FROM bt_hint_url bhu2
+          											WHERE bhu2.url_accepted IS NULL 
+          											GROUP BY bhu2.hint_id HAVING COUNT(DISTINCT bhu2.hint_id) = 1)))
                               LEFT JOIN bt_url_log bul
                               ON bhu.url_id = bul.url_id
                               LEFT JOIN bt_url_type_list butl
                               ON bhu.url_type_id = butl.url_type_id
-                              LEFT JOIN (SELECT hint_id, date AS date_announced
-                                    FROM bt_hint_date
-                                    WHERE date_accepted=1
-                                    AND date_Type_id=1) bhda
-                              ON nh.hint_id = bhda.hint_id
-                              LEFT JOIN (SELECT hint_id, date AS date_implemented
-                                    FROM bt_hint_date
-                                    WHERE date_accepted=1
-                                    AND date_type_id=2) bhdi
-                              ON nh.hint_id = bhdi.hint_id
-                              LEFT JOIN (SELECT hint_id, date AS date_removed
-                                    FROM bt_hint_date
-                                    WHERE date_accepted=1
-                                    AND date_type_id=3) bhdr
-                              ON nh.hint_id = bhdr.hint_id
-                              WHERE (bhj.jurisdiction_accepted = 1)
-                              AND (b2ha.assessment_accepted = 1 OR b2ha.assessment_accepted IS NULL)
-                              AND (bhu.url_accepted=1 OR bhu.url_accepted IS NULL)
-                              AND bht.language_id=1")
+              							  LEFT JOIN (
+                							  SELECT a.hint_id AS hint_id, a.date AS date, a.date_type_id AS date_type_id, a.date_accepted AS date_accepted
+                  								FROM bt_hint_date a
+                  								INNER JOIN (
+                  								    SELECT hint_id, date_type_id, MAX(classification_id) AS classification_id, date
+                  								    FROM bt_hint_date
+                  								    WHERE date_accepted = 1
+                  								    GROUP BY hint_id, date_type_id
+                  								) b ON a.classification_id = b.classification_id AND a.date_type_id = b.date_type_id) bhda2
+                              ON nh.hint_id = bhda2.hint_id
+                              AND bhda2.date_accepted = 1
+                              GROUP BY nh.hint_id")
 
   ## correct for hints from collections that are already on the site
   main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads WHERE creation_time>='2020-08-01';","main")
