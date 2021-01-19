@@ -52,22 +52,35 @@ bt_leads_core_update = function(update.df=NULL,
     ### trade defence country correction
 
     #USA/Canada TD cases handled by USA/Canada editor: do not send these to Vatican.
+    #Not any more. I have preserved the original code below where this was the case.
 
-    north.american.countries = "(United States of America)|(Canada)"
+
     td.phrases="anti[- ]?dumping|countervailing|anti[- ]?subsidy"
 
+
     # Title (en)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                             (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))  = "Vatican"
     # Description (en)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) &
-                             (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) = "Vatican"
     # Title (local lang)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) &
-                             (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) = "Vatican"
     # Description (local lang)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
-                             (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) = "Vatican"
+
+    #north.american.countries = "(United States of America)|(Canada)"
+
+    # # Title (en)
+    # lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+    #                          (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    # # Description (en)
+    # lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) &
+    #                          (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    # # Title (local lang)
+    # lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) &
+    #                          (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
+    # # Description (local lang)
+    # lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
+    #                          (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Vatican"
 
 
     ## adding leads-checker columns
