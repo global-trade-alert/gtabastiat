@@ -25,10 +25,13 @@ bt_guess_month = function(tgt.string){
   russian =  c("[Яя]нвар", "[Фф]еврал", "[Мм]арт", "[Аа]прел", "[Мм]ая", "[Ии]юн", "[Ии]юл", "[Аа]вгуст", "[Сс]ентябр", "[Оо]ктябр", "[Нн]оябр", "[Дд]екабр")
   bahasa = c("[Jj]anuari", "[Ff]ebruari", "[Mm]aret", "[Aa]pril", "[Mm]ei", "[Jj]uni", "[Jj]uli", "[Aa]gustus", "[Ss]eptember", "[Oo]ktober", "[Nn]ovember", "[Dd]esember")
   portuguese = c("[Jj]aneiro", "[Ff]evereiro", "[Mm]ar.o", "[Aa]bril", "[Mm]aio", "[Jj]unho", "[Jj]ulho", "[Aa]gosto", "[Ss]etembro", "[Oo]utubro", "[Nn]ovembro", "[Dd]ezembro")
+  italian = c("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
+
+
 
   Encoding(russian) <- "UTF-8" #required for russian to work
 
-  months.master = paste(german, french, spanish, russian, portuguese, sep = ")|(")
+  months.master = paste(german, french, spanish, russian, portuguese, italian, sep = ")|(")
 
   months.master = paste0("(", months.master, ")")
 
