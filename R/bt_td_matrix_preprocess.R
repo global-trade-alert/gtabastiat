@@ -20,11 +20,20 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
   #keras is very good at this. for reference:
   #https://rdrr.io/cran/keras/man/text_tokenizer.html
 
+
+  ####!!!!IMPORTANT!!!!####
   #load tokeniser. load_text_tokeniser has to setwd() first for it to work annoyingly
+  #you cannot load it using a filepath
   library(keras)
   if(is.null(tokeniser)){
+
+
     current.wd = getwd()
-    setwd("content/0 core/Mrs Hudson/")
+    wd.pref = str_extract(getwd(), ".+GTA data team Dropbox")
+
+    #updated to be able to use BT outside of BT directory.
+    #setwd("content/0 core/Mrs Hudson/")
+    setwd(paste0(wd.pref, "/Bastiat/content/0 core/Mrs Hudson/"))
 
     mrs.hudson.tokeniser.list = list.files()[grepl("Mrs Hudson tokeniser", list.files())]
     mrs.hudson.tokeniser.file.name = mrs.hudson.tokeniser.list[length(mrs.hudson.tokeniser.list)]

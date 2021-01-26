@@ -22,7 +22,10 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, bi
   library(randomForest)
 
   #load the most recent model and the tokeniser
-  classifiers = paste0("content/0 core/Mrs Hudson/", list.files(path = "content/0 core/Mrs Hudson/"))
+  current.wd = getwd()
+  wd.pref = str_extract(getwd(), ".+GTA data team Dropbox")
+  mrs.hudson.data.path = paste0(wd.pref, "/Bastiat/content/0 core/Mrs Hudson/")
+  classifiers = paste0(mrs.hudson.data.path, list.files(path = mrs.hudson.data.path))
 
   #load model
   mrs.hudson.model.list = classifiers[grepl("Mrs Hudson model", classifiers)]
