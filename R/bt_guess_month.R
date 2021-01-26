@@ -19,13 +19,19 @@ bt_guess_month = function(tgt.string){
   #NB CJK languages NB: dates are 1月，2月，3月。。。12月 so can use str_extract(string, "\\d{1,2}") or equivalent
   #use a regex . instead of diacritic chars - otherwise you will get problems.
 
-  german = c("[Jj]anuar", "[Ff]ebruar", "[Mm].rz", "[Aa]pril", "[Mm]ai", "[Jj]uni", "[Jj]uli", "[Aa]ugust", "[Ss]eptember", "[Oo]ktober", "[Nn]ovember", "[Dd]ezember")
-  french= c("[Jj]anvier", "[Ff].vrier", "[Mm]ars", "[Aa]vril", "[Mm]ai", "[Jj]uin", "[Jj]uillet", "[Aa]o.t", "[Ss]eptembre", "[Oo]ctobre", "[Nn]ovembre", "[Dd].cembre")
-  spanish = c("[Ee]nero", "[Ff]ebrero", "[Mm]arzo", "[As]bril", "[Mm]ayo", "[Jj]unio", "[Jj]ulio", "[Aa]gosto", "[Ss]eptiembre", "[Oo]ctubre", "[Nn]oviembre", "[Dd]iciembre")
-  russian =  c("[Яя]нвар", "[Фф]еврал", "[Мм]арт", "[Аа]прел", "[Мм]ая", "[Ии]юн", "[Ии]юл", "[Аа]вгуст", "[Сс]ентябр", "[Оо]ктябр", "[Нн]оябр", "[Дд]екабр")
-  bahasa = c("[Jj]anuari", "[Ff]ebruari", "[Mm]aret", "[Aa]pril", "[Mm]ei", "[Jj]uni", "[Jj]uli", "[Aa]gustus", "[Ss]eptember", "[Oo]ktober", "[Nn]ovember", "[Dd]esember")
-  portuguese = c("[Jj]aneiro", "[Ff]evereiro", "[Mm]ar.o", "[Aa]bril", "[Mm]aio", "[Jj]unho", "[Jj]ulho", "[Aa]gosto", "[Ss]etembro", "[Oo]utubro", "[Nn]ovembro", "[Dd]ezembro")
-  italian = c("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
+  #unbelievably the months names used to be saved here in the code, but the
+  #russian ones were causing encoding errors when trying to install the package
+  #from github.
+
+  #even with the russian bit commented out, it still caused an error as the glyphs themselves were corrupting something
+
+  #for reference, the structure of a language's months var should be like this:
+  #german = c("[Jj]anuar", "[Ff]ebruar", "[Mm].rz", "[Aa]pril", "[Mm]ai", "[Jj]uni", "[Jj]uli", "[Aa]ugust", "[Ss]eptember", "[Oo]ktober", "[Nn]ovember", "[Dd]ezember")
+
+  #nb upper/lowercase allowances, and replacement of any diacritics with regex '.' (diacritics often cause corruption)
+
+  load(file="R help files/month_names.Rdata")
+
 
 
 
