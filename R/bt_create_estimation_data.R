@@ -21,7 +21,10 @@ bt_create_estimation_data <- function(bid=NULL,
                                      ) {
   #not mounting this package here causes failuer when bt is used elsewhere
   library(tidytext)
-
+  library(dplyr)
+  library(stats)
+  library(data.table)
+  library(caret)
 
   detective.characteristics=bt_get_detective_characteristics(d.name=detective.name,
                                                              d.number=detective.number)
