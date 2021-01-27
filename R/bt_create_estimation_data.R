@@ -19,7 +19,7 @@ bt_create_estimation_data <- function(bid=NULL,
                                       detective.number=NULL,
                                       for.training=T
                                      ) {
-  #not mounting this package here causes failuer when bt is used elsewhere
+  #not mounting this package here causes failure when bt is used elsewhere
   library(tidytext)
   library(dplyr)
   library(stats)
