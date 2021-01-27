@@ -413,12 +413,20 @@ bt_leads_core_update = function(update.df=NULL,
     gta_sql_multiple_queries("DELETE FROM bt_leads_core_temp WHERE 1 = 1;
                               DELETE FROM bt_leads_core WHERE 1 = 1;",1)
 
-    ## cleaning apostrophes
+    ## cleaning apostrophes, etc.
     lc.update$act_description_en=gsub("\\'","",lc.update$act_description_en)
     lc.update$act_title_en=gsub("\\'","",lc.update$act_title_en)
     lc.update$act_description_ll=gsub("\\'","",lc.update$act_description_ll)
     lc.update$act_title_ll=gsub("\\'","",lc.update$act_title_ll)
     lc.update$acting_agency=gsub("\\'","",lc.update$acting_agency)
+
+    lc.update$act_description_en=gsub("<","&lt;",lc.update$act_description_en)
+    lc.update$act_description_en=gsub(">","&gt;",lc.update$act_description_en)
+    lc.update$act_description_en=gsub("&","&amp;",lc.update$act_description_en)
+    lc.update$act_description_ll=gsub("<","&lt;",lc.update$act_description_ll)
+    lc.update$act_description_ll=gsub(">","&gt;",lc.update$act_description_ll)
+    lc.update$act_description_ll=gsub("&","&amp;",lc.update$act_description_ll)
+
 
 
     ## converting variables to SQL values
