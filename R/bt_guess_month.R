@@ -32,9 +32,6 @@ bt_guess_month = function(tgt.string){
 
   load(file="R help files/month_names.Rdata")
 
-
-
-
   Encoding(russian) <- "UTF-8" #required for russian to work
 
   months.master = paste(german, french, spanish, russian, portuguese, italian, sep = ")|(")
@@ -44,14 +41,20 @@ bt_guess_month = function(tgt.string){
   #this looks weird because the syntax of sapply() and grepl() mean that the 'y'
   #variable in the sapply() is used as the 'x' variable in the grepl()
 
-  return(sapply(months.master,
-                        function(x, y) grepl(pattern = x, x = y,
-                                             ignore.case = T,
-                                             perl = T),
-                        y=tgt.string) %>%
-    as.logical() %>%
-    which()
-  )
+  month_returner = function(tgt.string){
+    sapply(months.master,
+           function(x, y) grepl(pattern = x, x = y,
+                                ignore.case = T,
+                                perl = T),
+           y=tgt.string) %>%
+      as.logical() %>%
+      which()
+  }
 
+  if(length(tgt.string)==1){
+    return(month_returner(tgt.string))
+  }else{
+    return(sapply(tgt.string, month_returner))
+  }
 
 }
