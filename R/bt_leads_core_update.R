@@ -250,7 +250,7 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update=merge(lc.update, unique(lc.urls[,c("bid","url")]), by="bid", all.x=T)
     lc.update$act.url=lc.update$url
 
-
+    print("Checking against existing GTA state acts...")
     for(i in 1:nrow(lc.update)){
       print(i)
 
