@@ -24,6 +24,7 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
   ####!!!!IMPORTANT!!!!####
   #load tokeniser. load_text_tokeniser has to setwd() first for it to work annoyingly
   #you cannot load it using a filepath
+
   library(keras)
   library(reticulate)#to ensure no dependencies
   if(is.null(tokeniser)){
@@ -45,13 +46,39 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
         mrs.hudson.tokeniser = reticulate::py_load_object(mrs.hudson.tokeniser.file.name)
       },
       error = function(e){
-        message("Error loading Mrs Hudson text tokeniser")
+        message("Error loading Mrs Hudson text tokeniser, trying again")
+        message(traceback())
+      }
+
+    )
+
+    tryCatch(
+      expr = {
+        #mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
+        mrs.hudson.tokeniser = reticulate::py_load_object(mrs.hudson.tokeniser.file.name)
+        print("Tokeniser loaded successfully on second attempt")
+      },
+      error = function(e){
+        message("Error loading Mrs Hudson text tokeniser, trying again")
+        message(traceback())
+      }
+
+    )
+
+    tryCatch(
+      expr = {
+        #mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
+        mrs.hudson.tokeniser = reticulate::py_load_object(mrs.hudson.tokeniser.file.name)
+        print("Tokeniser loaded successfully on third attempt")
+      },
+      error = function(e){
+        message("Error loading Mrs Hudson text tokeniser, trying again")
         message(traceback())
       },
       finally = {setwd(before.tokeniser.current.wd)}
     )
 
-    setwd(before.tokeniser.current.wd)
+
   }
   if(!exists("mrs.hudson.tokeniser")){
     stop("Mrs Hudson's text tokeniser not loaded! Text cannot be tokenised for preprocessing.")
