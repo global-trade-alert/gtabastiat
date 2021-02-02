@@ -25,6 +25,7 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
   #load tokeniser. load_text_tokeniser has to setwd() first for it to work annoyingly
   #you cannot load it using a filepath
   library(keras)
+  library(reticulate)#to ensure no dependencies
   if(is.null(tokeniser)){
 
 
@@ -40,7 +41,8 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
 
     tryCatch(
       expr = {
-          mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
+          #mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
+        mrs.hudson.tokeniser = reticulate::py_load_object(mrs.hudson.tokeniser.file.name)
       },
       error = function(e){
         message("Error loading Mrs Hudson text tokeniser")
