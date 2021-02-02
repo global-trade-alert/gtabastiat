@@ -28,7 +28,7 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
   if(is.null(tokeniser)){
 
 
-    current.wd = getwd()
+    before.tokeniser.current.wd = getwd()
     wd.pref = str_extract(getwd(), ".+GTA data team Dropbox")
 
     #updated to be able to use BT outside of BT directory.
@@ -37,9 +37,19 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
 
     mrs.hudson.tokeniser.list = list.files()[grepl("Mrs Hudson tokeniser", list.files())]
     mrs.hudson.tokeniser.file.name = mrs.hudson.tokeniser.list[length(mrs.hudson.tokeniser.list)]
-    mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
 
-    setwd(current.wd)
+    tryCatch(
+      expr = {
+          mrs.hudson.tokeniser = load_text_tokenizer(file = mrs.hudson.tokeniser.file.name)
+      },
+      error = function(e){
+        message("Error loading Mrs Hudson text tokeniser")
+        message(traceback())
+      },
+      finally = {setwd(before.tokeniser.current.wd)}
+    )
+
+    setwd(before.tokeniser.current.wd)
   }
   if(!exists("mrs.hudson.tokeniser")){
     stop("Mrs Hudson's text tokeniser not loaded! Text cannot be tokenised for preprocessing.")
