@@ -82,14 +82,14 @@ bt_sync_221_main = function(){
                               LEFT JOIN gta_jurisdiction_list gjl
                               ON bhj.jurisdiction_id = gjl.jurisdiction_id
                               LEFT JOIN (
-                                SELECT bal.hint_id AS hint_id, bal.assessment_id AS assessment_id, bal.assessment_accepted 
+                                SELECT bal.hint_id AS hint_id, bal.assessment_id AS assessment_id, bal.assessment_accepted
                     								FROM b221_hint_assessment bal
                     								INNER JOIN (
                     								    SELECT hint_id, assessment_id, MAX(classification_id) AS classification_id
                     								    FROM b221_hint_assessment
                     								    WHERE assessment_accepted = 1 OR (hint_id IN (SELECT hint_id
-                    								    	FROM b221_hint_assessment bhint 
-                    								    	WHERE bhint.assessment_accepted IS NULL 
+                    								    	FROM b221_hint_assessment bhint
+                    								    	WHERE bhint.assessment_accepted IS NULL
                     								    	GROUP BY bhint.hint_id HAVING COUNT(DISTINCT bhint.hint_id) = 1))
                     								    GROUP BY hint_id
                     								) bal2 ON bal.classification_id = bal2.classification_id
@@ -106,7 +106,7 @@ bt_sync_221_main = function(){
                               ON nh.hint_id = bhu.hint_id
                               AND (bhu.url_accepted=1 OR (bhu.hint_id IN (SELECT bhu2.hint_id
           											FROM bt_hint_url bhu2
-          											WHERE bhu2.url_accepted IS NULL 
+          											WHERE bhu2.url_accepted IS NULL
           											GROUP BY bhu2.hint_id HAVING COUNT(DISTINCT bhu2.hint_id) = 1)))
                               LEFT JOIN bt_url_log bul
                               ON bhu.url_id = bul.url_id
@@ -222,8 +222,15 @@ bt_sync_221_main = function(){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
-      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
-                              VALUES ",paste(paste0("('",upload.chunk$url ,"','",upload.chunk$hint.text,"','",upload.chunk$bid,"',",upload.chunk$source.type,",'",as.Date(upload.chunk$lead.date),"', CURRENT_TIMESTAMP,'",upload.chunk$acting.agency,"')"), collapse=","),";"),
+      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, announcement_year_4d, creation_time, acting_agency)
+                              VALUES ",paste(paste0("('",upload.chunk$url ,"','",
+                                                    upload.chunk$hint.text,"','",
+                                                    upload.chunk$bid,"',",
+                                                    upload.chunk$source.type,",'",
+                                                    as.Date(upload.chunk$lead.date),"','",
+                                                    format(as.Date(upload.chunk$lead.date), "%Y"),
+                                                    "', CURRENT_TIMESTAMP,'",
+                                                    upload.chunk$acting.agency,"')"), collapse=","),";"),
                            "main")
 
       print("leads")
