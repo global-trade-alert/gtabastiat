@@ -222,13 +222,12 @@ bt_sync_221_main = function(){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
-      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, announcement_year_4d, creation_time, acting_agency)
+      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
                                                     upload.chunk$bid,"',",
                                                     upload.chunk$source.type,",'",
-                                                    as.Date(upload.chunk$lead.date),"','",
-                                                    format(as.Date(upload.chunk$lead.date), "%Y"),
+                                                    as.Date(upload.chunk$lead.date),
                                                     "', CURRENT_TIMESTAMP,'",
                                                     upload.chunk$acting.agency,"')"), collapse=","),";"),
                            "main")
