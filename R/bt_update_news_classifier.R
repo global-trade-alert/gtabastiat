@@ -279,6 +279,8 @@ LIMIT 25000;")
 
   #testing
   if(create.training.testing.split){
+
+    print("The confidence interval used for testing is 0.1")
     x.test = bt_td_matrix_preprocess(num_words = num_words,
                                      max_length = max_length,
                                      text = testing.b221$text)
