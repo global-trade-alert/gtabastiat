@@ -14,6 +14,7 @@ bt_sync_221_main = function(){
   library(data.table)
   library(gtabastiat)
   library(xlsx)
+  library(stringr)
 
   gta_sql_kill_connections()
 
