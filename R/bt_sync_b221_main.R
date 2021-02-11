@@ -129,6 +129,9 @@ bt_sync_221_main = function(){
   main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads WHERE creation_time>='2020-08-01';","main")
   new.leads=unique(subset(new.leads, ! bid %in% main.bid))
 
+  #fix problem where acting.agency > 100 chars (nb sometimes diacritics corrupted to several chars hence limit of 85 for safety)
+
+  new.leads$acting.agency = str_trunc(new.leads$acting.agency, width = 85)
 
   if(nrow(new.leads)==0){
     stop("No new hints.")
@@ -222,7 +225,6 @@ bt_sync_221_main = function(){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
-      #announcement_year_4d no longer needed
       gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
