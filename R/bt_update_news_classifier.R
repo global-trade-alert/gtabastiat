@@ -43,7 +43,9 @@ bt_update_news_classifier = function(db.connection=NULL,
 
   ## opening connection
 
+  print(is.null(db.connection))
   if(is.null(db.connection)){
+    print("retrieving training data from DB...")
     database="ricardomain"
     gta_sql_pool_open(pool.name="pool",
                       db.title=database,
@@ -60,13 +62,14 @@ bt_update_news_classifier = function(db.connection=NULL,
   #list of google, reuters news leads in 4 states - this is broader than what we
   #use for BT usually in order to increase the amount of training data
 
-  leads.core.b221 = gta_sql_get_value(
-    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, btjl.jurisdiction_name, bthl.hint_state_id
+  #RELEVANT NEWS LEADS
+  leads.core.b221.rlv.news = gta_sql_get_value(
+    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
 FROM bt_hint_log bthl,
 	bt_hint_bid btbid,
 	bt_hint_text btht,
 	bt_hint_jurisdiction bthj,
-	bt_jurisdiction_list btjl
+	gta_jurisdiction_list gtajl
 
 WHERE bthl.hint_id = btbid.hint_id
 AND bthl.hint_id = btht.hint_id
@@ -77,12 +80,84 @@ AND btbid.hint_id = btht.hint_id
 
 AND bthj.hint_id = btht.hint_id
 
-AND bthj.jurisdiction_id = btjl.jurisdiction_id
+AND bthj.jurisdiction_id = gtajl.jurisdiction_id
 
 AND btht.language_id = 1
-AND (bthl.hint_state_id IN (5, 6, 7, 8))
+AND (bthl.hint_state_id IN (5, 6, 7))
 AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
-AND (bthl.hint_id < 250000);")
+LIMIT 25000;")
+
+  paste(nrow(leads.core.b221.rlv.news), "relevant NEWS rows retrieved") %>% print()
+
+
+  #NON NEWS, NON-TD to increase training set
+  leads.core.b221.rlv.notnews = gta_sql_get_value(
+    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
+FROM bt_hint_log bthl,
+	bt_hint_bid btbid,
+	bt_hint_text btht,
+	bt_hint_jurisdiction bthj,
+	gta_jurisdiction_list gtajl
+
+WHERE bthl.hint_id = btbid.hint_id
+AND bthl.hint_id = btht.hint_id
+AND bthl.hint_id = bthj.hint_id
+
+AND btbid.hint_id = bthj.hint_id
+AND btbid.hint_id = btht.hint_id
+
+AND bthj.hint_id = btht.hint_id
+
+AND bthj.jurisdiction_id = gtajl.jurisdiction_id
+
+AND btht.language_id = 1
+AND (bthl.hint_state_id IN (5, 6, 7))
+AND NOT (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
+
+AND bthj.jurisdiction_id NOT IN (89)
+
+LIMIT 25000;")
+
+  paste(nrow(leads.core.b221.rlv.notnews), "relevant NON-NEWS rows retrieved") %>% print()
+
+
+
+  #IRRELEVANT NEWS LEADS
+  leads.core.b221.irv = gta_sql_get_value(
+    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
+FROM bt_hint_log bthl,
+	bt_hint_bid btbid,
+	bt_hint_text btht,
+	bt_hint_jurisdiction bthj,
+	gta_jurisdiction_list gtajl
+
+WHERE bthl.hint_id = btbid.hint_id
+AND bthl.hint_id = btht.hint_id
+AND bthl.hint_id = bthj.hint_id
+
+AND btbid.hint_id = bthj.hint_id
+AND btbid.hint_id = btht.hint_id
+
+AND bthj.hint_id = btht.hint_id
+
+AND bthj.jurisdiction_id = gtajl.jurisdiction_id
+
+AND btht.language_id = 1
+AND (bthl.hint_state_id IN (8, 9))
+AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
+LIMIT 25000;")
+
+  paste(nrow(leads.core.b221.irv), "IRrelevant rows retrieved") %>% print()
+
+  leads.core.b221 = rbind(leads.core.b221.rlv.news,
+                          leads.core.b221.rlv.notnews,
+                          leads.core.b221.irv)
+
+  rm(leads.core.b221.irv,
+     leads.core.b221.rlv.notnews,
+     leads.core.b221.rlv.news)
+
+  paste(nrow(leads.core.b221), "total rows retrieved") %>% print()
 
   gta_sql_pool_close()
 
@@ -119,7 +194,8 @@ AND (bthl.hint_id < 250000);")
     training.b221.full$text %>%
       strsplit(" ") %>%
       sapply(length) %>%
-      summary()
+      summary() %>%
+      print()
   }
 
 
@@ -169,19 +245,27 @@ AND (bthl.hint_id < 250000);")
   #x is our sparse vector TD matrix this ensures the same tokeniser is used each
   #time when evaluating new leads - i.e. that the same words will have the same
   #values assigned to them
+  print("Creating tokeniser...")
   mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(training.b221$text)
+  if(length(mrs.hudson.tokeniser)){
+
+    mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
+    print(paste("Tokeniser created! Saving to", mrs.hudson.tokeniser.file.name))
+    save_text_tokenizer(mrs.hudson.tokeniser, file = mrs.hudson.tokeniser.file.name)
+    print("Saved!")
+    }
+
 
   x.train = bt_td_matrix_preprocess(num_words = num_words,
                                     max_length = max_length,
-                                    text = training.b221$text,
-                                    tokeniser = mrs.hudson.tokeniser)
+                                    text = training.b221$text)
 
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
   #i used the number of mrs hudson's house here ;)
   set.seed(221)
   x.train$evaluation = as.factor(training.b221$evaluation)
 
-  print("Creating new model...")
+  print("Creating new model... (may take several minutes)")
   mrs.hudson.model = randomForest(evaluation ~ ., data=x.train)
 
   #tokeniser must be saved with the specific function.
@@ -191,14 +275,13 @@ AND (bthl.hint_id < 250000);")
   print(paste("New model created! Saving to", mrs.hudson.model.file.name))
 
   save(mrs.hudson.model, file = mrs.hudson.model.file.name)
-  save_text_tokenizer(mrs.hudson.tokeniser, file = mrs.hudson.tokeniser.file.name)
+
 
   #testing
   if(create.training.testing.split){
     x.test = bt_td_matrix_preprocess(num_words = num_words,
                                      max_length = max_length,
-                                     text = testing.b221$text,
-                                     tokeniser = mrs.hudson.tokeniser)
+                                     text = testing.b221$text)
 
     x.test$evaluation = as.factor(testing.b221$evaluation)
     predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test, type = "prob"))
