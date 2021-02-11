@@ -55,7 +55,7 @@ bt_leads_core_update = function(update.df=NULL,
     #change filter.usa.can.td = T to apply filter
 
 
-    td.phrases="anti[- ]?dumping|countervailing|anti[- ]?subsidy"
+    td.phrases = "anti[- ]?dumping|countervailing|anti[- ]?subsidy"
 
     filter.usa.can.td = T
 
@@ -64,16 +64,16 @@ bt_leads_core_update = function(update.df=NULL,
       north.american.countries = "(United States of America)|(Canada)"
       # Title (en)
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                               (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
       # Description (en)
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) &
-                               (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
       # Title (local lang)
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) &
-                               (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
       # Description (local lang)
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
-                               (!grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
 
     } else {
 
