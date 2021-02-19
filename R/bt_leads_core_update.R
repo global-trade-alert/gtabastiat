@@ -775,6 +775,19 @@ bt_leads_core_update = function(update.df=NULL,
               DELETE FROM bt_leads_core
               WHERE collection_date IS NULL;
 
+              /* in descending priority order */
+              /* state 8 if  relevant = 0*/
+              /* state 10 if old <=2019 */
+              /* state 1 if no jur */
+              /* else state 5 */
+              UPDATE bt_hint_log
+              JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
+              LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
+              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 AND bt_leads_core.is_covid = 0 THEN 8
+              				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
+              				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
+              				     ELSE 5 END);
+
               /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
               SELECT hint_id, 70 AS user_id, 11 AS hint_state_id
