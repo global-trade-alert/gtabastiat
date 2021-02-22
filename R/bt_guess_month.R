@@ -31,7 +31,7 @@ bt_guess_month = function(tgt.string){
   #nb upper/lowercase allowances, and replacement of any diacritics with regex '.' (diacritics often cause corruption)
 
 
-  save(german, french, spanish, russian, portuguese, italian, arabic.gregorian, file="R help files/month_names.Rdata")
+  #save(german, french, spanish, russian, portuguese, italian, arabic.gregorian, file="R help files/month_names.Rdata")
   load(file="R help files/month_names.Rdata")
 
   Encoding(russian) <- "UTF-8" #required for russian to work
