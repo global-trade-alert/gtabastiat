@@ -12,9 +12,22 @@ bt_scraper_checkpoint_1 = function(){
   check.table.main.vars = (all(required.vars.en %in% colnames(table.main)) |
                              all(required.vars.ll %in% colnames(table.main)))
 
+
+
+  check.date.format = tryCatch(expr = {
+    as.Date(table.main$act.date[i])
+    all(! is.na(table.main$act.date)) &
+     all(! is.null(table.main$act.date)) &
+     all(! sapply(table.main$act.date, length) < 1)
+  },
+  error = function(e){FALSE},
+  warning = function(w){FALSE}
+  )
+
   checks = c(check.getArticles = check.getArticles,
              check.table.main = check.table.main,
-             check.table.main.vars = check.table.main.vars)
+             check.table.main.vars = check.table.main.vars,
+             check.date.format = check.date.format)
 
 
   if(all(checks)){print("OK!")
