@@ -128,7 +128,7 @@ bt_sync_221_main = function(){
 
   egi.hints=gta_sql_get_value(paste0("SELECT hint_id
                                      FROM b221_hint_product_group
-                                     WHERE product_group_id BETWEEN 2 and 5;"))
+                                     WHERE product_group_id IN (2,3,4,5,7);"))
   egi.hints=egi.hints[egi.hints %in% new.leads$hint.id]
 
   ## correct for hints from collections that are already on the site
