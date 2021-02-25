@@ -126,6 +126,11 @@ bt_sync_221_main = function(){
                               AND bhda2.date_accepted = 1
                               GROUP BY nh.hint_id")
 
+  egi.hints=gta_sql_get_value(paste0("SELECT hint_id
+                                     FROM b221_hint_product_group
+                                     WHERE product_group_id BETWEEN 2 and 5;"))
+  egi.hints=egi.hints[egi.hints %in% new.leads$hint.id]
+
   ## correct for hints from collections that are already on the site
   main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads WHERE creation_time>='2020-08-01';","main")
   new.leads=unique(subset(new.leads, ! bid %in% main.bid))
@@ -239,9 +244,29 @@ bt_sync_221_main = function(){
       print("leads")
 
 
-      upload.bids=gta_sql_get_value(paste0("SELECT id as lead_id, bastiat_id as bid FROM gta_leads WHERE bastiat_id IN (",paste(paste0("'",upload.chunk$bid,"'"), collapse=","),");"), "main")
+      upload.bids=gta_sql_get_value(paste0("SELECT id as lead_id, bastiat_id as bid
+                                           FROM gta_leads
+                                           WHERE bastiat_id IN (",paste(paste0("'",upload.chunk$bid,"'"), collapse=","),");"), "main")
 
       upload.chunk=merge(upload.chunk, upload.bids, by="bid", all.x=T)
+
+
+      ## adding EGI theme
+      if(any(upload.chunk$hint.id %in% egi.hints)){
+
+        egi.leads=unique(upload.chunk$lead.id[upload.chunk$hint.id %in% egi.hints])
+
+
+        gta_sql_update_table(paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
+                              VALUES ",paste(paste0("(",egi.leads,", 3)"), collapse=","),";"),
+                             "main")
+
+
+      }
+
+      print("leads theme")
+
+
 
       upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
 
@@ -253,6 +278,7 @@ bt_sync_221_main = function(){
                            "main")
 
       print("leads jurisdictions")
+
 
       print(chunk)
 
