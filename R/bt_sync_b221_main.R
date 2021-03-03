@@ -368,9 +368,12 @@ bt_sync_221_main = function(){
     }
 
 
+    #old version. now discard reasons are integers with FK reference to gta_lead_discard_reason_list
+    # hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
+    #                                  WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
 
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason %in% c(1:9))$bastiat.id,"'"), collapse=","),")"))
 
     if(length(hints.irrelevant)>0){
 
