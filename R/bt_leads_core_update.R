@@ -17,6 +17,17 @@ bt_leads_core_update = function(update.df=NULL,
                                 invoke.mrs.hudson=T,
                                 mrs.hudson.keep.results.ratio=0.95){
 
+  #### for testing
+  # exclude.by="bid"
+  # all.covid=F
+  # force.create=F
+  # set.official=T
+  # destination="b221"
+  # incl.kanji=F
+  # invoke.mrs.hudson=T
+  # mrs.hudson.keep.results.ratio=0.95
+
+
   if(! destination %in% c("parking","b221","leads")){
     stop("Please choose destination value as either 'b221', 'parking' or 'leads'.")
   }
@@ -261,7 +272,7 @@ bt_leads_core_update = function(update.df=NULL,
         if(is.na(check.url)==F){
 
           ## checking state acts
-          sa.ids=unique(subset(gta.sa, grepl(check.url, source))$id)
+          sa.ids=unique(subset(gta.sa, grepl(check.url, this.source, fixed = T))$id)
 
           if(length(sa.ids)>0){
 
