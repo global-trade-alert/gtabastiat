@@ -288,7 +288,7 @@ bt_leads_core_update = function(update.df=NULL,
           }
 
           ## checking hints
-          bt.url.ids=subset(bt.url, grepl(check.url, url))$url_id
+          bt.url.ids=subset(bt.url, grepl(check.url, url, fixed = T))$url_id
           if(length(bt.url.ids)>0){
 
             hints=gta_sql_get_value(paste0("SELECT hint_id
