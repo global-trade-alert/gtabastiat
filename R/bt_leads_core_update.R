@@ -485,7 +485,7 @@ bt_leads_core_update = function(update.df=NULL,
     row.values=paste(row.values, collapse=",")
 
 
-    row.values=gsub("^NA$","NULL",row.values)
+    row.values=gsub(",NA,",",NULL,",row.values)
     row.values=gsub("'NULL'","NULL",row.values)
 
     gta_sql_update_table(paste0("INSERT INTO bt_leads_core_temp(",paste(names(lc.update), collapse=","),")
