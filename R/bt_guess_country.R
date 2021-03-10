@@ -28,7 +28,7 @@
 #' @Author Callum Campbell for Global Trade Alert.
 #'
 
-bt_guess_country = function(tgt.string, top.match.only = T){
+bt_guess_country = function(tgt.string, placeholder.result = NA, top.match.only = T){
 
 
 
@@ -70,6 +70,12 @@ bt_guess_country = function(tgt.string, top.match.only = T){
                                                perl = T),
                           y=tgt.string) %>%
       as.logical()
+
+    result = countries.matcher$gta.name[matches.vect]
+
+    if(length(result)==0){
+      return(placeholder.result)
+    }
 
     if(top.match.only){
       return(countries.matcher$gta.name[matches.vect][1])
