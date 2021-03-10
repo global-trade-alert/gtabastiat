@@ -28,7 +28,7 @@
 #' @Author Callum Campbell for Global Trade Alert.
 #'
 
-bt_guess_country = function(tgt.string, top.match.only = F){
+bt_guess_country = function(tgt.string, top.match.only = T){
 
 
 
@@ -61,17 +61,28 @@ bt_guess_country = function(tgt.string, top.match.only = F){
   #this looks weird because the syntax of sapply() and grepl() mean that the 'y'
   #variable in the sapply() is used as the 'x' variable in the grepl()
 
-  matches.vect = sapply(countries.matcher$name.part,
-                        function(x, y) grepl(pattern = x, x = y,
-                                             ignore.case = T,
-                                             perl = T),
-                        y=tgt.string) %>%
-    as.logical()
 
-  if(top.match.only){
-    return(countries.matcher$gta.name[matches.vect][1])
+  country_returner = function(tgt.string){
+
+    matches.vect = sapply(countries.matcher$name.part,
+                          function(x, y) grepl(pattern = x, x = y,
+                                               ignore.case = T,
+                                               perl = T),
+                          y=tgt.string) %>%
+      as.logical()
+
+    if(top.match.only){
+      return(countries.matcher$gta.name[matches.vect][1])
+    }else{
+      return(countries.matcher$gta.name[matches.vect])
+    }
+
+  }
+
+  if(length(tgt.string)==1){
+    return(country_returner(tgt.string))
   }else{
-    return(countries.matcher$gta.name[matches.vect])
+    return(sapply(tgt.string, country_returner))
   }
 
 }
