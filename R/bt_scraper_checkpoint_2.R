@@ -1,4 +1,4 @@
-bt_scraper_checkpoint_2 = function(){
+bt_scraper_checkpoint_2 = function(ignore.url = F){
 
 
   check.update.table = exists("update.table")
@@ -25,7 +25,9 @@ bt_scraper_checkpoint_2 = function(){
 
   check.unique.bids = ! any(duplicated(update.table$bid))
   check.unique.titles = ! any(duplicated(update.table$act.title.en))
-  check.unique.urls = ! any(duplicated(update.table$act.url))
+
+
+  check.unique.urls = (! any(duplicated(update.table$act.url))) | ignore.url
 
 
 
