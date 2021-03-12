@@ -36,7 +36,7 @@ bt_guess_month = function(tgt.string){
 
   load(file="0 gtabastiat/data/month_names.rda")
 
-  Encoding(month.names) <- "UTF-8" #required for russian to work
+  #Encoding(month.names) <- "UTF-8" #required for russian to work
 
   months.master = apply(month.names, 1, paste, collapse=")|(")
 
