@@ -30,13 +30,15 @@ bt_guess_month = function(tgt.string){
 
   #nb upper/lowercase allowances, and replacement of any diacritics with regex '.' (diacritics often cause corruption)
 
+  #use the below line to re-save the month names
+  #month.names = data.frame(german = german, french=french, spanish=spanish, russian=russian, portuguese=portuguese, italian=italian, bahasa=bahasa, arabic.gregorian=arabic.gregorian)
+  #save(month.names, file="0 gtabastiat/data/month_names.rda")
 
-  #save(german, french, spanish, russian, portuguese, italian, bahasa, arabic.gregorian, file="R help files/month_names.Rdata")
-  load(file="R help files/month_names.Rdata")
+  load(file="0 gtabastiat/data/month_names.rda")
 
-  Encoding(russian) <- "UTF-8" #required for russian to work
+  Encoding(month.names) <- "UTF-8" #required for russian to work
 
-  months.master = paste(german, french, spanish, russian, portuguese, italian, arabic.gregorian, bahasa, sep = ")|(")
+  months.master = apply(month.names, 1, paste, collapse=")|(")
 
   months.master = paste0("(", months.master, ")")
 
