@@ -1,7 +1,11 @@
 #' Guesses month index of several languages.
-#' Currently German, French, Spanish, Russian, Bahasa and Portuguese.
 #'
-#' NB CJK languages NB: dates are 1月，2月，3月。。。12月 so can use str_extract(string, "\\d{1,2}") or equivalent
+#'
+#' Works on string or char vector.
+#' Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian
+#'
+#' NB CJK languages dates are 1月，2月，3月。。。12月
+#' so can use str_extract(string, "\\d{1,2}") or equivalent
 #'
 #' @param tgt.string string containing month in supported languages
 #'

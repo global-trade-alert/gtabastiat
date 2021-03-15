@@ -1,9 +1,15 @@
 #' Country guesser: guesses country name contained in a string.
-#' Not perfect - biased towards more common countries, e.g. may return 'United Kingdom' when string contains 'British Columbia' etc.
 #'
+#' Not perfect - biased towards more common countries, e.g. may return 'United Kingdom' when string contains 'British Columbia' etc.
+#' Set param top.match.only = F to return all guesses
 #' The results are in alphabetical order, not the order they appear in the string.
 #'
+#' This function should work on strings or char vectors.
+#'
+#'
 #' @param tgt.string vector of string containing country name(s)
+#' @param placeholder.result what to return instead of NA when guess fails
+#' @param top.match.only whether you want the first match, or a vector of matches
 #'
 #' @return vector of the GTA names of all matches in alphabetical order.
 #'

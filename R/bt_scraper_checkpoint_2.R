@@ -1,3 +1,25 @@
+#' checks scraped data is ready for upload
+#'
+#' Ensures:
+#' update.table exists
+#' the 17 required vars are there
+#' the date is correctly formatted as a date
+#' the BIDs are unique
+#' the titles are unique
+#' the URLs are unique
+#'
+#' 17 required vars are:
+#' "act.date", "act.title.en", "act.description.en","act.title.ll", "act.description.ll",
+#' "act.url", "act.id", "country", "country.lead","email.language","act.values", "background.url",
+#' "acting.agency", "relevant", "classify","collection.date", "bid"
+#'
+#'
+#' @param ignore.url set this as T if you know your source only has one URL shared for all leads.
+#'
+#' @return 'OK!' if all is well, error if not.
+#' @export
+#'
+#' @examples
 bt_scraper_checkpoint_2 = function(ignore.url = F){
 
 

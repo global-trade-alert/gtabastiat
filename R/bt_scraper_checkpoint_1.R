@@ -1,3 +1,18 @@
+#' Check the initial scrape worked properly
+#'
+#' This function ensures:
+#' getArticles() exists
+#' table.main exists
+#' the table.main has the 5 vars it should, correctly named and in the correct format
+#' (this is particularly pertinent for the act.date)
+#'
+#' the required vars are:
+#' "act.date", "act.title.en", "act.description.en", "act.url", "act.id"
+#'
+#' @return 'OK!' if all is well, error if not.
+#' @export
+#'
+#' @examples
 bt_scraper_checkpoint_1 = function(){
 
 

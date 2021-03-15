@@ -2,19 +2,27 @@
 % Please edit documentation in R/bt_guess_country.R
 \name{bt_guess_country}
 \alias{bt_guess_country}
-\title{Country guesser: guesses country name contained in a string.
-Not perfect - biased towards more common countries, e.g. may return 'United Kingdom' when string contains 'British Columbia' etc.}
+\title{Country guesser: guesses country name contained in a string.}
 \usage{
 bt_guess_country(tgt.string, placeholder.result = NA, top.match.only = T)
 }
 \arguments{
 \item{tgt.string}{vector of string containing country name(s)}
+
+\item{placeholder.result}{what to return instead of NA when guess fails}
+
+\item{top.match.only}{whether you want the first match, or a vector of matches}
 }
 \value{
 vector of the GTA names of all matches in alphabetical order.
 }
 \description{
+Not perfect - biased towards more common countries, e.g. may return 'United Kingdom' when string contains 'British Columbia' etc.
+Set param top.match.only = F to return all guesses
 The results are in alphabetical order, not the order they appear in the string.
+}
+\details{
+This function should work on strings or char vectors.
 }
 \examples{
 tgt.string.vect = c("In Britain, postman delivers fancy dress joy to isolating residents", "UK man turns out to be an idiot", "Something afoot in Japan")

@@ -1,3 +1,14 @@
+#' Check a scraper has initialised
+#'
+#' Ensures:
+#' pjs initialised with browser object called 'remDr'
+#' main.url properly initialised
+#' stock.data.file is specified
+#'
+#' @return 'OK!' if all is well, error if not.
+#' @export
+#'
+#' @examples
 bt_scraper_checkpoint_0 = function(){
 
 

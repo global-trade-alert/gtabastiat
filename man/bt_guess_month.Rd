@@ -2,8 +2,7 @@
 % Please edit documentation in R/bt_guess_month.R
 \name{bt_guess_month}
 \alias{bt_guess_month}
-\title{Guesses month index of several languages.
-Currently German, French, Spanish, Russian, Bahasa and Portuguese.}
+\title{Guesses month index of several languages.}
 \usage{
 bt_guess_month(tgt.string)
 }
@@ -14,7 +13,12 @@ bt_guess_month(tgt.string)
 integer number of guessed month
 }
 \description{
-NB CJK languages NB: dates are 1月，2月，3月。。。12月 so can use str_extract(string, "\\d{1,2}") or equivalent
+Works on string or char vector.
+Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian
+}
+\details{
+NB CJK languages dates are 1月，2月，3月。。。12月
+so can use str_extract(string, "\\d{1,2}") or equivalent
 }
 \references{
 www.globaltradealert.org
