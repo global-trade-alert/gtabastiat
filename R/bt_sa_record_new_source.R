@@ -74,11 +74,11 @@ bt_sa_record_new_source=function(establish.connection=F){
       rnds=rnds+1
     }
 
-    print("Recoreded all new URLs")
+    print("Recorded all new URLs")
 
 
     ## mark as processed
-    gta_sql_get_value(pate0("UPDATE gta_source_temp
+    gta_sql_get_value(paste0("UPDATE gta_source_temp
                              SET source_processed=1
                              WHERE state_act_id IN(",paste(updated.sa.sources, collapse=","),");"))
 

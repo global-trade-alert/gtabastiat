@@ -43,7 +43,7 @@ bt_squad_prediction = function(prediction.data.id=NULL,
 
   squad.predictions=reshape(squad.predictions, idvar = c("bid"), timevar = "detective", direction="wide")
 
-  # Preidcting using squad classifier
+  # Predicting using squad classifier
 
 
   predict.bid=squad.predictions$bid
