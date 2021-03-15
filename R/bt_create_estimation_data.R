@@ -143,7 +143,8 @@ bt_create_estimation_data <- function(bid=NULL,
                            gta.text=character(),
                            gta.gini.ir=numeric(),
                            gta.gini.re=numeric(),
-                           gta.gini.delta=numeric())
+                           gta.gini.delta=numeric(),
+                           stringsAsFactors = F)
 
     ## loop over GTA text types (all, description, title, source)
     for(txt in unique(gta.words$text)){
