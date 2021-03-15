@@ -4,8 +4,11 @@
 \alias{b_cutoff_probability}
 \title{Bastiat, what's the minimum prediction probability for this model?}
 \usage{
-b_cutoff_probability(observations = NULL, predictions = NULL,
-  capture.cutoff = 0.97)
+b_cutoff_probability(
+  observations = NULL,
+  predictions = NULL,
+  capture.cutoff = 0.97
+)
 }
 \value{
 A scalar.

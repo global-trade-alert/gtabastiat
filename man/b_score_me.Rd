@@ -4,7 +4,12 @@
 \alias{b_score_me}
 \title{Bastiat, please score this detective's performance.}
 \usage{
-b_score_me(value.capture, value.reduction)
+b_score_me(
+  value.capture = NULL,
+  value.reduction = NULL,
+  capture.cutoff = 0.97,
+  capture.weight = 2
+)
 }
 \value{
 Get a value between 0 and 1 for how good he did.

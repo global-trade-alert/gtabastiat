@@ -4,10 +4,14 @@
 \alias{b_load_site}
 \title{Bastiat, please wait until the following XPATH appears on the site.}
 \usage{
-b_load_site(xpath)
+b_load_site(xpath = NULL, wait = 60, abort = F, wait.interval = 0.2)
 }
 \arguments{
 \item{xpath}{Provide the XPATH for which the function should wait.}
+
+\item{wait}{Specify the number of seconds you want to wait. Default is 60.}
+
+\item{abort}{Specifiy whether to cause an error in case path is not find after waiting time. Default is FALSE.}
 }
 \value{
 Pauses the algorithm until XPATH appears.

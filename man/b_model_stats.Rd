@@ -4,8 +4,11 @@
 \alias{b_model_stats}
 \title{Bastiat, generate the detective stats for this model.}
 \usage{
-b_model_stats(training.df = "pred.train", test.df = "pred.test",
-  capture.cutoff = 0.97)
+b_model_stats(
+  training.df = "pred.train",
+  test.df = "pred.test",
+  capture.cutoff = 0.97
+)
 }
 \value{
 A data frame including the model performance metrics.

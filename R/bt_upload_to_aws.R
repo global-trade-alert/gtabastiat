@@ -14,14 +14,16 @@ bt_upload_to_aws = function(upload.file.name=NULL,
                             upload.destination="gtaupload/Uploads/files/",
                             credential.path="setup/keys/as3.R"){
 
+  ## For how to interact with AWS from the command line, see https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
+
   source(credential.path)
 
   upload.location=gsub("/+","/",paste0(upload.file.path,"/",upload.file.name))
 
-  system(paste0(aws.cred," aws s3 cp ",upload.location," s3://",upload.destination," --acl public-read"))
+  system(paste0(aws.cred," aws s3 cp '",upload.location,"' s3://",upload.destination," --acl public-read"))
 
 
-  aws.url=paste0("http://s3-eu-west-1.amazonaws.com/",upload.destination,upload.file.name)
+  aws.url=paste0("http://s3-eu-west-1.amazonaws.com/",gsub("/+","/",paste0(upload.destination,"/",upload.file.name)))
 
 
   return(aws.url)

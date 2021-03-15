@@ -58,7 +58,7 @@ AND bthj.hint_id = btht.hint_id
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
 AND btht.language_id = 1
-AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9);")
+AND bthl.hint_state_id IN (7, 8, 9);")
 
   #reminder:
   #state 7 = processed by editors
@@ -103,9 +103,27 @@ AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9);")
 
   setnames(gta.leads, "bastiat.id", "bid")
 
+
+  #for reference: gta_leads removal reason ids
+  # 1 - no policy
+  # 2 - is TBT
+  # 3 - is SPS
+  # 4 - no commercial policy
+  # 5 - not meaningful
+  # 6 - fails RTT
+  # 7 - no change
+  # 8 - other, see comment
+  # 9 - no credible action
+  # 10 - update to existing intervention
+  # 11 - duplicate of lead or GTA entry
+  # 12 - not unilateral
+  # 13 - useful
+  # 14 - keep for EGI
+
+
   gta.training=merge(leads.core, subset(gta.leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
   gta.training$evaluation=1
-  gta.training$evaluation[gta.training$removal.reason=="IRREVELANT"]=0
+  gta.training$evaluation[gta.training$removal.reason %in% c(1:9)]=0
   gta.training$evaluation[gta.training$relevant==0]=0 #mark the state 9 (trash) leads as evaluated irrelevant
   gta.training$removal.reason=NULL
   gta.training=subset(gta.training, !bid %in% team.training$bid)
@@ -160,6 +178,8 @@ AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9);")
   source("code/daily/infrastructure/Bastiat base.R")
   training$acting.agency[!training$acting.agency %in% agency.dummies]="Other"
 
+  print("new training data generated. Saving...")
+
   ### store new data.
   save(training, file="data/classifier/training data.Rdata")
 
@@ -193,6 +213,7 @@ AND (bthl.hint_state_id = 7 OR bthl.hint_state_id = 9);")
 
     # tags
     gta.text$text=gsub("<.*?>","", gta.text$text)
+
     # URLs
     gta.text$text=gsub("((http)|(www)).*?([ \\\"]|$)","", gta.text$text)
     gta.text=unnest_tokens(gta.text, word, text, drop=T)
