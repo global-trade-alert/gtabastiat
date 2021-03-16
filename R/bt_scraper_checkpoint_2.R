@@ -66,7 +66,7 @@ bt_scraper_checkpoint_2 = function(ignore.url = F){
 
   if(all(checks)){print("OK!")
   }else{
-    missing.vars = paste(missing.vars, "missing")
+    missing.vars = paste("missing: ", paste(missing.vars, collapse = ", "))
     error.text = paste(names(checks)[which(!checks)], "failed!", collapse = "\n")
     stop(paste(error.text, missing.vars))
   }
