@@ -30,7 +30,7 @@ bt_scraper_checkpoint_1 = function(){
 
 
   check.date.format = tryCatch(expr = {
-    as.Date(table.main$act.date[i])
+    as.Date(table.main$act.date)
     all(! is.na(table.main$act.date)) &
      all(! is.null(table.main$act.date)) &
      all(! sapply(table.main$act.date, length) < 1)
