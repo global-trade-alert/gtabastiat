@@ -7,7 +7,8 @@
 bt_estimate_news_leads(
   leads.core.news,
   keep.results.ratio = 0.95,
-  binary.prediction = T
+  binary.prediction = T,
+  return.both = F
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ discarded.}
 
 \item{binary.prediction}{return results as a binary prediction or as their
 raw 0 ~ 1 confidence values.}
+
+\item{return.both}{return both binary and raw.score in a list.}
 }
 \value{
 A vector of Mrs. Hudson's predictions.
