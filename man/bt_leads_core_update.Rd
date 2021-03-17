@@ -2,7 +2,7 @@
 % Please edit documentation in R/bt_leads_core_update.R
 \name{bt_leads_core_update}
 \alias{bt_leads_core_update}
-\title{Get the latest version from GitHub.}
+\title{Send a prepared leads.core dataframe to the ricardo database}
 \usage{
 bt_leads_core_update(
   update.df = NULL,
@@ -16,9 +16,29 @@ bt_leads_core_update(
   mrs.hudson.keep.results.ratio = 0.95
 )
 }
+\arguments{
+\item{update.df}{the data frame containing leads to update. min 17 specifically named cols}
+
+\item{exclude.by}{unique identifier for each row; 'primary key'}
+
+\item{all.covid}{are these all to do with you know what}
+
+\item{set.official}{is the officiality of the source designated in the df?}
+
+\item{destination}{"b221" -> ricardo; "leads" -> main site; "parking" -> state 10; "5" -> state 5}
+
+\item{incl.kanji}{does the source include CJK chars? (kanji, hanzi, kana, hangeul)}
+
+\item{invoke.mrs.hudson}{use to disable mrs. h invocation}
+
+\item{mrs.hudson.keep.results.ratio}{the ratio of results for Mrs. H to keep. eg. 0.9 keeps 90% of them.}
+}
 \value{
-Be up to date with our latest functions.
+
 }
 \description{
-Syncs your local library with our latest GTA GitHub release.
+see parameter explanations for some help.
+}
+\examples{
+bt_leads_core_update("update.core", "bid", destination = "b221")
 }
