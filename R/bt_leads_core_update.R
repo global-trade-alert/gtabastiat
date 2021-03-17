@@ -28,6 +28,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 mrs.hudson.keep.results.ratio=0.95){
 
   #### for testing
+  # lc.update = update.core
   # exclude.by="bid"
   # all.covid=F
   # force.create=F
@@ -333,8 +334,15 @@ bt_leads_core_update = function(update.df=NULL,
     if(invoke.mrs.hudson & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))){
 
       #add col with the rating
-      lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
-                                                           keep.results.ratio = mrs.hudson.keep.results.ratio)
+      mrs.hudson.result = bt_estimate_news_leads(lc.update,
+                                                 keep.results.ratio = mrs.hudson.keep.results.ratio,
+                                                 binary.prediction = F,
+                                                 return.both = T)
+      #old
+      #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
+      #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)
+
+      lc.update$mrs.hudson.rating = mrs.hudson.result$binary.prediction.result
 
       #in the SQL later on, leads that are is.covid = 0 and relevant = 0 are
       #sent directly to state 8
@@ -346,6 +354,9 @@ bt_leads_core_update = function(update.df=NULL,
 
       #remove column
       lc.update$mrs.hudson.rating = NULL
+
+      #add relevance probability
+      lc.update$relevance.probability = mrs.hudson.result$raw.score
 
     }
 
