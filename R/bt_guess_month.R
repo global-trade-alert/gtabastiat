@@ -4,6 +4,8 @@
 #' Works on string or char vector.
 #' Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian
 #'
+#' Only first result returned if there are multiple matches.
+#'
 #' NB CJK languages dates are 1月，2月，3月。。。12月
 #' so can use str_extract(string, "\\d{1,2}") or equivalent
 #'
