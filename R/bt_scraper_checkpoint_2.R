@@ -37,6 +37,7 @@ bt_scraper_checkpoint_2 = function(ignore.url = F){
   check.update.table.vars = all(required.vars %in% colnames(update.table))
   if(!check.update.table.vars){
     missing.vars = required.vars[which(!required.vars %in% colnames(update.table))]
+    missing.vars = paste("missing: ", paste(missing.vars, collapse = ", "))
     }
 
   check.date.format = tryCatch(expr = {
@@ -66,7 +67,9 @@ bt_scraper_checkpoint_2 = function(ignore.url = F){
 
   if(all(checks)){print("OK!")
   }else{
-    missing.vars = paste("missing: ", paste(missing.vars, collapse = ", "))
+    if(! exists("missing.vars")){
+      missing.vars = ""
+    }
     error.text = paste(names(checks)[which(!checks)], "failed!", collapse = "\n")
     stop(paste(error.text, missing.vars))
   }
