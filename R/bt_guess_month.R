@@ -38,11 +38,11 @@ bt_guess_month = function(tgt.string){
   #month.names = data.frame(german = german, french=french, spanish=spanish, russian=russian, portuguese=portuguese, italian=italian, bahasa=bahasa, arabic.gregorian=arabic.gregorian)
   #save(month.names, file="0 gtabastiat/data/month_names.rda")
 
-  load(file="0 gtabastiat/data/month_names.rda")
+  #load(file="0 gtabastiat/data/month_names.rda")
 
   #Encoding(month.names) <- "UTF-8" #required for russian to work
 
-  months.master = apply(month.names, 1, paste, collapse=")|(")
+  months.master = apply(gtabastiat::month.names, 1, paste, collapse=")|(")
 
   months.master = paste0("(", months.master, ")")
 
