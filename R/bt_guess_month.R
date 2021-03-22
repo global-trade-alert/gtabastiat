@@ -56,7 +56,8 @@ bt_guess_month = function(tgt.string){
                                 perl = T),
            y=tgt.string) %>%
       as.logical() %>%
-      which()
+      which() %>%
+      head(n=1)
   }
 
   if(length(tgt.string)==1){
