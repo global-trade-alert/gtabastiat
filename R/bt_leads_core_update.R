@@ -257,11 +257,11 @@ bt_leads_core_update = function(update.df=NULL,
 
         this.act.url=unique(bt_extract_url(this.source))
 
-        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
 
         if(! is.na(lc.update$act.description.ll[i])){
 
-          lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br />More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+          lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
         }
 
 
