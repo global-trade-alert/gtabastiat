@@ -113,12 +113,28 @@ bt_leads_core_update = function(update.df=NULL,
 
     }
 
+    #Bastiat does a good job of tracking TD leads.
+    # when official.td.leads.only == T, the leads from Ricardo (i.e. Google News) will not be sent to the editor
+
+    official.td.leads.only = T
+
+    if(official.td.leads.only){
+
+
+      lc.update$relevant[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+                             (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
+
+      lc.update$classify[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+                           (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
+
+    }
+
 
 
     ## adding leads-checker columns
     lc.update$relevance.probability=NA
-    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relvant==1]=1
-    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relvant==0]=0
+    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==1]=1
+    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==0]=0
 
     ## act_url_official
     if(set.official){
