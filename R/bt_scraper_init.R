@@ -49,7 +49,10 @@ bt_scraper_init = function(){
 
   print("Opening connection...")
 
-  setwd("/home/rstudio/Dropbox/Bastiat")
+  bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
+
+  #setwd("/home/rstudio/Dropbox/Bastiat")
+  setwd(bastiat.wd)
   source("setup/keys/ric.R")
   pool <<- pool::dbPool(
     drv = RMySQL::MySQL(),
