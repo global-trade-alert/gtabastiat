@@ -18,6 +18,7 @@ bt_scraper_init = function(){
 
   print("Loading packages...")
 
+  library(dplyr)
   library("rvest")
   library("httr")
   library(RCurl)
