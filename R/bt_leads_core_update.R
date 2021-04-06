@@ -28,6 +28,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 mrs.hudson.keep.results.ratio=0.95){
 
   #### for testing
+  # load(file = "uc.Rdata")
   # lc.update = update.core
   # exclude.by="bid"
   # all.covid=F
@@ -302,7 +303,8 @@ bt_leads_core_update = function(update.df=NULL,
         if(is.na(check.url)==F){
 
           ## checking state acts
-          sa.ids=unique(subset(gta.sa, grepl(check.url, this.source, fixed = T))$id)
+          #sa.ids=unique(subset(gta.sa, grepl(check.url, this.source, fixed = T))$id)
+          sa.ids=unique(subset(gta.sa, grepl(check.url, gta.sa$source, fixed = T))$id)
 
           if(length(sa.ids)>0){
 
