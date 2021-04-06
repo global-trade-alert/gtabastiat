@@ -27,12 +27,12 @@ bt_scraper_init = function(){
   library("mailR")
   library("stringr")
   library("tabulizer")
-  library("htmltab")
+  #library("htmltab")
   library("splitstackshape")
   library("webdriver")
   library("lubridate")
   library("textcat")
-  library(flipTime)
+  #library(flipTime)
   library(tidytext)
   library(gtabastiat)
   library(gtalibrary)
@@ -66,6 +66,8 @@ bt_scraper_init = function(){
   source("code/daily/infrastructure/scrape directory.R")
   source("code/daily/infrastructure/Bastiat base.R")
   bastiat=c("bastiat", ls())
+
+
 
 
 }
