@@ -21,6 +21,12 @@ bt_update_news_classifier = function(db.connection=NULL,
                                      training.testing.split = 0.9){
 
 
+  #for testing
+  # db.connection=NULL
+  # show.text.summary=T
+  # create.training.testing.split=T
+  # training.testing.split = 0.9
+
   #ML packages
   library(keras)
   library(randomForest)
@@ -90,35 +96,36 @@ LIMIT 25000;")
   paste(nrow(leads.core.b221.rlv.news), "relevant NEWS rows retrieved") %>% print()
 
 
+  #too much of these are bad, plus we have a lot more news training data now.
   #NON NEWS, NON-TD to increase training set
-  leads.core.b221.rlv.notnews = gta_sql_get_value(
-    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
-FROM bt_hint_log bthl,
-	bt_hint_bid btbid,
-	bt_hint_text btht,
-	bt_hint_jurisdiction bthj,
-	gta_jurisdiction_list gtajl
-
-WHERE bthl.hint_id = btbid.hint_id
-AND bthl.hint_id = btht.hint_id
-AND bthl.hint_id = bthj.hint_id
-
-AND btbid.hint_id = bthj.hint_id
-AND btbid.hint_id = btht.hint_id
-
-AND bthj.hint_id = btht.hint_id
-
-AND bthj.jurisdiction_id = gtajl.jurisdiction_id
-
-AND btht.language_id = 1
-AND (bthl.hint_state_id IN (5, 6, 7))
-AND NOT (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
-
-AND bthj.jurisdiction_id NOT IN (89)
-
-LIMIT 25000;")
-
-  paste(nrow(leads.core.b221.rlv.notnews), "relevant NON-NEWS rows retrieved") %>% print()
+#   leads.core.b221.rlv.notnews = gta_sql_get_value(
+#     "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
+# FROM bt_hint_log bthl,
+# 	bt_hint_bid btbid,
+# 	bt_hint_text btht,
+# 	bt_hint_jurisdiction bthj,
+# 	gta_jurisdiction_list gtajl
+#
+# WHERE bthl.hint_id = btbid.hint_id
+# AND bthl.hint_id = btht.hint_id
+# AND bthl.hint_id = bthj.hint_id
+#
+# AND btbid.hint_id = bthj.hint_id
+# AND btbid.hint_id = btht.hint_id
+#
+# AND bthj.hint_id = btht.hint_id
+#
+# AND bthj.jurisdiction_id = gtajl.jurisdiction_id
+#
+# AND btht.language_id = 1
+# AND (bthl.hint_state_id IN (5, 6, 7))
+# AND NOT (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
+#
+# AND bthj.jurisdiction_id NOT IN (89)
+#
+# LIMIT 25000;")
+#
+#   paste(nrow(leads.core.b221.rlv.notnews), "relevant NON-NEWS rows retrieved") %>% print()
 
 
 
@@ -150,7 +157,7 @@ LIMIT 25000;")
   paste(nrow(leads.core.b221.irv), "IRrelevant rows retrieved") %>% print()
 
   leads.core.b221 = rbind(leads.core.b221.rlv.news,
-                          leads.core.b221.rlv.notnews,
+                          #leads.core.b221.rlv.notnews, #removed for reasons stated above
                           leads.core.b221.irv)
 
   rm(leads.core.b221.irv,
@@ -247,6 +254,8 @@ LIMIT 25000;")
   #values assigned to them
   print("Creating tokeniser...")
   mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(training.b221$text)
+
+  #save the tokeniser if it was created properly
   if(length(mrs.hudson.tokeniser)){
 
     mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
@@ -268,9 +277,8 @@ LIMIT 25000;")
   print("Creating new model... (may take several minutes)")
   mrs.hudson.model = randomForest(evaluation ~ ., data=x.train)
 
-  #tokeniser must be saved with the specific function.
   mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
-  mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
+
 
   print(paste("New model created! Saving to", mrs.hudson.model.file.name))
 
@@ -280,7 +288,7 @@ LIMIT 25000;")
   #testing
   if(create.training.testing.split){
 
-    print("The confidence interval used for testing is 0.1")
+    print("The retain quantile used for testing is 0.1")
     x.test = bt_td_matrix_preprocess(num_words = num_words,
                                      max_length = max_length,
                                      text = testing.b221$text)
@@ -290,12 +298,18 @@ LIMIT 25000;")
     #table(x.test$evaluation, predictRF)
 
     testing.b221 = cbind(testing.b221, predictRF)
-    testing.b221$predictRF = testing.b221$`TRUE` > quantile(testing.b221$`TRUE`, 0.1)
+    testing.b221$predictRF = testing.b221$`TRUE` > quantile(testing.b221$`TRUE`, 0.2)
     testing.b221$correct.rf = testing.b221$evaluation == testing.b221$predictRF
 
     pr.metrics=bt_generate_pr_metrics(model.prediction = testing.b221$predictRF,
                                       real.label = testing.b221$evaluation,
                                       model.name = "RF")
+
+    # used with JF's DS model comparison script
+    # result2 = data.frame(bid = testing.b221$bid,
+    #                      contender = "Mrs H 0.1",
+    #                      pred = testing.b221$`TRUE`,
+    #                      evaluation = testing.b221$evaluation)
 
     return(pr.metrics)
   }

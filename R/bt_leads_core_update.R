@@ -25,7 +25,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 destination="b221",
                                 incl.kanji=F,
                                 invoke.mrs.hudson=T,
-                                mrs.hudson.keep.results.ratio=0.95){
+                                mrs.hudson.keep.results.ratio=0.9){
 
   #### for testing
   # load(file = "uc.Rdata")
