@@ -1,31 +1,39 @@
 # Roxygen documentation
 
-#' Legacy function only. Use bt_load_site() instead!
+#' An updated version of b_load_site
 #'
-#' Bastiat, please wait until the following XPATH appears on the site.
+#' Waits for the specified xpath node to be present in the HTML of webdriver's
+#' current page.
+#'
+#' Requires webdriver to be in use, assigned to an object called 'remDr'.
+#'
+#'
 #' @param xpath Provide the XPATH for which the function should wait.
 #' @param wait Specify the number of seconds you want to wait. Default is 60.
-#' @param abort Specifiy whether to cause an error in case path is not find after waiting time. Default is FALSE.
+#' @param abort Specifiy whether to cause an error in case path is not find
+#'   after waiting time. Default is FALSE.
 #'
 #' @return Pauses the algorithm until XPATH appears.
 #' @references www.globaltradealert.org
-#' @author Johannes Fritz for GTA
+
 
 
 # Function infos and parameters  --------------------------------------------
-b_load_site=function(xpath=NULL,
-                     wait=60,
-                     abort=F,
-                     wait.interval=.2){
+bt_load_site = function(xpath=NULL,
+                        wait=60,
+                        abort=F,
+                        wait.interval=1.5,
+                        remDr=remDr,
+                        assign.html=F){
 
   html.load= htmlParse(remDr$getSource()[[1]], asText=T)
-  print("Loading site ...")
+  message("Loading site...")
 
   refreshed=FALSE
   t=Sys.time()
 
   while(refreshed==F & as.numeric(Sys.time()-t)<=wait){
-    print("... waiting ...")
+    message("... waiting ...")
     Sys.sleep(wait.interval)
     html.load = htmlParse(remDr$getSource()[[1]], asText=T)
 
@@ -36,14 +44,16 @@ b_load_site=function(xpath=NULL,
   if(refreshed){
 
     print("Site's fresh!")
-    assign("html", html.load, envir=.GlobalEnv)
+    if(assign.html){
+      assign("html", html.load, envir=.GlobalEnv)
+    }
 
   }else {
 
     if(abort){
       stop("Site does not respond")
     }else{
-      print("Site does not respond")
+      message("Site does not respond")
     }
 
   }

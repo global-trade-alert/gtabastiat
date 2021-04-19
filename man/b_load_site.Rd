@@ -2,7 +2,7 @@
 % Please edit documentation in R/b_load_site.R
 \name{b_load_site}
 \alias{b_load_site}
-\title{Bastiat, please wait until the following XPATH appears on the site.}
+\title{Legacy function only. Use bt_load_site() instead!}
 \usage{
 b_load_site(xpath = NULL, wait = 60, abort = F, wait.interval = 0.2)
 }
