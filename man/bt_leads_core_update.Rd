@@ -13,7 +13,7 @@ bt_leads_core_update(
   destination = "b221",
   incl.kanji = F,
   invoke.mrs.hudson = T,
-  mrs.hudson.keep.results.ratio = 0.95
+  mrs.hudson.keep.results.ratio = 0.9
 )
 }
 \arguments{
