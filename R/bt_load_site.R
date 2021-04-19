@@ -30,15 +30,17 @@ bt_load_site = function(xpath=NULL,
 
   refreshed=FALSE
   t=Sys.time()
-
+  cat("waiting")
   while(refreshed==F & as.numeric(Sys.time()-t)<=wait){
-    message("... waiting ...")
+    cat(".")
     Sys.sleep(wait.interval)
     html.load = htmlParse(remDr$getSource()[[1]], asText=T)
 
     refreshed=length(xpathSApply(html.load, xpath, xmlValue))>0
 
   }
+
+  cat("\n")
 
   if(refreshed){
 
