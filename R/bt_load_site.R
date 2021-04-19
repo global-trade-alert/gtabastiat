@@ -44,7 +44,7 @@ bt_load_site = function(xpath=NULL,
 
   if(refreshed){
 
-    print("Site's fresh!")
+    message("Site's fresh!")
     if(assign.html){
       assign("html", html.load, envir=.GlobalEnv)
     }
