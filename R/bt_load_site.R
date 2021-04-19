@@ -23,7 +23,6 @@ bt_load_site = function(xpath=NULL,
                         wait=60,
                         abort=F,
                         wait.interval=1.5,
-                        remDr=remDr,
                         assign.html=F){
 
   html.load= htmlParse(remDr$getSource()[[1]], asText=T)
