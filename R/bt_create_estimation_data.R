@@ -64,6 +64,7 @@ bt_create_estimation_data <- function(bid=NULL,
     estimation.variables=c(estimation.variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
+  #warning: this creates a very large df (1 billion rows+)
   tf=unnest_tokens(tf, word, text, drop=F)
 
   #### FEATURE CLEANING
@@ -100,7 +101,16 @@ bt_create_estimation_data <- function(bid=NULL,
     tf=merge(tf, word.freq, by="word", all.x=T)
     tf[is.na(tf)]=0
 
-    ### GINI
+
+    ### GINI ###
+
+    ### WARNING: 23-04-2021
+    ### THIS IS BROKEN due to integer overflow caused by all the massive dfs.
+    ### this is because our datasets have grown!
+
+    ### need to change this process to be less memory intensive. I think it needs a total redo.
+    ### completely supersede with w2v maybe? will think about how to do this.
+
     # I could exclude features by GINI value. Does not seem to do much, so I skip it here.
     # If reconsidered, need to add those BIDs removed due to lack of high-GINI words into the estimation results by assigning 0/1 randomnly.
 
