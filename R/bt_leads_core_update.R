@@ -1,7 +1,5 @@
-
 #' Send a prepared leads.core dataframe to the ricardo database
-#'
-#' see parameter explanations for some help.
+#' see parameter explanations for some help. bt_leads_classify_only() also available if you only want the rel probs.
 #'
 #' @param update.df the data frame containing leads to update. min 17 specifically named cols
 #' @param exclude.by unique identifier for each row; 'primary key'

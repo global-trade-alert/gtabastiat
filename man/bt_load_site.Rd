@@ -9,7 +9,6 @@ bt_load_site(
   wait = 60,
   abort = F,
   wait.interval = 1.5,
-  remDr = remDr,
   assign.html = F
 )
 }

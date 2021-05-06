@@ -2,7 +2,8 @@
 % Please edit documentation in R/bt_leads_core_update.R
 \name{bt_leads_core_update}
 \alias{bt_leads_core_update}
-\title{Send a prepared leads.core dataframe to the ricardo database}
+\title{Send a prepared leads.core dataframe to the ricardo database
+see parameter explanations for some help. bt_leads_classify_only() also available if you only want the rel probs.}
 \usage{
 bt_leads_core_update(
   update.df = NULL,
@@ -37,7 +38,8 @@ bt_leads_core_update(
 
 }
 \description{
-see parameter explanations for some help.
+Send a prepared leads.core dataframe to the ricardo database
+see parameter explanations for some help. bt_leads_classify_only() also available if you only want the rel probs.
 }
 \examples{
 bt_leads_core_update("update.core", "bid", destination = "b221")

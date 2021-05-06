@@ -36,7 +36,7 @@
 
 bt_guess_country = function(tgt.string, placeholder.result = NA, top.match.only = T){
 
-
+  library(dplyr)
 
   #this is included for reference. it's what I used to construct the
   #countries.matcher dataframe. each regex is written by hand, so if the
