@@ -53,6 +53,14 @@ bt_leads_classify_only = function(update.core){
     lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
                     classify)
 
+    #need to preserve the col order
+    update.core$relevant = lc.update$relevant
+    update.core$relevance.probability = lc.update$relevance.probability
+
+    return(update.core)
+
+
+
 
 
   }
