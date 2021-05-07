@@ -14,7 +14,9 @@ bt_leads_classify_only = function(update.core){
   lc.update = update.core
 
   ## classifying results
-  classify=subset(lc.update, classify==1 & relevant==1 & country.lead!="Vatican")
+  classify=subset(lc.update, lc.update$classify==1 &
+                    lc.update$relevant==1 &
+                    lc.update$country.lead!="Vatican")
 
   if(nrow(classify)>0){
 
