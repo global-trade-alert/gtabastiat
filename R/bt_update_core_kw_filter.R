@@ -19,18 +19,19 @@ bt_update_core_kw_filter = function(update.core,
                                     case.sensitive = F,
                                     only.keep.matches=T){
 
+  filtered = update.core
+
   if(positive & only.keep.matches){
-   update.core$relevant = 0
-   update.core$classify = 0
+    filtered$relevant = 0
+    filtered$classify = 0
   }
 
-  filtered = update.core
 
   for(word in key.words){
     for(filter.column in filter.cols){
 
       match.vect = grepl(word,
-                         update.core[filter.column],
+                         unlist(update.core[filter.column]),
                          ignore.case = !case.sensitive)
 
       if(positive){
@@ -40,9 +41,9 @@ bt_update_core_kw_filter = function(update.core,
       }
     }
 
-    }
+  }
 
-    return(filtered)
+  return(filtered)
 
 
 }

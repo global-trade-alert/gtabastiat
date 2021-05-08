@@ -26,7 +26,7 @@ bt_leads_df_kw_filter = function(leads.df,
 
         filtered = rbind(filtered,
                          subset(leads.df, grepl(word,
-                                                leads.df[filter.column],
+                                                unlist(leads.df[filter.column]),
                                                 ignore.case = !case.sensitive)
                          )
         )
@@ -39,7 +39,7 @@ bt_leads_df_kw_filter = function(leads.df,
 
         filtered = rbind(filtered,
                          subset(leads.df, !grepl(word,
-                                                 leads.df[filter.column],
+                                                 unlist(leads.df[filter.column]),
                                                  ignore.case = !case.sensitive)
                          )
         )
@@ -47,6 +47,9 @@ bt_leads_df_kw_filter = function(leads.df,
       }
     }
   }
+
+  filtered=subset(filtered, !duplicated(unlist(filtered[filter.cols[1]])))
+
 
   return(filtered)
 
