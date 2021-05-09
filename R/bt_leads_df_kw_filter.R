@@ -17,6 +17,7 @@ bt_leads_df_kw_filter = function(leads.df,
                                  filter.cols = c("act.title.en", "act.description.en"),
                                  case.sensitive = F){
 
+  message("this can be a bit slow for dfs containing long character vectors")
   filtered = leads.df[0,]
 
 
