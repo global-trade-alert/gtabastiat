@@ -11,7 +11,8 @@ bt_update_core_kw_filter(
   positive = T,
   filter.cols = c("act.title.en", "act.description.en"),
   case.sensitive = F,
-  only.keep.matches = T
+  only.keep.matches = T,
+  save.match.words = T
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ bt_update_core_kw_filter(
 \item{filter.cols}{which columns to use for filtering}
 
 \item{only.keep.matches}{if True, sets all relevant/classify to 0 first}
+
+\item{save.match.words}{if True, add a column "key.words" containing all the words that generated matches}
 }
 \value{
 filtered dataframe
