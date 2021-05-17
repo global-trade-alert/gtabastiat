@@ -21,6 +21,8 @@ bt_update_core_kw_filter = function(update.core,
                                     only.keep.matches=T,
                                     save.match.words = F){
 
+  library(data.table)
+
   filtered = update.core
 
   filtered$match.words = NA
@@ -55,7 +57,7 @@ bt_update_core_kw_filter = function(update.core,
 
   }
 
-  setNames(filtered, "match.words", "key.words")
+  setnames(filtered, "match.words", "key.words")
 
   if(!save.match.words){
     filtered$key.words = NULL
