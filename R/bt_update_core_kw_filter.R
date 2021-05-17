@@ -19,7 +19,7 @@ bt_update_core_kw_filter = function(update.core,
                                     filter.cols = c("act.title.en", "act.description.en"),
                                     case.sensitive = F,
                                     only.keep.matches=T,
-                                    save.match.words = T){
+                                    save.match.words = F){
 
   filtered = update.core
 
@@ -44,7 +44,7 @@ bt_update_core_kw_filter = function(update.core,
         #save the word for context/meta-analysis
 
         #create a vector to index rows that matched and do NOT already contain the word
-        add.words.vect = (match.vect & !grepl(filtered$match.words, word))
+        add.words.vect = (match.vect & !grepl(word, filtered$match.words))
         filtered$match.words[add.words.vect] = paste(filtered$match.words[add.words.vect], word, sep = ", ")
 
 
