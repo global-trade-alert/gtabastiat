@@ -43,18 +43,18 @@ bt_sync_221_main = function(){
   ## (1) sending entries on lift-off states to leads section
 
   # (1a) select those that are on state 3: 5 and, for those that are in collection, only use starred item.
-  new.leads=gta_sql_get_value("SELECT DISTINCT nh.hint_id, acting_agency, registration_date, bid, gjl.jurisdiction_id, jurisdiction_name, un_code, assessment_name,
+  new.leads=gta_sql_get_value("SELECT DISTINCT nh.hint_id, acting_agency, registration_date, bid, hint_type_id, gjl.jurisdiction_id, jurisdiction_name, un_code, assessment_name,
                                       hint_title, hint_description, url, url_type_name,
                                       MAX(IF(bhda2.date_type_id = 1, bhda2.date, NULL )) AS date_announced,
                     									MAX(IF(bhda2.date_type_id = 2, bhda2.date, NULL )) AS date_implemented,
                     									MAX(IF(bhda2.date_type_id = 3, bhda2.date, NULL )) AS date_removed
-                               FROM ( SELECT bhl.hint_id, acting_agency, registration_date
+                               FROM ( SELECT bhl.hint_id, acting_agency, registration_date, hint_type_id
                                       FROM bt_hint_log bhl
                                       WHERE NOT EXISTS (SELECT NULL FROM b221_hint_collection WHERE  b221_hint_collection.hint_id = bhl.hint_id)
                                       AND bhl.hint_state_id IN (3,4,5)
                                       AND bhl.gta_id IS NULL
                                       UNION
-                                      SELECT bhl.hint_id, acting_agency, registration_date
+                                      SELECT bhl.hint_id, acting_agency, registration_date, hint_type_id
                                       FROM bt_hint_log bhl
                                       JOIN b221_collection_star b2cs
                                       ON bhl.hint_id = b2cs.hint_id
@@ -231,13 +231,14 @@ bt_sync_221_main = function(){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
-      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, acting_agency)
+      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
                                                     upload.chunk$bid,"',",
                                                     upload.chunk$source.type,",'",
                                                     as.Date(upload.chunk$lead.date),
-                                                    "', CURRENT_TIMESTAMP,'",
+                                                    "', CURRENT_TIMESTAMP,",
+                                                    upload.chunk$hint.type.id,",'",
                                                     upload.chunk$acting.agency,"')"), collapse=","),";"),
                            "main")
 

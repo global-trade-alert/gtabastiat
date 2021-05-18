@@ -12,7 +12,7 @@ bt_update_core_kw_filter(
   filter.cols = c("act.title.en", "act.description.en"),
   case.sensitive = F,
   only.keep.matches = T,
-  save.match.words = T
+  save.match.words = F
 )
 }
 \arguments{

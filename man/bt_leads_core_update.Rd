@@ -26,7 +26,7 @@ bt_leads_core_update(
 
 \item{set.official}{is the officiality of the source designated in the df?}
 
-\item{destination}{"b221" -> ricardo; "leads" -> main site; "parking" -> state 10; "5" -> state 5}
+\item{destination}{"b221" -> ricardo; "leads" -> main site; "parking" -> state 10; "5" -> state 5; "dpa" -> hint_type_id = 3 = dpa}
 
 \item{incl.kanji}{does the source include CJK chars? (kanji, hanzi, kana, hangeul)}
 
