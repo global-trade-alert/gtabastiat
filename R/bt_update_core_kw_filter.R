@@ -57,6 +57,10 @@ bt_update_core_kw_filter = function(update.core,
 
   }
 
+  filtered$match.words[!is.na(filtered$match.words)] = gsub(pattern = "NA, ",
+                                                            replacement = "",
+                                                            x = filtered$match.words[!is.na(filtered$match.words)])
+
   setnames(filtered, "match.words", "key.words")
 
   if(!save.match.words){
