@@ -381,7 +381,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     ## classifying results
-    classify=subset(lc.update, classify==1 & relevant==1 & country.lead!="Vatican")
+    classify=subset(lc.update, classify==1 & relevant==1 & country.lead!="Vatican" & destination!="dpa")
 
     if(nrow(classify)>0){
 
