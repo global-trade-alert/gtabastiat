@@ -1058,6 +1058,8 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(destination=="dpa"){
 
+      #this is basically the same as the 'leads' query, except the hint_type_id is 3
+
       parsing.query="
                /* Avoiding duplicate hints from BT */
                /* REMOVES DUPLICATE BIDs*/
