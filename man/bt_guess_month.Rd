@@ -14,7 +14,7 @@ integer number of guessed month
 }
 \description{
 Works on string or char vector.
-Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian
+Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian, Dutch
 }
 \details{
 Only first result returned if there are multiple matches.

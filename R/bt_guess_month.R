@@ -2,7 +2,7 @@
 #'
 #'
 #' Works on string or char vector.
-#' Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian
+#' Currently German, French, Spanish, Russian, Bahasa, Italian, Arabic-gregorian, Dutch
 #'
 #' Only first result returned if there are multiple matches.
 #'

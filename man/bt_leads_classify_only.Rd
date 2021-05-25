@@ -4,10 +4,12 @@
 \alias{bt_leads_classify_only}
 \title{The classification part of bt_leads_core_update()}
 \usage{
-bt_leads_classify_only(update.core)
+bt_leads_classify_only(update.core, assign.relevance = F)
 }
 \arguments{
 \item{update.core}{standard update.core with the standard variables.}
+
+\item{assign.relevance}{do you want to assign the 'relevant=1/0' from the classification process? default no}
 }
 \value{
 a new update.core with probabilities

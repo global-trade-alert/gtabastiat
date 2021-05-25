@@ -5,11 +5,13 @@
 #'
 #'
 #' @param update.core standard update.core with the standard variables.
+#' @param assign.relevance do you want to assign the 'relevant=1/0' from the classification process? default no
 #'
 #' @return a new update.core with probabilities
 #'
 #' @examples update.core = bt_leads_classify_only(update.core)
-bt_leads_classify_only = function(update.core){
+bt_leads_classify_only = function(update.core,
+                                  assign.relevance=F){
 
   lc.update = update.core
 
@@ -56,7 +58,14 @@ bt_leads_classify_only = function(update.core){
                     classify)
 
     #need to preserve the col order
+
+    #this func is usually used on DPA leads where we only want the relevance prob as a continuous value
+    #binary relevance is not appropriate for DPA leads as it is trained on GTA content
+    if(assign.relevance){
     update.core$relevant = lc.update$relevant
+    }
+
+
     update.core$relevance.probability = lc.update$relevance.probability
 
     return(update.core)
