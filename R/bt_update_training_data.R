@@ -174,9 +174,12 @@ AND bthl.hint_state_id IN (7, 8, 9);")
   training$text[is.na(training$act.values)==F]=paste(training$text[is.na(training$act.values)==F], training$act.values[is.na(training$act.values)==F], sep=" ")
   training=training[,c("bid","evaluation","text","acting.agency")]
 
+  #TODO update this. Probably using the master scraper list as most of them are official.
+  ##for now I turn this off as there are so many acting agencies now, it feels very harsh to only have a few categories plus other.
+
   ### processing the acting agencies
-  source("code/daily/infrastructure/Bastiat base.R")
-  training$acting.agency[!training$acting.agency %in% agency.dummies]="Other"
+  #source("code/daily/infrastructure/Bastiat base.R")
+  #training$acting.agency[!training$acting.agency %in% agency.dummies]="Other"
 
   print("new training data generated. Saving...")
 
@@ -206,6 +209,9 @@ AND bthl.hint_state_id IN (7, 8, 9);")
 
     gta.text=rbind(title, sources, descriptions)
 
+    #for testing
+    #gta.text1 = gta.text
+
 
     #### cleaning
     # country names
@@ -216,8 +222,14 @@ AND bthl.hint_state_id IN (7, 8, 9);")
 
     # URLs
     gta.text$text=gsub("((http)|(www)).*?([ \\\"]|$)","", gta.text$text)
-    gta.text=unnest_tokens(gta.text, word, text, drop=T)
 
+    #ad hoc full stop fix
+    gta.text$text = gsub(pattern = "\\.", replacement = " ", gta.text$text)
+    gta.text$text = gsub(pattern = "(\\W)|(_)", replacement = " ", gta.text$text)
+
+
+    #UNNEST TOKENS - should be ready for tokenisation now
+    gta.text=unnest_tokens(gta.text, word, text, drop=T)
     gta.text$word=as.character(gta.text$word)
 
     # short or long words
@@ -231,8 +243,10 @@ AND bthl.hint_state_id IN (7, 8, 9);")
     gta.text=subset(gta.text, grepl("[0-9]+", word)==F)
 
     # nonsense words
-    nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
+    nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december", "ndquo", "rsquo", "ndash", "rdquo", "quot", "ldquo")
     gta.text=subset(gta.text, ! word %in% nonsense)
+
+
 
     # stats for all types
     ## simple frequencies
@@ -263,7 +277,7 @@ AND bthl.hint_state_id IN (7, 8, 9);")
       print(t)
     }
 
-
+    print(paste("vocab construction completed. total words:", nrow(gta.words)))
     save(gta.words, file="data/classifier/gta words.Rdata")
 
 
