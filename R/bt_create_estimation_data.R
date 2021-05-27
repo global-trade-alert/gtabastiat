@@ -55,7 +55,7 @@ bt_create_estimation_data <- function(bid=NULL,
 
     return(
       tgt.df %>%
-        count(word) %>%
+        dplyr::count(word) %>%
         cc_df_col_int2dbl()
     )
 
@@ -113,6 +113,9 @@ bt_create_estimation_data <- function(bid=NULL,
   #warning: this creates a very large df (1 billion rows+)
   tf=unnest_tokens(tf, word, text, drop=F)
 
+  tst= tf %>%
+    dplyr::count(word, sort = TRUE)
+
   #### FEATURE CLEANING
   ### removing numbers: do you ? or just the tags.
   # tf$jibberish=apply(tf, 1, function(x) as.numeric(nchar(paste(unlist(str_extract_all(x[which(names(tf)=="word")], "\\w+")), collapse="")))/nchar(x[which(names(tf)=="word")]))
@@ -141,8 +144,6 @@ bt_create_estimation_data <- function(bid=NULL,
 
     ## simple frequencies
     #word.freq=as.data.frame(table(tf$word))
-
-    word.freq = cc_count_freq(tf)
 
     names(word.freq)=c("word","frequency.corpus")
 
