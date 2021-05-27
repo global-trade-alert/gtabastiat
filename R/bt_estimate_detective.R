@@ -27,11 +27,13 @@ bt_estimate_detective = function(detective.name=NULL,
   # training.data.path="data/classifier/training data.Rdata"
   # training.data.update=F
 
-  load(training.data.path)
+
 
   if(training.data.update){
     bt_update_training_data()
   }
+
+  load(training.data.path)
 
   #testing
   #detective = detective.name[1]
@@ -59,6 +61,17 @@ bt_estimate_detective = function(detective.name=NULL,
 
 
     print("Prepared data")
+
+    #dbg
+
+    # training.data=detective.data$estimation.data
+    # training.id="bid"
+    # training.y="evaluation"
+    # estimation.model=detective.data$detective.characteristics$estimation.model
+    # robustness.turns=robustness.turns
+    # train.share=train.share
+    # update.log=save.stats
+    # detective.name=detective.data$detective.characteristics$detective.name
 
     detective.classifier=bt_estimate_classifier(training.data=detective.data$estimation.data,
                                              training.id="bid",
