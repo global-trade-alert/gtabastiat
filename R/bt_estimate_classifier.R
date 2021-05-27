@@ -17,7 +17,8 @@ bt_estimate_classifier = function(training.data=NULL,
                                   train.share=.82,
                                   update.log=F,
                                   detective.name=NULL,
-                                  detective.number=NULL
+                                  detective.number=NULL,
+                                  max.training.rows = 50000
                                   ){
 
   library(SuperLearner)
@@ -33,6 +34,11 @@ bt_estimate_classifier = function(training.data=NULL,
   if(is.null(estimation.model)| (! estimation.model %in% c("XGB","KNN","RNF", "SVM"))){
     stop("Unknown estimation model specified.")
   }
+
+  #to stop my computer dying
+  #reduces the size of the data according to the param.
+  training.data = training.data[sample(nrow(training.data), max.training.rows),]
+
 
   for(model in estimation.model){
 
