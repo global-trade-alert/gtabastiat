@@ -18,7 +18,7 @@ bt_estimate_classifier = function(training.data=NULL,
                                   update.log=F,
                                   detective.name=NULL,
                                   detective.number=NULL,
-                                  max.training.rows = 50000
+                                  max.training.rows = 15000
                                   ){
 
   library(SuperLearner)
