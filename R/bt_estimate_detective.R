@@ -19,14 +19,34 @@ bt_estimate_detective = function(detective.name=NULL,
                                  ){
 
 
+  #for testing
+  # robustness.turns=0
+  # train.share=.82
+  # save.stats=T
+  # save.classifier=T
+  # training.data.path="data/classifier/training data.Rdata"
+  # training.data.update=F
+
   load(training.data.path)
 
   if(training.data.update){
     bt_update_training_data()
   }
 
+  #testing
+  #detective = detective.name[1]
+
   for(detective in detective.name){
     print(paste("Starting",detective))
+
+
+    #for testing
+    # bid=training$bid
+    # evaluation=training$evaluation
+    # text=training$text
+    # acting.agency = training$acting.agency
+    # train.share = train.share
+    # detective.name=detective
 
     detective.data=bt_create_estimation_data(bid=training$bid,
                                             evaluation=training$evaluation,
@@ -35,6 +55,8 @@ bt_estimate_detective = function(detective.name=NULL,
                                             train.share = train.share,
                                             detective.name=detective
                                           )
+
+
 
     print("Prepared data")
 
