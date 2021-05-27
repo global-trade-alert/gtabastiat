@@ -19,7 +19,7 @@ bt_create_estimation_data <- function(bid=NULL,
                                       detective.number=NULL,
                                       for.training=T
                                      ) {
-  #not mounting this package here causes failure when bt is used elsewhere
+  #not mounting these packages here causes failure when bt is used elsewhere
   library(tidytext)
   library(dplyr)
   library(stats)
@@ -44,6 +44,17 @@ bt_create_estimation_data <- function(bid=NULL,
                   stringsAsFactors = F)
   }
 
+  #testing
+  #tf1 = tf
+
+
+  #VERY IMPORTANT:
+  #REMOVE non alphanumerics from the tf. this is to alleviate problems caused by
+  #errant bits of punctuation, html, mojibake, etc
+  tf$text = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
+                 replacement = " ",
+                 x = tf$text)
+
   train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
 
   variables=detective.characteristics$variables
@@ -52,15 +63,14 @@ bt_create_estimation_data <- function(bid=NULL,
   ## ensuring I have all acting agencies, if called for
   if(detective.characteristics$vars.incl.acting.agency){
 
-    if(for.training){
-      while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
-        rm(train.split)
-        train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-        print("resplitting to ensure presence of all agencies")
-      }
-    }
-
-
+    #commented out because there are so many AAs now it's impossible to train on all of them.
+    # if(for.training){
+    #   while(length(setdiff(agency.dummies, unique(acting.agency[which(tf$bid %in% train.split)])))>0){
+    #     rm(train.split)
+    #     train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+    #     print("resplitting to ensure presence of all agencies")
+    #   }
+    #}
     estimation.variables=c(estimation.variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
@@ -73,7 +83,13 @@ bt_create_estimation_data <- function(bid=NULL,
   tf$word=as.character(tf$word)
   tf=subset(tf, nchar(word)>=4 & nchar(word)<=30)
 
+  #test
+  #tf2 = tf
+
   ### EXPLORE UDPIPE
+
+  #I worry as a significant part of our corpus is not in proper english, or not in english at all.
+
   # rake=keywords_rake(tf, "word", "bid", n_min=1, ngram_max = 4)
   # coll=keywords_collocation(tf, "word", "bid", n_min=2, ngram_max = 4)
   #
@@ -101,6 +117,8 @@ bt_create_estimation_data <- function(bid=NULL,
     tf=merge(tf, word.freq, by="word", all.x=T)
     tf[is.na(tf)]=0
 
+    #test
+    #tf3=tf
 
     ### GINI ###
 
@@ -116,8 +134,19 @@ bt_create_estimation_data <- function(bid=NULL,
 
     # if("gini.normalised" %in% unique(c(variables, detective.characteristics$dtmatrix.metric))){
 
-    gini=as.data.frame(table(subset(tf, bid %in% train.split)$word))
+    #gini=as.data.frame(table(subset(tf, bid %in% train.split)$word)))
+
+    gini = subset(tf, bid %in% train.split)$word %>%
+      table() %>%
+      as.data.frame(stringsAsFactors = F)
+
     names(gini)=c("word","freq.total")
+
+    #!!!VERY IMPORTANT!!!
+    #in R integer variables can only go up to ~+-2*10^9 which is exceeded later
+    #storing our vars as doubles solves this problem
+    #hence the next line
+    gini$freq.total = as.numeric(gini$freq.total)
 
     gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
     names(gini.ir)=c("word","freq.irrelevant")
@@ -129,13 +158,37 @@ bt_create_estimation_data <- function(bid=NULL,
     rm(gini.ir)
     gini[is.na(gini)]=0
 
+
     gini$gini.simple=(gini$freq.relevant/gini$freq.total)^2+(gini$freq.irrelevant/gini$freq.total)^2
 
     gini$gini.normalised.num=gini$freq.relevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==1)$bid)))
+    #TODO the overflow is caused below
     gini$gini.normalised.denom=gini$freq.irrelevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==0)$bid)))
     gini$gini.normalised=(gini$gini.normalised.num/(gini$gini.normalised.num+ gini$gini.normalised.denom))^2 +
       (gini$gini.normalised.denom/(gini$gini.normalised.denom+ gini$gini.normalised.num))^2
 
+    #the below was used to root out problems with overflow. I leave it here in case it happens again.
+    # tst = c()
+    # err = c()
+    # wrn = c()
+    # const = length(unique(subset(tf, bid %in% train.split & evaluation==0)$bid))
+    # for(i in 1:nrow(tf)){
+    #   tryCatch(expr={
+    #     tst=c(tst,
+    #           (as.numeric(gini$freq.total)[i]*as.numeric(const) )
+    #     )
+    #
+    #
+    #   },error = function(e){
+    #     print(paste("error with:", i))
+    #     err = c(err, i)
+    #   },
+    #   warning = function(w){
+    #     print(paste("warn with:", i))
+    #     err = c(wrn, i)
+    #   }
+    #   )
+    # }
 
 
     # }
