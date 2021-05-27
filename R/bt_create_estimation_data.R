@@ -26,6 +26,42 @@ bt_create_estimation_data <- function(bid=NULL,
   library(data.table)
   library(caret)
 
+
+  #!!!VERY IMPORTANT!!!
+  #in R integer variables can only go up to ~+-2*10^9 which is exceeded later
+  #storing our vars as doubles solves this problem
+  #I was originally doing this ad hoc but it happens again and again, so here is a janky function.
+
+  cc_df_col_int2dbl = function(tgt.df){
+    #rooting out naughty integers
+    converted = 0
+    for(col in colnames(tgt.df)){
+
+      if(typeof(tgt.df[,col]) == "integer"){
+
+        tgt.df[,col] = as.numeric(tgt.df[,col])
+        converted = converted + 1
+      }
+
+    }
+
+    message(paste(converted, "cols converted to double"))
+
+    return(tgt.df)
+  }
+
+  #wrapper function to preserve original structure
+  cc_count_freq = function(tgt.df){
+
+    return(
+      tgt.df %>%
+        count(word) %>%
+        cc_df_col_int2dbl()
+    )
+
+  }
+
+
   detective.characteristics=bt_get_detective_characteristics(d.name=detective.name,
                                                              d.number=detective.number)
 
@@ -101,21 +137,34 @@ bt_create_estimation_data <- function(bid=NULL,
   #
 
   ## CREATING THE METRICS
-  if(is.null(evaluation)==F){
+  if(!is.null(evaluation)){
 
     ## simple frequencies
-    word.freq=as.data.frame(table(tf$word))
-    names(word.freq)=c("word","frequency.corpus")
-    tf=merge(tf, word.freq, by="word", all.x=T)
+    #word.freq=as.data.frame(table(tf$word))
 
-    word.freq=as.data.frame(table(tf$word[tf$evaluation==1]))
+    word.freq = cc_count_freq(tf)
+
+    names(word.freq)=c("word","frequency.corpus")
+
+    tf = merge(tf, word.freq, by="word", all.x=T)
+
+    #word.freq=as.data.frame(table(tf$word[tf$evaluation==1]))
+
+    word.freq = cc_count_freq(tf[tf$evaluation==1,])
+
     names(word.freq)=c("word","frequency.relevant")
     tf=merge(tf, word.freq, by="word", all.x=T)
 
-    word.freq=as.data.frame(table(tf$word[tf$evaluation==0]))
+    #word.freq=as.data.frame(table(tf$word[tf$evaluation==0]))
+
+    word.freq = cc_count_freq(tf[tf$evaluation==1,])
+
     names(word.freq)=c("word","frequency.irrelevant")
     tf=merge(tf, word.freq, by="word", all.x=T)
     tf[is.na(tf)]=0
+
+
+
 
     #test
     #tf3=tf
@@ -136,33 +185,36 @@ bt_create_estimation_data <- function(bid=NULL,
 
     #gini=as.data.frame(table(subset(tf, bid %in% train.split)$word)))
 
-    gini = subset(tf, bid %in% train.split)$word %>%
-      table() %>%
-      as.data.frame(stringsAsFactors = F)
+    gini = subset(tf, bid %in% train.split) %>%
+      cc_count_freq()
 
     names(gini)=c("word","freq.total")
 
-    #!!!VERY IMPORTANT!!!
-    #in R integer variables can only go up to ~+-2*10^9 which is exceeded later
-    #storing our vars as doubles solves this problem
-    #hence the next line
-    gini$freq.total = as.numeric(gini$freq.total)
 
-    gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+    #gini$freq.total = as.numeric(gini$freq.total)
+
+    #gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+
+    gini.ir = subset(tf, bid %in% train.split & evaluation==0) %>%
+      cc_count_freq()
+
     names(gini.ir)=c("word","freq.irrelevant")
     gini=merge(gini, gini.ir, by="word", all.x=T)
 
-    gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+    #gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+    gini.ir = subset(tf, bid %in% train.split & evaluation==1) %>%
+      cc_count_freq()
+
     names(gini.ir)=c("word","freq.relevant")
+
     gini=merge(gini, gini.ir, by="word", all.x=T)
+
     rm(gini.ir)
     gini[is.na(gini)]=0
-
 
     gini$gini.simple=(gini$freq.relevant/gini$freq.total)^2+(gini$freq.irrelevant/gini$freq.total)^2
 
     gini$gini.normalised.num=gini$freq.relevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==1)$bid)))
-    #TODO the overflow is caused below
     gini$gini.normalised.denom=gini$freq.irrelevant/(gini$freq.total*length(unique(subset(tf, bid %in% train.split & evaluation==0)$bid)))
     gini$gini.normalised=(gini$gini.normalised.num/(gini$gini.normalised.num+ gini$gini.normalised.denom))^2 +
       (gini$gini.normalised.denom/(gini$gini.normalised.denom+ gini$gini.normalised.num))^2
@@ -199,7 +251,10 @@ bt_create_estimation_data <- function(bid=NULL,
     gta.gini.threshold=100
     nonsense=c("nbsp", "quot", "january", "february","march","april","may","june","july","august","september","october","november","december")
 
-    gta.words=gtabastiat::gta.corpus
+    gta.words=gtabastiat::gta.corpus %>%
+      cc_df_col_int2dbl()
+    gta.words$word = tolower(gta.words$word)
+
     stop.en=get_stopwords()$word
 
     gini.result=data.frame(word=character(),
@@ -216,7 +271,11 @@ bt_create_estimation_data <- function(bid=NULL,
       gta.words$gta.freq.word=round(gta.words$gta.freq.word/sum(gta.words$gta.freq.word)*nrow(subset(tf, ! word %in% stop.en)),0)
 
       ## irrelevant cases
-      gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==0)$word)))
+      #gta.gini=as.data.frame(table(tolower(subset(tf, bid %in% train.split & evaluation==0)$word)))
+
+      gta.gini = subset(tf, bid %in% train.split & evaluation==0) %>%
+        cc_count_freq()
+
       names(gta.gini)=c("word","gta.freq.word")
 
       gta.gini=rbind(gta.gini, subset(gta.words, text==txt)[,c("word","gta.freq.word")])
@@ -230,8 +289,16 @@ bt_create_estimation_data <- function(bid=NULL,
       gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
       setnames(gta.gini, "gta.freq.word","freq.total")
 
-      gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+      #dbg
+      #gta.gini1 = gta.gini
+
+      #gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+
+      gta.gini.ir = subset(tf, bid %in% train.split & evaluation==0) %>%
+        cc_count_freq()
+
       names(gta.gini.ir)=c("word","freq.irrelevant")
+
       gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
       rm(gta.gini.ir)
 
@@ -259,7 +326,11 @@ bt_create_estimation_data <- function(bid=NULL,
       gta.gini=aggregate(gta.freq.word ~word, gta.gini, sum)
       setnames(gta.gini, "gta.freq.word","freq.total")
 
-      gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+      #gta.gini.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+
+      gta.gini.ir = subset(tf, bid %in% train.split & evaluation==1) %>%
+        cc_count_freq()
+
       names(gta.gini.ir)=c("word","freq.relevant")
       gta.gini=merge(gta.gini, gta.gini.ir, by="word", all.x=T)
       rm(gta.gini.ir)
@@ -270,7 +341,6 @@ bt_create_estimation_data <- function(bid=NULL,
       gta.gini=subset(gta.gini, freq.total>gta.gini.threshold)
 
       gta.gini$gta.gini.re=(gta.gini$freq.gta/gta.gini$freq.total)^2+(gta.gini$freq.relevant/gta.gini$freq.total)^2
-
 
       gta.gini.delta=merge(gta.gini.delta, gta.gini[,c("word","gta.gini.re")], by="word", all.x=T)
       gta.gini.delta$gta.gini.delta=gta.gini.delta$gta.gini.ir-gta.gini.delta$gta.gini.re
@@ -289,14 +359,27 @@ bt_create_estimation_data <- function(bid=NULL,
     ### odds ratio
     # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, detective.characteristics$dtmatrix.metric)))))>0){
 
-    odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
+    #odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
+
+    odds = subset(tf, bid %in% train.split) %>%
+      cc_count_freq()
+
     names(odds)=c("word","freq.total")
 
-    odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+    #odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==0)$word))
+
+    odds.ir = subset(tf, bid %in% train.split & evaluation==0) %>%
+      cc_count_freq()
+
     names(odds.ir)=c("word","freq.irrelevant")
     odds=merge(odds, odds.ir, by="word", all.x=T)
 
-    odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+    #same variable name used for relevant results for memory saving - don't get confused
+    #odds.ir=as.data.frame(table(subset(tf, bid %in% train.split & evaluation==1)$word))
+
+    odds.ir = subset(tf, bid %in% train.split & evaluation==1) %>%
+      cc_count_freq()
+
     names(odds.ir)=c("word","freq.relevant")
     odds=merge(odds, odds.ir, by="word", all.x=T)
     odds[is.na(odds)]=0
@@ -330,7 +413,13 @@ bt_create_estimation_data <- function(bid=NULL,
     # }
 
 
+    showcols = function(tgt.df){
 
+      for(col in colnames(tgt.df)){
+       print(typeof(tgt.df[,col]))
+      }
+
+    }
 
     #### FEATURE TRANSFORMATION
     ### word2vec, LSI, PLSA, NMF here, if you want.
@@ -339,20 +428,28 @@ bt_create_estimation_data <- function(bid=NULL,
     # https://sites.google.com/site/mlshortcourse/home/data-sets/text-classification-in-r
 
     ### word frequencies
-    word.share.relevant=as.data.frame(table(subset(tf, evaluation==1 & bid %in% train.split)$word))
-    word.share.relevant$share=word.share.relevant$Freq/sum(word.share.relevant$Freq)
+    #word.share.relevant=as.data.frame(table(subset(tf, evaluation==1 & bid %in% train.split)$word))
+    word.share.relevant = subset(tf, evaluation==1 & bid %in% train.split) %>%
+      cc_count_freq()
 
-    word.share.irrelevant=as.data.frame(table(subset(tf, evaluation==0 & bid %in% train.split)$word))
-    word.share.irrelevant$share=word.share.irrelevant$Freq/sum(word.share.irrelevant$Freq)
+    #word.share.relevant$share=word.share.relevant$Freq/sum(word.share.relevant$Freq)
+    word.share.relevant$share=word.share.relevant$n/sum(word.share.relevant$n)
+
+    #word.share.irrelevant=as.data.frame(table(subset(tf, evaluation==0 & bid %in% train.split)$word))
+    word.share.irrelevant = subset(tf, evaluation==0 & bid %in% train.split) %>%
+      cc_count_freq()
+
+    #word.share.irrelevant$share=word.share.irrelevant$Freq/sum(word.share.irrelevant$Freq)
+    word.share.irrelevant$share=word.share.irrelevant$n/sum(word.share.irrelevant$n)
 
     ### document frequencies
-    doc.share=aggregate(bid ~word + evaluation, subset(tf, bid %in% train.split), function(x) length(unique(x)))
+    doc.share=aggregate(bid~word + evaluation, subset(tf, bid %in% train.split), function(x) length(unique(x)))
 
     doc.share$d.share=doc.share$bid/nrow(subset(tf, evaluation==1 & bid %in% train.split))
     doc.share$d.share[doc.share$evaluation==0] =doc.share$bid[doc.share$evaluation==0]/nrow(subset(tf, evaluation==0 & bid %in% train.split))
 
-    setnames(word.share.irrelevant, "Var1", "word")
-    setnames(word.share.relevant, "Var1", "word")
+    #setnames(word.share.irrelevant, "Var1", "word")
+    #setnames(word.share.relevant, "Var1", "word")
 
 
     ### word scores (tf-idf, tf-oidf)
@@ -408,7 +505,10 @@ bt_create_estimation_data <- function(bid=NULL,
 
     # if(length(intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, detective.characteristics$dtmatrix.metric))))>0){
 
-      gta.words=gtabastiat::gta.corpus
+      gta.words=gtabastiat::gta.corpus %>%
+        cc_df_col_int2dbl()
+
+      #ws1 = word.score
 
       # for(gs in intersect(c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description"), unique(c(variables, detective.characteristics$dtmatrix.metric)))){
       for(gs in c("gta.share.all","gta.share.source","gta.share.title", "gta.share.description")){
@@ -424,6 +524,7 @@ bt_create_estimation_data <- function(bid=NULL,
   }
 
 
+  #tf4 = tf
 
   #### GENERATING THE VARIABLES
   #### AGGRECGATE VARIABLES TO DOC LEVEL
@@ -434,6 +535,8 @@ bt_create_estimation_data <- function(bid=NULL,
   if(is.null(evaluation)==F){
     tf.agg=merge(tf.agg, unique(data.frame(bid=bid, evaluation=evaluation, stringsAsFactors = F)), by="bid", all.x=T)
   }
+
+  #tfa1 = tf.agg
 
   setnames(tf.agg, "score.delta","delta.sum")
   tf.agg=merge(tf.agg, aggregate(score.delta ~ bid , tf, min), by="bid", all.x=T)
@@ -467,6 +570,9 @@ bt_create_estimation_data <- function(bid=NULL,
                                  text=text,
                                  stringsAsFactors = F)
 
+  #av1 = aggregate.variables
+
+  ##TODO I think this would work nicely as a w2v model.
   ## acting.agency
   if(detective.characteristics$vars.incl.acting.agency){
     aggregate.variables$acting.agency=acting.agency
