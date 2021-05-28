@@ -19,6 +19,15 @@ bt_estimate_squad = function(detectives=NULL,
                              estimation.data="data/classifier/training data.Rdata"
                              ){
 
+  #dbg
+  # squad.level=.7
+  # train.share=.82
+  # squad.model="XGB"
+  # squad.robustness=0
+  # detective.log="content/0 core/Classifier statistics & history.Rdata"
+  # squad.log="content/0 core/Squad statistics & history.Rdata"
+  # estimation.data="data/classifier/training data.Rdata"
+
   if(is.null(detectives)){
 
     load(detective.log)
@@ -40,6 +49,8 @@ bt_estimate_squad = function(detectives=NULL,
   }
 
   bt.squad$classifier.location[bt.squad$member.name=="incumbent"]="content/0 core/Bastiat classifier.Rdata"
+  #model$name[nrow(model)] seems wrong
+  #should it be detective.characteristics$detective.name maybe?
   bt.squad$member.name[bt.squad$member.name=="incumbent"]=model$name[nrow(model)]
 
   if(any(is.na(bt.squad$classifier.location))){
@@ -87,6 +98,12 @@ bt_estimate_squad = function(detectives=NULL,
   squad.predictions=data.frame()
 
   load(estimation.data)
+
+  #reduce the size of the set because my computer dies x_x
+  #data.downscale = 3
+  data.downscale = 1
+  pred.train = pred.train[sample(nrow(pred.train), (nrow(pred.train)/data.downscale)),]
+
   for(squad.member in bt.squad$member.name){
 
     load(bt.squad$classifier.location[bt.squad$member.name==squad.member])
