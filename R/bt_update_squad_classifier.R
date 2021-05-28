@@ -31,6 +31,12 @@ bt_update_squad_classifier=function(update.training.data=T,
     print("Updating training data ... complete.")
   }
 
+  #dbg
+  # update.training.data=T
+  # squad.detecive.level=.7
+  # update.detective.classifiers=T
+  # detective.log="content/0 core/Classifier statistics & history.Rdata"
+
 
   ## gathering detectives
   load(detective.log)
