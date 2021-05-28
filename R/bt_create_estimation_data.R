@@ -66,6 +66,10 @@ bt_create_estimation_data <- function(bid=NULL,
                                                              d.number=detective.number)
 
 
+  #data.downscale = 3
+
+
+
   ### word-level variables
   if(is.null(evaluation)){
 
@@ -79,6 +83,9 @@ bt_create_estimation_data <- function(bid=NULL,
                   text=text,
                   stringsAsFactors = F)
   }
+
+  data.downscale = 3
+  tf = tf[sample(nrow(tf), (nrow(tf)/data.downscale)),]
 
   #testing
   #tf1 = tf
@@ -556,8 +563,12 @@ bt_create_estimation_data <- function(bid=NULL,
   tf.agg=merge(tf.agg, aggregate(exclusive.ir ~ bid , tf, max), by="bid", all.x=T)
   setnames(tf.agg, "exclusive.ir","exclusive.ir.max")
 
+  #dbg
+  #tfa2 = tf.agg
 
+  #generate them all to avoid rerunning this again and again
   for(var in intersect(estimation.variables, c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio"))){
+  #for(var in c("gta.share.all","gta.share.source","gta.share.title","gta.share.description","gta.gini.all","gta.gini.source","gta.gini.title","gta.gini.description","gini.normalised","odds.relevant","odds.irrelevant", "odds.ratio")){
 
     eval(parse(text=paste("tf.agg=merge(tf.agg, aggregate(",var," ~ bid , tf, function(x) mean(x, na.rm=T)), by='bid', all.x=T)",sep="")))
 
@@ -574,7 +585,10 @@ bt_create_estimation_data <- function(bid=NULL,
 
   ##TODO I think this would work nicely as a w2v model.
   ## acting.agency
+
+  #generate all the vars without having to run this function repeatedly as it is s l o w
   if(detective.characteristics$vars.incl.acting.agency){
+
     aggregate.variables$acting.agency=acting.agency
     aggregate.variables$acting.agency=factor(aggregate.variables$acting.agency, levels=agency.dummies)
     aggregate.variables$acting.agency[is.na(aggregate.variables$acting.agency)]="Other"
@@ -601,6 +615,7 @@ bt_create_estimation_data <- function(bid=NULL,
 
   ## keywords
  if(detective.characteristics$vars.incl.keywords){
+
    print("Generating keyword-related variables ...")
 
    #this causes an error if you don't set the locale when run on the server due to some encoding problem.
@@ -641,7 +656,7 @@ bt_create_estimation_data <- function(bid=NULL,
     eval(parse(text=paste("tf=tf[order(tf$",detective.characteristics$dtmatrix.metric,", decreasing = T),]", sep="")))
     model.words=unique(tf$word)[1:nr.terms]
 
-    tf.dtm=count(subset(tf, word %in% model.words), vars=c('bid', 'word'))
+    tf.dtm=dplyr::count(subset(tf, word %in% model.words), vars=c('bid', 'word'))
 
     tf.dtm=as.data.frame(as.matrix(cast_dtm(tf.dtm, bid, word, freq)))
     tf.dtm$bid=rownames(tf.dtm)
