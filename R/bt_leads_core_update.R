@@ -38,12 +38,12 @@ bt_leads_core_update = function(update.df=NULL,
   # mrs.hudson.keep.results.ratio=0.95
 
   #remove this when DPA is ready
-  if(destination == "dpa"){
-   message("DPA upload is currently disabled - please contact CC or remove the if statement containing this message from the gtabastiat function if you want to enable it.")
-
-    return(NA)
-
-  }
+  # if(destination == "dpa"){
+  #  message("DPA upload is currently disabled - please contact CC or remove the if statement containing this message from the gtabastiat function if you want to enable it.")
+  #
+  #   return(NA)
+  #
+  # }
 
   if(! destination %in% c("parking","b221","leads", "5", "dpa")){
     stop("Please choose destination value as either 'b221', 'parking', 'leads', '5' for hint_state_5, or 'dpa' for DPA leads.")
