@@ -80,7 +80,8 @@ bt_estimate_detective = function(detective.name=NULL,
                                              robustness.turns=robustness.turns,
                                              train.share=train.share,
                                              update.log=save.stats,
-                                             detective.name=detective.data$detective.characteristics$detective.name)
+                                             detective.name=detective.data$detective.characteristics$detective.name,
+                                             max.training.rows = 10000)
 
 
     if(save.classifier){
