@@ -37,7 +37,11 @@ bt_estimate_classifier = function(training.data=NULL,
 
   #to stop my computer dying
   #reduces the size of the data according to the param.
-  training.data = training.data[sample(nrow(training.data), max.training.rows),]
+
+  if(nrow(training.data) > max.training.rows){
+    training.data = training.data[sample(nrow(training.data), max.training.rows),]
+    message(paste("training data sized reduced to", max.training.rows, "rows"))
+  }
 
 
   for(model in estimation.model){
