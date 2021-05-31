@@ -1,6 +1,6 @@
 # Roxygen documentation
 
-#' Bastiat, please estimate a new squad classifier based on the best detectives.
+
 #'
 #' @return Several data frames about how the detective did.
 #' @references www.globaltradealert.org
@@ -9,6 +9,23 @@
 
 # Function infos and parameters  --------------------------------------------
 
+#' Bastiat, please estimate a new squad classifier based on the best detectives.
+#'
+#' @param detectives the squad to be estimated
+#' @param squad.level min threshold for the squad score
+#' @param train.share train:test split ratio
+#' @param squad.model which model to use for the squad
+#' @param squad.robustness
+#' @param detective.log location of the log file
+#' @param squad.log location of the squad log file
+#' @param estimation.data the data to be used for testing
+#' @param limit.classification reduces the amount of rows of data to test to reduce comp load (my 4GB ram laptop tends to error above ~50k rows hence this being the default value)
+#'
+#' @return Several data frames about how the detective did.
+#' @references www.globaltradealert.org
+#' @author Johannes Fritz for GTA
+#'
+#' @examples
 bt_estimate_squad = function(detectives=NULL,
                              squad.level=.7,
                              train.share=.82,
@@ -16,7 +33,8 @@ bt_estimate_squad = function(detectives=NULL,
                              squad.robustness=0,
                              detective.log="content/0 core/Classifier statistics & history.Rdata",
                              squad.log="content/0 core/Squad statistics & history.Rdata",
-                             estimation.data="data/classifier/training data.Rdata"
+                             estimation.data="data/classifier/training data.Rdata",
+                             limit.classification = 50000
                              ){
 
   #dbg
@@ -49,8 +67,6 @@ bt_estimate_squad = function(detectives=NULL,
   }
 
   bt.squad$classifier.location[bt.squad$member.name=="incumbent"]="content/0 core/Bastiat classifier.Rdata"
-  #model$name[nrow(model)] seems wrong
-  #should it be detective.characteristics$detective.name maybe?
   bt.squad$member.name[bt.squad$member.name=="incumbent"]=model$name[nrow(model)]
 
   if(any(is.na(bt.squad$classifier.location))){
@@ -101,9 +117,12 @@ bt_estimate_squad = function(detectives=NULL,
 
   #reduce the size of the set because my computer dies x_x
   #data.downscale = 3
-  data.downscale = 1
-  pred.train = pred.train[sample(nrow(pred.train), (nrow(pred.train)/data.downscale)),]
+  #data.downscale = 1
+  #training = training[sample(nrow(training), (nrow(training)/data.downscale)),]
 
+  if(nrow(training)>limit.classification){
+  training = training[sample(nrow(training), limit.classification),]
+  }
   for(squad.member in bt.squad$member.name){
 
     load(bt.squad$classifier.location[bt.squad$member.name==squad.member])
@@ -132,6 +151,12 @@ bt_estimate_squad = function(detectives=NULL,
 
   print("Estimating squad classifier ...")
   # Estimating squad classifier
+
+  #dbg
+
+  #there are a few NAs in the training data. very rare but causes classifier to break, so let's remove them
+  squad.predictions = training.data[rowSums(is.na(training.data)) == 0,]
+
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
                                           training.y="evaluation",
@@ -146,8 +171,8 @@ bt_estimate_squad = function(detectives=NULL,
   print(paste("New score is",squad.stats$score," and ",squad.stats$score.adjusted, " (adjusted)"))
   save(classifier, bt.squad, cutoff, file="content/0 core/Bastiat squad classifier.Rdata")
 
-  squad.stats$quad.no=s.no
-  squad.stats$quad.no=date=Sys.Date()
+  squad.stats$squad.no=s.no
+  squad.stats$date=Sys.Date()
 
   squad.statistics=rbind(squad.statistics,
                          squad.stats)
