@@ -46,13 +46,19 @@ bt_estimate_squad = function(detectives=NULL,
   # squad.log="content/0 core/Squad statistics & history.Rdata"
   # estimation.data="data/classifier/training data.Rdata"
 
+  load(detective.log)
   if(is.null(detectives)){
 
-    load(detective.log)
+    #load(detective.log)
+    #this is where the 'model' df is saved. not loading it here means the rest
+    #doesn't work. hence why I move it outside the if statement.
+
     detectives=c("incumbent", setdiff(unique(subset(model, detective.no %in% subset(stats, date>="2019-03-08" & (score>=squad.level|score.adjusted>=squad.level))$detective.no)$name),
                                       c("Wallander","Tin Tin",model$name[nrow(model)])))
 
   }
+
+
 
 
   model.files=list.files(path = "content/0 core/", pattern = ".Rdata",  full.names = T)
