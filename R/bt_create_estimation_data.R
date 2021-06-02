@@ -88,8 +88,10 @@ bt_create_estimation_data <- function(bid=NULL,
   if(for.training
      & (max.input.rows > 0)
      & (nrow(tf) > max.input.rows)){
+
     message("input data is too large. to save your processor, it will be reduced in size. change max.input.rows to zero for no limit or increase it for a higher limit.")
     tf = tf[sample(nrow(tf), max.input.rows),]
+
   }
 
   #testing
@@ -122,7 +124,11 @@ bt_create_estimation_data <- function(bid=NULL,
     estimation.variables=c(estimation.variables[!variables %in% "acting.agency"],agency.dummies.col.names)
   }
 
-  #warning: this creates a very large df (1 billion rows+)
+  #tf1.5 = tf
+
+  #tf1.5$bid[!(tf1.5$bid %in% tf$bid)]
+
+  #warning: this can create a very large df (1 billion rows+)
   tf=unnest_tokens(tf, word, text, drop=F)
 
   #### FEATURE CLEANING
@@ -541,6 +547,13 @@ bt_create_estimation_data <- function(bid=NULL,
   #### GENERATING THE VARIABLES
   #### AGGRECGATE VARIABLES TO DOC LEVEL
   tf=merge(tf, word.score, by="word", all.x = T)
+
+  #some NAs are created. THese bids are lost when aggregating so we must replace them with zero
+  #an example of this is LUX-LEX-733 (which was accidentally scraped in german):
+  #automobilbranche autopilot autopilot befindet bekannt entwicklung fuhrt irre knight munchen noch serie sich technologien uberholspur verbraucher werben
+  #obviously we shouldn't be trying to classify non en things, but sometimes they slip through so must deal with it
+
+  tf[is.na(tf)] = 0
 
   tf.agg=aggregate(score.delta ~ bid, tf, sum)
 
