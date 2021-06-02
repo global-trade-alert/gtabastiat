@@ -36,6 +36,23 @@ bt_leads_classify_only = function(update.core,
     classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
     classify$text=gsub("[^\001-\177]","",classify$text)
 
+    #check for bad chars
+    potential.problems = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
+         replacement = " ",
+         x = classify$text) %>%
+      str_squish() %>%
+      nchar() <= 1
+    if(sum(potential.problems)>0){
+      prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
+      message(prob.msg)
+      classify = classify[!potential.problems,]
+
+    }
+
+    #dbg
+    # prediction.data.id=classify$bid
+    # prediction.data.text=classify$text
+    # prediction.acting.agency=classify$acting.agency
 
     classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
                                               prediction.data.text=classify$text,
