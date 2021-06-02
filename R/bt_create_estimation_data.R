@@ -17,7 +17,8 @@ bt_create_estimation_data <- function(bid=NULL,
                                       train.share=.82,
                                       detective.name=NULL,
                                       detective.number=NULL,
-                                      for.training=T
+                                      for.training=T,
+                                      max.input.rows = 20000
                                      ) {
   #not mounting these packages here causes failure when bt is used elsewhere
   library(tidytext)
@@ -84,8 +85,12 @@ bt_create_estimation_data <- function(bid=NULL,
                   stringsAsFactors = F)
   }
 
-  data.downscale = 3
-  tf = tf[sample(nrow(tf), (nrow(tf)/data.downscale)),]
+  if(for.training
+     & (max.input.rows > 0)
+     & (nrow(tf) > max.input.rows)){
+    message("input data is too large. to save your processor, it will be reduced in size. change max.input.rows to zero for no limit or increase it for a higher limit.")
+    tf = tf[sample(nrow(tf), max.input.rows),]
+  }
 
   #testing
   #tf1 = tf
@@ -586,7 +591,7 @@ bt_create_estimation_data <- function(bid=NULL,
   ##TODO I think this would work nicely as a w2v model.
   ## acting.agency
 
-  #generate all the vars without having to run this function repeatedly as it is s l o w
+  #TODO generate all the vars without having to run this function repeatedly as it is s l o w
   if(detective.characteristics$vars.incl.acting.agency){
 
     aggregate.variables$acting.agency=acting.agency
