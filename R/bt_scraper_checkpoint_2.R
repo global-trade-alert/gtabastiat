@@ -50,7 +50,11 @@ bt_scraper_checkpoint_2 = function(ignore.url = F){
 
 
   check.unique.bids = ! any(duplicated(update.table$bid))
-  check.unique.titles = ! any(duplicated(update.table$act.title.en))
+  if(!grepl("^LU[MX]-", update.table$bid)){
+    check.unique.titles = ! any(duplicated(update.table$act.title.en))
+  }else{
+    check.unique.titles = TRUE
+  }
 
 
   check.unique.urls = (! any(duplicated(update.table$act.url))) | ignore.url
