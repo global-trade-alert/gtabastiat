@@ -16,17 +16,10 @@
 bt_update_core_kw_filter = function(update.core,
                                     key.words,
                                     positive = T,
-                                    filter.cols = NULL,
+                                    filter.cols = c("act.title.en", "act.description.en", "act.title.ll", "act.description.ll"),
                                     case.sensitive = F,
                                     only.keep.matches=T,
-                                    save.match.words = F,
-                                    is.en = T){
-
-  if(is.en & is.null(filter.cols)){
-    filter.cols = c("act.title.en", "act.description.en")
-  } else if(!is.en & is.null(filter.cols)){
-    filter.cols = c("act.title.ll", "act.description.ll")
-  }
+                                    save.match.words = F){
 
 
   library(data.table)
