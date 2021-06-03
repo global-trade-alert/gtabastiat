@@ -357,7 +357,10 @@ bt_leads_core_update = function(update.df=NULL,
 
     #Mrs Hudson
     #Use on leads from google news search and reuters.
-    if(invoke.mrs.hudson & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))){
+    if(invoke.mrs.hudson
+       & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))
+       & !(destination %in% c("citation"))
+       ){
 
       #add col with the rating
       mrs.hudson.result = bt_estimate_news_leads(lc.update,
