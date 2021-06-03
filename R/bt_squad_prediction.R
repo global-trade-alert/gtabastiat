@@ -25,6 +25,12 @@ bt_squad_prediction = function(prediction.data.id=NULL,
 
     load(bt.squad$classifier.location[bt.squad$member.name==squad.member])
     rm(classifier, cutoff)
+
+    #dbg
+    # detective=squad.member
+    # classifier.location=bt.squad$classifier.location[bt.squad$member.name==squad.member]
+    # prediction.word.score=word.score
+
     squad.predictions=rbind(squad.predictions,
                             bt_detective_prediction(detective=squad.member,
                                                     classifier.location=bt.squad$classifier.location[bt.squad$member.name==squad.member],
@@ -35,6 +41,8 @@ bt_squad_prediction = function(prediction.data.id=NULL,
                                                     train.share=train.share))
 
   }
+
+
 
 
   ## squad variable selection here
@@ -54,6 +62,7 @@ bt_squad_prediction = function(prediction.data.id=NULL,
   load(squad.classifier)
 
   predict.data=squad.predictions[,c(classifier$fitLibrary$SL.xgboost_All$object$feature_names)]
+
   prediction.result= data.frame(text.id=predict.bid,
                                 relevant=as.numeric(predict(classifier, predict.data)$pred[,1]>=cutoff),
                                 relevance.probability=predict(classifier, predict.data)$pred[,1],

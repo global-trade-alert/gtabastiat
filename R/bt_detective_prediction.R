@@ -26,6 +26,14 @@ bt_detective_prediction = function(detective=NULL,
 
   load(classifier.location)
 
+  #dbg
+  # bid=prediction.data.id
+  # word.score=prediction.word.score
+  # text=prediction.data.text
+  # acting.agency = prediction.acting.agency
+  # detective.name=detective
+  # for.training=F
+
   detective.data=bt_create_estimation_data(bid=prediction.data.id,
                                            word.score=prediction.word.score,
                                            text=prediction.data.text,
