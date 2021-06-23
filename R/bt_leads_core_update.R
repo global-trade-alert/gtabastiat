@@ -138,7 +138,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     ## adding leads-checker columns
-    lc.update$relevance.probability=NA
+    #lc.update$relevance.probability=NA
     lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==1]=1
     lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==0]=0
 
@@ -373,10 +373,9 @@ bt_leads_core_update = function(update.df=NULL,
 
       lc.update$mrs.hudson.rating = mrs.hudson.result$binary.prediction.result
 
-      #in the SQL later on, leads that are is.covid = 0 and relevant = 0 are
+      #in the SQL later on, leads that are relevant = 0 are
       #sent directly to state 8
       lc.update$relevant[lc.update$mrs.hudson.rating==0] = 0
-      lc.update$is.covid[lc.update$mrs.hudson.rating==0] = 0
 
       #ensure classify = 0 for good measure
       lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
@@ -596,16 +595,16 @@ bt_leads_core_update = function(update.df=NULL,
               /* in descending priority order */
               /* state 8 if  relevant = 0*/
               /* state 10 if old <=2019 */
-              /* state 1 if no jur or covid = 1 */
-              /* state 3 if relevant = 1 & not official & covid = 0 */
-              /* state 5 otherwise (relevant = 1 official and covid = 0 */
+              /* state 1 if no jur */
+              /* state 3 if relevant = 1 & not official */
+              /* state 5 otherwise (relevant,official = 1) */
               UPDATE bt_hint_log
               JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
               LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
-              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 AND bt_leads_core.is_covid = 0 THEN 8
+              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 THEN 8
               				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
-              				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL OR bt_leads_core.is_covid = 1 THEN 1
-              				     WHEN gta_jurisdiction_list.jurisdiction_id IS NOT NULL AND bt_leads_core.relevant = 1 AND bt_leads_core.act_url_official = 0 AND bt_leads_core.is_covid = 0 THEN 3
+              				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
+              				     WHEN gta_jurisdiction_list.jurisdiction_id IS NOT NULL AND bt_leads_core.relevant = 1 AND bt_leads_core.act_url_official = 0 THEN 3
               				     ELSE 5 END);
 
               /* Writing into classification log*/
@@ -984,7 +983,7 @@ bt_leads_core_update = function(update.df=NULL,
               UPDATE bt_hint_log
               JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
               LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
-              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 AND bt_leads_core.is_covid = 0 THEN 8
+              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 THEN 8
               				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
               				     ELSE 5 END);
@@ -1258,7 +1257,7 @@ bt_leads_core_update = function(update.df=NULL,
               UPDATE bt_hint_log
               JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
               LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
-              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 AND bt_leads_core.is_covid = 0 THEN 8
+              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 THEN 8
               				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
               				     ELSE 5 END);
