@@ -1121,7 +1121,7 @@ bt_leads_core_update = function(update.df=NULL,
               UPDATE bt_hint_log
               JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
               LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
-              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 AND bt_leads_core.is_covid = 0 THEN 8
+              SET bt_hint_log.hint_state_id= (CASE WHEN bt_leads_core.relevant = 0 THEN 8
               				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
               				     ELSE 5 END);
