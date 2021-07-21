@@ -106,7 +106,8 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
                                (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
 
-    } else {
+
+      }else {
 
     # Title (en)
     lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))] = "Vatican"
@@ -163,7 +164,8 @@ bt_leads_core_update = function(update.df=NULL,
 
       lc.update$is.covid=1
 
-    } else {
+
+      } else {
       lc.update$is.covid=0
       lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.en, ignore.case = T)]=1
       lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.ll, ignore.case = T)]=1
@@ -242,7 +244,7 @@ bt_leads_core_update = function(update.df=NULL,
 
           lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br />The source was described as: '", url.description," '.", sep="")
 
-          if(! is.na(lc.update$act.description.ll[i])){
+          if(!is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
 
             lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br />The source was described as: '", url.description," '.", sep="")
           }
