@@ -32,8 +32,8 @@ bt_leads_core_update = function(update.df=NULL,
   # all.covid=F
   # force.create=F
   # set.official=T
-  # destination="dpa"
-  # incl.kanji=F
+  # destination="b221"
+  # incl.kanji=T
   # invoke.mrs.hudson=T
   # mrs.hudson.keep.results.ratio=0.95
 
@@ -377,7 +377,7 @@ bt_leads_core_update = function(update.df=NULL,
       #sent directly to state 8
       lc.update$relevant[lc.update$mrs.hudson.rating==0] = 0
 
-      #ensure classify = 0 for good measure
+      #ensure classify = 0 for good measure - they will be classified later anyway if they progress
       lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
 
       #remove column
@@ -519,17 +519,25 @@ bt_leads_core_update = function(update.df=NULL,
 
     kanji.candidates=c("act_description_ll","act_title_ll")
 
-    for(var in kanji.candidates){
+    for(kanji.col in kanji.candidates){
 
-      if(incl.kanji){
-        eval(parse(text=paste0("lc.update$",var,"=paste0(\"N'\",lc.update$",var,",\"'\")")))
+      col.index = which(colnames(lc.update)==kanji.col)
 
-      } else {
+      #check if the column is filled with only NAs, don't need to convert these
+      if(!all(grepl(x = lc.update[,col.index], pattern = "NA"))){
 
-        eval(parse(text=paste0("lc.update$",var,"=paste0(\"'\",lc.update$",var,",\"'\")")))
+        if(incl.kanji){
 
+          #N strings for unicode, e.g. '你好' -> N'你好'
+          #eval(parse(text=paste0("lc.update$",kanji.col,"=paste0(\"N'\",lc.update$",kanji.col,",\"'\")")))
+          lc.update[,col.index] = paste0("N'", lc.update[,col.index], "'")
+
+        } else { #if we know there will be no need for N strings
+
+          eval(parse(text=paste0("lc.update$",kanji.col,"=paste0(\"'\",lc.update$",kanji.col,",\"'\")")))
+
+        }
       }
-
 
     }
 
@@ -550,8 +558,10 @@ bt_leads_core_update = function(update.df=NULL,
     }
     row.values=paste(row.values, collapse=",")
 
-
-    row.values=gsub(",NA,",",NULL,",row.values)
+    #because if you have two NAs in a row you have str ",NA,NA," and the rx only matches up to the second comma, so we have to loop this
+    while(grepl(pattern = ",NA,", x = row.values)){
+      row.values=gsub(",NA,",",NULL,",row.values)
+    }
     row.values=gsub("'NULL'","NULL",row.values)
 
     gta_sql_update_table(paste0("INSERT INTO bt_leads_core_temp(",paste(names(lc.update), collapse=","),")
