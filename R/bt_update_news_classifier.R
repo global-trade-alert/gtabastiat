@@ -30,6 +30,9 @@ bt_update_news_classifier = function(db.connection=NULL,
   #ML packages
   library(keras)
   library(randomForest)
+  library(caret)
+  library(word2vec)
+  library(udpipe)
 
   #gta packages
   library(gtasql)
@@ -41,9 +44,12 @@ bt_update_news_classifier = function(db.connection=NULL,
   library(pool)
   library(RMariaDB)
 
-  #library(tidytext)
-  #library(caret)
-  #library(dplyr)
+  #text packages
+  library(tidytext)
+  library(tm)
+  library(stringr)
+
+  library(dplyr)
   #library(purrr)
 
 
@@ -161,7 +167,7 @@ LIMIT 25000;")
                           leads.core.b221.irv)
 
   rm(leads.core.b221.irv,
-     leads.core.b221.rlv.notnews,
+     #leads.core.b221.rlv.notnews,
      leads.core.b221.rlv.news)
 
   paste(nrow(leads.core.b221), "total rows retrieved") %>% print()
@@ -188,12 +194,18 @@ LIMIT 25000;")
   training.b221.full = data.frame(bid = leads.core.b221$bid,
                                   text = paste(leads.core.b221$acting.agency, leads.core.b221$hint.title, leads.core.b221$hint.description),
                                   acting.agency = leads.core.b221$acting.agency,
-                                  evaluation = leads.core.b221$hint.state.id %in% c(2, 5, 6, 7)
+                                  evaluation = leads.core.b221$hint.state.id %in% c(5, 6, 7)
   )
 
   #in case there are duplicates
   training.b221.full = subset(training.b221.full, !duplicated(training.b221.full$bid))
 
+
+
+  #clean up the text (I was doing this per model but in all cases I think we
+  #don't want punctuation and uppercase)
+
+  training.b221.full$text = training.b221.full$text %>% removePunctuation() %>% tolower()
 
   #show summary of the text
   if(show.text.summary){
@@ -222,9 +234,100 @@ LIMIT 25000;")
   }
 
 
+
+
+  ##### UDPipe! #####
+
+  #UDPipe is very cool, but not sure if it is that useful in this case. I leave the code here for future reference.
+
+  want.udpipe = F
+
+  if(want.udpipe){
+
+    #download model if for the first time, filepath here needs editing if we want to use this
+    udmodel_english <- udpipe_load_model(file = 'english-ewt-ud-2.5-191206.udpipe')
+    message("creating udpipe annotated model, may take a while...")
+
+    #remove rubbish and prepare annotations DF
+    udp.input = removePunctuation(training.b221$text[1]) %>% tolower()
+
+    s2 <- udpipe_annotate(object = udmodel_english,
+                          x=udp.input,
+                          doc_id = seq_along(x))
+    x.train.udp <- data.frame(s2)
+
+    x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
+
+
+    #RAKE analysis
+    rake.stats <- keywords_rake(x = x.train.udp,
+                                term = "lemma",
+                                group = "doc_id",
+                                relevant = x.train.udp$upos %in% c("NOUN", "ADJ"))
+
+    rake.stats.relevant <- keywords_rake(x = x.train.udp[x.train.udp$evaluation,],
+                                         term = "lemma",
+                                         group = "doc_id",
+                                         relevant = x.train.udp$upos[x.train.udp$evaluation] %in% c("NOUN", "ADJ"))
+
+    rake.stats.irrelevant <- keywords_rake(x = x.train.udp[!x.train.udp$evaluation,],
+                                           term = "lemma",
+                                           group = "doc_id",
+                                           relevant = x.train.udp$upos[!x.train.udp$evaluation] %in% c("NOUN", "ADJ"))
+
+    rake.stats.relevant$key <- factor(rake.stats.relevant$keyword, levels = rev(rake.stats.relevant$keyword))
+    rake.stats.irrelevant$key <- factor(rake.stats.irrelevant$keyword, levels = rev(rake.stats.irrelevant$keyword))
+
+
+
+    barchart(key ~ rake, data = head(subset(rake.stats, freq > 3), 20), col = "purple",
+             main = "Relevant Keywords by RAKE",
+             xlab = "RAKE score")
+
+    barchart(key ~ rake, data = head(subset(rake.stats.relevant, freq > 3), 20), col = "blue",
+             main = "Relevant Keywords by RAKE",
+             xlab = "RAKE score")
+
+    barchart(key ~ rake, data = head(subset(rake.stats.irrelevant, freq > 3), 20), col = "red",
+             main = "Irrelevant Keywords by RAKE",
+             xlab = "RAKE score")
+
+    count_r_words = function(rake.word, count_string){
+      return(str_count(string = count_string,
+                       pattern = rake.word))
+
+    }
+
+    rake.words = subset(rake.stats, freq > 3, rake >= 1)$keyword
+    sapply(rake.words, FUN = count_r_words(rake.word = rake.words, count_string = count_string))
+
+
+    # the idea I had here was to implement a rake score, a bit like tf-idf. Will set some time aside later to focus on this.
+
+
+  }
+
+
+  ##### word2vec #####
+
+  train.w2v = training.b221$text
+
+  set.seed(221)
+  model.w2v = word2vec(x = train.w2v[1],
+                       type = "cbow",
+                       dim = 15,
+                       iter = 3)
+
+
+
+
+
+
+
+
   #parameters
   num_words = 15000 #vocab size (def = 10k)
-  max_length = 100 #length of each item. longer will be chopped. shorter will be zero-padded
+  max_length = 150 #length of each item. longer will be chopped. shorter will be zero-padded
 
 
 
@@ -253,7 +356,8 @@ LIMIT 25000;")
   #time when evaluating new leads - i.e. that the same words will have the same
   #values assigned to them
   print("Creating tokeniser...")
-  mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(training.b221$text)
+  mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>%
+    fit_text_tokenizer(training.b221$text)
 
   #save the tokeniser if it was created properly
   if(length(mrs.hudson.tokeniser)){
@@ -265,17 +369,35 @@ LIMIT 25000;")
     }
 
 
+  # K-fold cross-validation from caret
+  # Define the control
+  trControl <- trainControl(method = "cv",
+                            number = 5,
+                            search = "grid")
+
   x.train = bt_td_matrix_preprocess(num_words = num_words,
                                     max_length = max_length,
                                     text = training.b221$text)
 
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
-  #i used the number of mrs hudson's house here ;)
-  set.seed(221)
+  #i used the number of mrs hudson's house here
+  set.seed(42)
   x.train$evaluation = as.factor(training.b221$evaluation)
 
-  print("Creating new model... (may take several minutes)")
-  mrs.hudson.model = randomForest(evaluation ~ ., data=x.train)
+  print("Creating new model... (may take a while)")
+  mrs.hudson.model = train(evaluation ~ .,
+                           data=x.train,
+                           method='rf',
+                           metric="Accuracy",
+                           #mtry=33,
+                           trControl=trControl)
+
+
+  # x.test = bt_td_matrix_preprocess(num_words = num_words,
+  #                                  max_length = max_length,
+  #                                  text = testing.b221$text)
+  # x.test$evaluation = as.factor(testing.b221$evaluation)
+
 
   mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
 
@@ -293,7 +415,7 @@ LIMIT 25000;")
                                      max_length = max_length,
                                      text = testing.b221$text)
 
-    x.test$evaluation = as.factor(testing.b221$evaluation)
+    #x.test$evaluation = as.factor(testing.b221$evaluation)
     predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test, type = "prob"))
     #table(x.test$evaluation, predictRF)
 
