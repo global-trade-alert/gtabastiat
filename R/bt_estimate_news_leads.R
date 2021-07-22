@@ -23,7 +23,7 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, bi
 
   library(randomForest)
 
-  #load the most recent model and the tokeniser
+  #list relevant files
   current.wd = getwd()
   wd.pref = str_extract(getwd(), ".+GTA data team Dropbox")
   mrs.hudson.data.path = paste0(wd.pref, "/Bastiat/content/0 core/Mrs Hudson/")
@@ -39,10 +39,27 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, bi
   act.title.en = leads.core.news[,match("act.title.en", colnames(leads.core.news))]
   act.description.en = leads.core.news[,match("act.description.en", colnames(leads.core.news))]
 
+  cl.text = paste(acting.agency,
+                  act.title.en,
+                  act.description.en) %>% bt_text_preprocess()
+
+
+  if(mrs.h.gen.method == "tokeniser"){
   #make the td matrix for prediction
-  x.predict = bt_td_matrix_preprocess(text = paste(acting.agency,
-                                         act.title.en,
-                                         act.description.en))
+  x.predict = bt_td_matrix_preprocess(text = cl.text)
+  }
+
+  if(mrs.h.gen.method == "d2v"){
+    library(word2vec)
+    #load embeddings
+    mrs.hudson.w2v.list = classifiers[grepl("Mrs Hudson w2v", classifiers)]
+    mrs.hudson.w2v.fname = mrs.hudson.w2v.list[length(mrs.hudson.w2v.list)]
+    mrs.h.w2v = read.word2vec(file = mrs.hudson.w2v.fname, normalize = T)
+
+    x.predict = bt_d2v_preprocess(mrs.h.w2v,
+                                  doc_id = leads.core.news[,match("bid", colnames(leads.core.news))],
+                                  text = cl.text)
+  }
 
   print("Showing the leads to Mrs Hudson...")
   predictRF = predict(mrs.hudson.model, newdata=x.predict, type = "prob")
