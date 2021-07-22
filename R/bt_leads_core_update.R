@@ -499,6 +499,27 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update$act_title_ll=gsub("\\'","",lc.update$act_title_ll)
     lc.update$acting_agency=gsub("\\'","",lc.update$acting_agency)
 
+
+    problem.cols = c("act_description_en", "act_title_en", "act_description_ll","act_title_ll")
+
+    for (p.col in problem.cols){
+
+      col.index = which(colnames(lc.update)==p.col)
+
+      #not stupid way
+      lc.update[,col.index] = gsub(x = lc.update[,col.index],
+                                   pattern = "\\\\",
+                                   replacement = "/")
+
+      # stupid way
+      # bksl.vect = grepl(x = lc.update[,col.index], pattern = "\\\\")
+      # lc.update[,col.index][bksl.vect] = gsub(x = lc.update[,col.index][bksl.vect],
+      #                                         pattern = "\\\\",
+      #                                         replacement = "")
+
+    }
+
+
     lc.update$act_description_en=gsub("&lt;","<", lc.update$act_description_en)
     lc.update$act_description_en=gsub("&gt;",">", lc.update$act_description_en)
     lc.update$act_description_en=gsub("&amp;","&",lc.update$act_description_en)
@@ -518,6 +539,9 @@ bt_leads_core_update = function(update.df=NULL,
       eval(parse(text=paste0("lc.update$",var,"=paste0(\"'\",lc.update$",var,",\"'\")")))
 
     }
+
+
+
 
     kanji.candidates=c("act_description_ll","act_title_ll")
 
