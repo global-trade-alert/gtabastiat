@@ -23,7 +23,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 destination="b221",
                                 incl.kanji=F,
                                 invoke.mrs.hudson=T,
-                                mrs.hudson.keep.results.ratio=0.9){
+                                mrs.hudson.keep.results.ratio=1){
 
   #### for testing
   # load(file = "uc.Rdata")
@@ -368,7 +368,8 @@ bt_leads_core_update = function(update.df=NULL,
       mrs.hudson.result = bt_estimate_news_leads(lc.update,
                                                  keep.results.ratio = mrs.hudson.keep.results.ratio,
                                                  binary.prediction = F,
-                                                 return.both = T)
+                                                 return.both = T,
+                                                 conf.cutoff = 0.4)
       #old
       #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
       #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)

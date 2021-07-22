@@ -15,7 +15,11 @@
 #' @references www.globaltradealert.org
 #' @Author Callum Campbell for Global Trade Alert.
 #'
-bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, binary.prediction = T, return.both = F){
+bt_estimate_news_leads = function(leads.core.news,
+                                  keep.results.ratio = 0.95,
+                                  binary.prediction = T,
+                                  return.both = F,
+                                  conf.cutoff = 0.5){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     stop("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
@@ -68,6 +72,8 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, bi
 
   predictRF = as.data.frame(predictRF)
 
+  #this is a mess because of dependencies
+
   if(binary.prediction){
 
     confidence.quantile = quantile(predictRF$`TRUE`, 1-keep.results.ratio)
@@ -78,9 +84,12 @@ bt_estimate_news_leads = function(leads.core.news, keep.results.ratio = 0.95, bi
     return(predictRF$`TRUE`)
 
   }else{
-
+    if(keep.results.ratio < 1){
     confidence.quantile = quantile(predictRF$`TRUE`, 1-keep.results.ratio)
     binary.prediction.result = sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.quantile)
+    }else{
+      binary.prediction.result = predictRF$`TRUE` > conf.cutoff
+    }
 
    return(
      list(binary.prediction.result = binary.prediction.result,
