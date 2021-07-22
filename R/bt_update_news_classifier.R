@@ -18,7 +18,14 @@
 bt_update_news_classifier = function(db.connection=NULL,
                                      show.text.summary=T,
                                      create.training.testing.split=F,
-                                     training.testing.split = 0.9){
+                                     training.testing.split = 0.9,
+                                     mrs.h.method = "d2v"){
+
+
+  accepted.methods= c("tokenise", "d2v")
+  if(! mrs.h.method %in% accepted.methods){
+   stop(paste("method must be one of", accepted.methods))
+  }
 
 
   #for testing
@@ -205,7 +212,9 @@ LIMIT 25000;")
   #clean up the text (I was doing this per model but in all cases I think we
   #don't want punctuation and uppercase)
 
-  training.b221.full$text = training.b221.full$text %>% removePunctuation() %>% tolower()
+
+
+  training.b221.full$text = bt_text_preprocess(training.b221.full$text)
 
   #show summary of the text
   if(show.text.summary){
@@ -308,29 +317,35 @@ LIMIT 25000;")
   }
 
 
-  ##### word2vec #####
+  if(mrs.h.method == "d2v"){
+    ##### word2vec #####
 
   train.w2v = training.b221$text
 
   set.seed(221)
-  model.w2v = word2vec(x = train.w2v[1],
+
+  print("preparing word vector embeddings, may take a while...")
+
+  model.w2v = word2vec(x = train.w2v,
                        type = "cbow",
-                       dim = 15,
-                       iter = 3)
+                       dim = 100,
+                       iter = 20)
+
+  mrs.hudson.w2v.emb.fname = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson w2v.bin")
+
+  print(paste("w2v embeddings created! saving to",mrs.hudson.w2v.emb.fname))
+  write.word2vec(model.w2v, file = mrs.hudson.w2v.emb.fname)
 
 
+  x.train = bt_d2v_preprocess(doc_id = training.b221$bid, text=training.b221$text)
 
+  if(create.training.testing.split){
+    x.test = bt_d2v_preprocess(doc_id = testing.b221$bid, text = testing.b221$text)
+  }
 
+  }
 
-
-
-
-  #parameters
-  num_words = 15000 #vocab size (def = 10k)
-  max_length = 150 #length of each item. longer will be chopped. shorter will be zero-padded
-
-
-
+if(mrs.h.method == "tokenise"){
   #The tokeniser is now in a separate function.
 
 
@@ -341,16 +356,11 @@ LIMIT 25000;")
   #keras is very good at this. for reference:
   #https://rdrr.io/cran/keras/man/text_tokenizer.html
 
-  # bt_td_matrix_preprocess = function(num_words, max_length, text){
-  #
-  #   tokeniser = text_tokenizer(num_words = num_words) %>% fit_text_tokenizer(text)
-  #
-  #   text_seqs = texts_to_sequences(tokeniser, text)
-  #   padded = text_seqs %>% pad_sequences(maxlen = max_length)
-  #
-  #   return(padded)
-  # }
 
+
+  #parameters
+  num_words = 15000 #vocab size (def = 10k)
+  max_length = 150 #length of each item. longer will be chopped. shorter will be zero-padded
 
   #x is our sparse vector TD matrix this ensures the same tokeniser is used each
   #time when evaluating new leads - i.e. that the same words will have the same
@@ -366,32 +376,55 @@ LIMIT 25000;")
     print(paste("Tokeniser created! Saving to", mrs.hudson.tokeniser.file.name))
     save_text_tokenizer(mrs.hudson.tokeniser, file = mrs.hudson.tokeniser.file.name)
     print("Saved!")
-    }
+  }
 
 
-  # K-fold cross-validation from caret
-  # Define the control
-  trControl <- trainControl(method = "cv",
-                            number = 5,
-                            search = "grid")
+
 
   x.train = bt_td_matrix_preprocess(num_words = num_words,
                                     max_length = max_length,
                                     text = training.b221$text)
 
+  if(create.training.testing.split){
+    x.test = bt_td_matrix_preprocess(num_words = num_words,
+                                     max_length = max_length,
+                                     text = testing.b221$text)
+  }
+}
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
   #i used the number of mrs hudson's house here
-  set.seed(42)
+  set.seed(221)
+
+
+
+
+
   x.train$evaluation = as.factor(training.b221$evaluation)
 
   print("Creating new model... (may take a while)")
-  mrs.hudson.model = train(evaluation ~ .,
-                           data=x.train,
-                           method='rf',
-                           metric="Accuracy",
-                           #mtry=33,
-                           trControl=trControl)
 
+  if(!mrs.h.grid.search){
+    #without grid search - much faster
+    mrs.hudson.model = randomForest(evaluation ~ .,
+                                    data=x.train)
+
+  }else{
+
+    #with grid search - prepare your RAM
+
+    # K-fold cross-validation from caret
+    # Define the control
+    trControl <- trainControl(method = "cv",
+                              number = 5,
+                              search = "grid")
+
+    mrs.hudson.model = train(evaluation ~ .,
+                             data=x.train,
+                             method='rf',
+                             metric="Accuracy",
+                             #mtry=33,
+                             trControl=trControl)
+  }
 
   # x.test = bt_td_matrix_preprocess(num_words = num_words,
   #                                  max_length = max_length,
@@ -401,21 +434,21 @@ LIMIT 25000;")
 
   mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
 
+  mrs.h.gen.method = mrs.h.method
+  print(paste("New model created using", mrs.h.gen.method, "! Saving to", mrs.hudson.model.file.name))
 
-  print(paste("New model created! Saving to", mrs.hudson.model.file.name))
 
-  save(mrs.hudson.model, file = mrs.hudson.model.file.name)
+  save(mrs.h.gen.method, mrs.hudson.model, file = mrs.hudson.model.file.name)
 
 
   #testing
   if(create.training.testing.split){
 
-    print("The retain quantile used for testing is 0.1")
-    x.test = bt_td_matrix_preprocess(num_words = num_words,
-                                     max_length = max_length,
-                                     text = testing.b221$text)
+    print(paste("The retain quantile used for testing is", 1-training.testing.split))
+
 
     #x.test$evaluation = as.factor(testing.b221$evaluation)
+
     predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test, type = "prob"))
     #table(x.test$evaluation, predictRF)
 
