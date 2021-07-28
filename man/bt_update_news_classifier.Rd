@@ -9,7 +9,8 @@ bt_update_news_classifier(
   db.connection = NULL,
   show.text.summary = T,
   create.training.testing.split = F,
-  training.testing.split = 0.9
+  training.testing.split = 0.9,
+  mrs.h.method = "d2v"
 )
 }
 \arguments{

@@ -27,6 +27,7 @@ bt_update_news_classifier = function(db.connection=NULL,
    stop(paste("method must be one of", accepted.methods))
   }
 
+  ##### DEPENDENCIES AND INIT #####
 
   #for testing
   # db.connection=NULL
@@ -78,33 +79,35 @@ bt_update_news_classifier = function(db.connection=NULL,
 
   }
 
+  ##### TRAINING DATA GET #####
+
   #list of google, reuters news leads in 4 states - this is broader than what we
   #use for BT usually in order to increase the amount of training data
 
   #RELEVANT NEWS LEADS
   leads.core.b221.rlv.news = gta_sql_get_value(
-    "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
-FROM bt_hint_log bthl,
-	bt_hint_bid btbid,
-	bt_hint_text btht,
-	bt_hint_jurisdiction bthj,
-	gta_jurisdiction_list gtajl
+     "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
+      FROM bt_hint_log bthl,
+      	bt_hint_bid btbid,
+      	bt_hint_text btht,
+      	bt_hint_jurisdiction bthj,
+      	gta_jurisdiction_list gtajl
 
-WHERE bthl.hint_id = btbid.hint_id
-AND bthl.hint_id = btht.hint_id
-AND bthl.hint_id = bthj.hint_id
+      WHERE bthl.hint_id = btbid.hint_id
+      AND bthl.hint_id = btht.hint_id
+      AND bthl.hint_id = bthj.hint_id
 
-AND btbid.hint_id = bthj.hint_id
-AND btbid.hint_id = btht.hint_id
+      AND btbid.hint_id = bthj.hint_id
+      AND btbid.hint_id = btht.hint_id
 
-AND bthj.hint_id = btht.hint_id
+      AND bthj.hint_id = btht.hint_id
 
-AND bthj.jurisdiction_id = gtajl.jurisdiction_id
+      AND bthj.jurisdiction_id = gtajl.jurisdiction_id
 
-AND btht.language_id = 1
-AND (bthl.hint_state_id IN (5, 6, 7))
-AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
-LIMIT 25000;")
+      AND btht.language_id = 1
+      AND (bthl.hint_state_id IN (5, 6, 7))
+      AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
+      LIMIT 25000;")
 
   paste(nrow(leads.core.b221.rlv.news), "relevant NEWS rows retrieved") %>% print()
 
@@ -254,16 +257,29 @@ LIMIT 25000;")
   if(want.udpipe){
 
     #download model if for the first time, filepath here needs editing if we want to use this
+    #model <- udpipe_download_model(language = "english")
     udmodel_english <- udpipe_load_model(file = 'english-ewt-ud-2.5-191206.udpipe')
     message("creating udpipe annotated model, may take a while...")
 
     #remove rubbish and prepare annotations DF
-    udp.input = removePunctuation(training.b221$text[1]) %>% tolower()
+    udp.input = training.b221$text
+    s2 <- udpipe_annotate(udmodel_english,
+                          x=udp.input)
 
-    s2 <- udpipe_annotate(object = udmodel_english,
-                          x=udp.input,
-                          doc_id = seq_along(x))
-    x.train.udp <- data.frame(s2)
+    x.train.udp <- as.data.frame(s2)
+
+
+    for(i in 1:(nrow(training.b221) %/% 10)){
+
+      s3 <- udpipe_annotate(udmodel_english,
+                            x=udp.input[])
+
+      x.train.udp <- as.data.frame(s2)
+
+
+    }
+
+
 
     x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
 
@@ -289,15 +305,15 @@ LIMIT 25000;")
 
 
 
-    barchart(key ~ rake, data = head(subset(rake.stats, freq > 3), 20), col = "purple",
+    barchart(key ~ rake, data = head(subset(rake.stats, freq > 3), 20), col = "cornflowerblue",
+             main = "Overall Keywords by RAKE",
+             xlab = "RAKE score")
+
+    barchart(key ~ rake, data = head(subset(rake.stats.relevant, freq > 3), 20), col = "chartreuse4",
              main = "Relevant Keywords by RAKE",
              xlab = "RAKE score")
 
-    barchart(key ~ rake, data = head(subset(rake.stats.relevant, freq > 3), 20), col = "blue",
-             main = "Relevant Keywords by RAKE",
-             xlab = "RAKE score")
-
-    barchart(key ~ rake, data = head(subset(rake.stats.irrelevant, freq > 3), 20), col = "red",
+    barchart(key ~ rake, data = head(subset(rake.stats.irrelevant, freq > 3), 20), col = "coral",
              main = "Irrelevant Keywords by RAKE",
              xlab = "RAKE score")
 
@@ -307,8 +323,8 @@ LIMIT 25000;")
 
     }
 
-    rake.words = subset(rake.stats, freq > 3, rake >= 1)$keyword
-    sapply(rake.words, FUN = count_r_words(rake.word = rake.words, count_string = count_string))
+    #rake.words = subset(rake.stats, freq > 3, rake >= 1)$keyword
+    #sapply(rake.words, FUN = count_r_words(rake.word = rake.words, count_string = count_string))
 
 
     # the idea I had here was to implement a rake score, a bit like tf-idf. Will set some time aside later to focus on this.
@@ -316,6 +332,8 @@ LIMIT 25000;")
 
   }
 
+
+  ##### W2V/D2V METHOD #####
 
   if(mrs.h.method == "d2v"){
     ##### word2vec #####
@@ -345,59 +363,63 @@ LIMIT 25000;")
 
   }
 
-if(mrs.h.method == "tokenise"){
-  #The tokeniser is now in a separate function.
+
+  ##### TEXT TOKENISATION METHOD #####
+
+  if(mrs.h.method == "tokenise"){
+    #The tokeniser is now in a separate function.
 
 
-  #tokenising the words. this overcomes the encoding problems because I preprocess
-  #the tokens into padded int arrays myself
+    #tokenising the words. this overcomes the encoding problems because I preprocess
+    #the tokens into padded int arrays myself
 
-  #tokenising the text. throws error if you don't have nvidia gpu, can be ignrored.
-  #keras is very good at this. for reference:
-  #https://rdrr.io/cran/keras/man/text_tokenizer.html
+    #tokenising the text. throws error if you don't have nvidia gpu, can be ignrored.
+    #keras is very good at this. for reference:
+    #https://rdrr.io/cran/keras/man/text_tokenizer.html
 
 
 
-  #parameters
-  num_words = 15000 #vocab size (def = 10k)
-  max_length = 150 #length of each item. longer will be chopped. shorter will be zero-padded
+    #parameters
+    num_words = 15000 #vocab size (def = 10k)
+    max_length = 150 #length of each item. longer will be chopped. shorter will be zero-padded
 
-  #x is our sparse vector TD matrix this ensures the same tokeniser is used each
-  #time when evaluating new leads - i.e. that the same words will have the same
-  #values assigned to them
-  print("Creating tokeniser...")
-  mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>%
-    fit_text_tokenizer(training.b221$text)
+    #x is our sparse vector TD matrix this ensures the same tokeniser is used each
+    #time when evaluating new leads - i.e. that the same words will have the same
+    #values assigned to them
+    print("Creating tokeniser...")
+    mrs.hudson.tokeniser = text_tokenizer(num_words = num_words) %>%
+      fit_text_tokenizer(training.b221$text)
 
-  #save the tokeniser if it was created properly
-  if(length(mrs.hudson.tokeniser)){
+    #save the tokeniser if it was created properly
+    if(length(mrs.hudson.tokeniser)){
 
-    mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
-    print(paste("Tokeniser created! Saving to", mrs.hudson.tokeniser.file.name))
-    save_text_tokenizer(mrs.hudson.tokeniser, file = mrs.hudson.tokeniser.file.name)
-    print("Saved!")
+      mrs.hudson.tokeniser.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tokeniser")
+      print(paste("Tokeniser created! Saving to", mrs.hudson.tokeniser.file.name))
+      save_text_tokenizer(mrs.hudson.tokeniser, file = mrs.hudson.tokeniser.file.name)
+      print("Saved!")
+    }
+
+
+    x.train = bt_td_matrix_preprocess(num_words = num_words,
+                                      max_length = max_length,
+                                      text = training.b221$text)
+
+    if(create.training.testing.split){
+      x.test = bt_td_matrix_preprocess(num_words = num_words,
+                                       max_length = max_length,
+                                       text = testing.b221$text)
+    }
   }
 
 
 
+  ##### TRAIN RF MODEL #####
+  #other models were tested, but RF seems to perform well. Definitely future optimisation is possible.
 
-  x.train = bt_td_matrix_preprocess(num_words = num_words,
-                                    max_length = max_length,
-                                    text = training.b221$text)
 
-  if(create.training.testing.split){
-    x.test = bt_td_matrix_preprocess(num_words = num_words,
-                                     max_length = max_length,
-                                     text = testing.b221$text)
-  }
-}
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
   #i used the number of mrs hudson's house here
   set.seed(221)
-
-
-
-
 
   x.train$evaluation = as.factor(training.b221$evaluation)
 
@@ -441,11 +463,14 @@ if(mrs.h.method == "tokenise"){
   save(mrs.h.gen.method, mrs.hudson.model, file = mrs.hudson.model.file.name)
 
 
-  #testing
+
+  ##### TESTING NEW CLASSIFIER #####
+
+  # if called for
+
   if(create.training.testing.split){
 
     print(paste("The retain quantile used for testing is", 1-training.testing.split))
-
 
     #x.test$evaluation = as.factor(testing.b221$evaluation)
 
@@ -466,9 +491,25 @@ if(mrs.h.method == "tokenise"){
     #                      pred = testing.b221$`TRUE`,
     #                      evaluation = testing.b221$evaluation)
 
+    # to generate the df in full use this:
+    # tb2 = leads.core.b221
+    #
+    # setnames(leads.core.b221, "hint.title", "act.title.en")
+    # setnames(leads.core.b221, "hint.description", "act.description.en")
+    #
+    # res = bt_estimate_news_leads(leads.core.news = tb2,
+    #                              binary.prediction = F,
+    #                              return.both = T,
+    #                              conf.cutoff = 0.3)
+    #
+    # mrs.h.w2v = data.frame(bid = tb2$bid,
+    #                        contender = "mrs h d2v",
+    #                        pred = res$raw.score,
+    #                        evaluation = tb2$hint.state.id %in% c(5,6,7))
+    #
+
     return(pr.metrics)
   }
-
 
 
 }
