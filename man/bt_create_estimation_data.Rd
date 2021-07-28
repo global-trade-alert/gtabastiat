@@ -13,7 +13,8 @@ bt_create_estimation_data(
   train.share = 0.82,
   detective.name = NULL,
   detective.number = NULL,
-  for.training = T
+  for.training = T,
+  max.input.rows = 20000
 )
 }
 \value{

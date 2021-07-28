@@ -13,7 +13,8 @@ bt_estimate_classifier(
   train.share = 0.82,
   update.log = F,
   detective.name = NULL,
-  detective.number = NULL
+  detective.number = NULL,
+  max.training.rows = 15000
 )
 }
 \value{
