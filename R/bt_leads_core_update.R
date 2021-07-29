@@ -281,9 +281,9 @@ bt_leads_core_update = function(update.df=NULL,
 
         this.act.url=unique(bt_extract_url(this.source))
 
-        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br>More background info: ", paste(this.act.url, collapse=" ;  "), sep="")
 
-        if(! is.na(lc.update$act.description.ll[i])){
+        if( !is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
 
           lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
         }
@@ -318,7 +318,7 @@ bt_leads_core_update = function(update.df=NULL,
             lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:<br />",
                                                   paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
 
-            if(! is.na(lc.update$act.description.ll[i])){
+            if(! is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i]!="NA"){
 
               lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:<br />",
                                                     paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
