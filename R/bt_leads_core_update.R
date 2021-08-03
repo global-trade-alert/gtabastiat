@@ -25,7 +25,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 invoke.mrs.hudson=T,
                                 mrs.hudson.keep.results.ratio=1){
 
-  #### for testing
+  #### for testing/dbg
   # load(file = "uc.Rdata")
   # lc.update = update.core
   # exclude.by="bid"
@@ -37,16 +37,12 @@ bt_leads_core_update = function(update.df=NULL,
   # invoke.mrs.hudson=T
   # mrs.hudson.keep.results.ratio=0.95
 
-  #remove this when DPA is ready
-  # if(destination == "dpa"){
-  #  message("DPA upload is currently disabled - please contact CC or remove the if statement containing this message from the gtabastiat function if you want to enable it.")
-  #
-  #   return(NA)
-  #
-  # }
 
-  if(! destination %in% c("parking","b221","leads", "5", "dpa", "citation")){
-    stop("Please choose destination value as either 'b221', 'parking', 'leads', '5' for hint_state_5, 'dpa' for DPA leads, or 'citation' for SGEPT citation leads.")
+
+  if (!destination %in% c("parking", "b221", "leads", "5", "dpa", "citation")) {
+    stop(
+      "Please choose destination value as either 'b221', 'parking', 'leads', '5' for hint_state_5, 'dpa' for DPA leads, or 'citation' for SGEPT citation leads."
+    )
   }
 
   library(lubridate)
@@ -66,7 +62,10 @@ bt_leads_core_update = function(update.df=NULL,
 
   } else{
 
-    ######### CLEANING & PREPARATION
+
+# CLEANING & PREPARATION --------------------------------------------------
+
+
 
     ## ad-hoc irrelevance decisions based on noisy sources
     noise.agencies=c("Radio Petrer 107,2 fm", "Business Post",
@@ -158,7 +157,9 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
-    ## is_covid
+    ## is_covid this is basically all deprecated the reason it was originally
+    #here was because of the massive influx of corona-related stuff overflowing
+    #everyone's leads, so we put this here to try and separate them
 
     if(all.covid){
 
@@ -301,7 +302,6 @@ bt_leads_core_update = function(update.df=NULL,
 
     print("Checking against existing GTA state acts...")
     for(i in 1:nrow(lc.update)){
-      print(i)
 
       if(grepl("EU-SA",lc.update$bid[i])==F){
 
@@ -353,11 +353,19 @@ bt_leads_core_update = function(update.df=NULL,
 
 
       }
-
+      cat(i)
+      if(i<nrow(lc.update)){
+        cat(", ")
+      }else {
+        cat("\n")
+      }
     }
 
 
-    #Mrs Hudson
+
+# Mrs Hudson --------------------------------------------------------------
+
+
     #Use on leads from google news search and reuters.
     if(invoke.mrs.hudson
        & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))
@@ -390,6 +398,9 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$relevance.probability = mrs.hudson.result$raw.score
 
     }
+
+
+# Detective classification ------------------------------------------------
 
 
     ## classifying results
@@ -463,6 +474,9 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
+# DB upload process start -------------------------------------------------
+
+
     ## UPLOAD TO RICARDO
     leads.core=gta_sql_get_value("SELECT * FROM bt_leads_core LIMIT 1;")
 
@@ -483,7 +497,11 @@ bt_leads_core_update = function(update.df=NULL,
     #
     # lc.update=subset(lc.update,! bid %in% multi.links)
 
-    #save lc.update in its current R-friendly state for use later when processing the multi-links
+
+
+
+
+# pre sql debug checkpoint ------------------------------------------------
 
     lc.update.copy = lc.update
 
@@ -573,7 +591,9 @@ bt_leads_core_update = function(update.df=NULL,
 
     for(var in  num.vars ){
 
-      eval(parse(text=paste0("lc.update$",var,"=as.numeric(lc.update$",var,")")))
+      eval(parse(text = paste0(
+        "lc.update$", var, "=as.numeric(lc.update$", var, ")"
+      )))
 
     }
 
@@ -585,7 +605,8 @@ bt_leads_core_update = function(update.df=NULL,
     }
     row.values=paste(row.values, collapse=",")
 
-    #because if you have two NAs in a row you have str ",NA,NA," and the rx only matches up to the second comma, so we have to loop this
+    #because if you have two NAs in a row you have str ",NA,NA," and the rx only
+    #matches up to the second comma, so we have to loop this
     while(grepl(pattern = ",NA,", x = row.values)){
       row.values=gsub(",NA,",",NULL,",row.values)
     }
