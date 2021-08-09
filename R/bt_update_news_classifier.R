@@ -34,6 +34,7 @@ bt_update_news_classifier = function(db.connection=NULL,
   # show.text.summary=T
   # create.training.testing.split=T
   # training.testing.split = 0.9
+  # mrs.h.method = "d2v"
 
   #ML packages
   library(keras)
@@ -251,6 +252,7 @@ LIMIT 25000;")
   ##### UDPipe! #####
 
   #UDPipe is very cool, but not sure if it is that useful in this case. I leave the code here for future reference.
+  #useful for metrics, better to split out into its own thing but no time now
 
   want.udpipe = F
 
@@ -259,62 +261,89 @@ LIMIT 25000;")
     #download model if for the first time, filepath here needs editing if we want to use this
     #model <- udpipe_download_model(language = "english")
     udmodel_english <- udpipe_load_model(file = 'english-ewt-ud-2.5-191206.udpipe')
-    message("creating udpipe annotated model, may take a while...")
+
+
+
 
     #remove rubbish and prepare annotations DF
     udp.input = training.b221$text
-    s2 <- udpipe_annotate(udmodel_english,
-                          x=udp.input)
 
-    x.train.udp <- as.data.frame(s2)
+    #UDPipe MUST have ONLY UTF-8 input or it will not work
+    if (any(!stri_enc_isutf8(udp.input))) {
+      message(paste0(sum(stri_enc_isutf8(udp.input)), "non-UTF-8 texts detected. Rejanking..."))
 
+      #the regex is supposed to find words containing bad characters
+      #usually these are coming from encoding problems
 
-    for(i in 1:(nrow(training.b221) %/% 10)){
+      udp.input[!stri_enc_isutf8(udp.input)] = udp.input[!stri_enc_isutf8(udp.input)] %>%
+        gsub(pattern = "[a-z]*[^ a-z][a-z]*", replacement = "")
 
-      s3 <- udpipe_annotate(udmodel_english,
-                            x=udp.input[])
-
-      x.train.udp <- as.data.frame(s2)
-
+      #fwrite(data.frame(x=udp.input), file="udpi.csv")
+      #udp.input = fread(file = "udpi.csv", encoding = "UTF-8")
 
     }
 
+    message("creating udpipe annotated model, may take a while...")
+    s2 <- udpipe_annotate(udmodel_english,
+                          x=udp.input)
 
+    message("annotated model generated! converting to dataframe...")
+    x.train.udp <- as.data.frame(s2)
 
     x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
 
 
+    udp.file.path = str_extract(string = getwd(), pattern = ".+Bastiat") %>%
+      paste0(., "/0 projects/udpipe/udp_annotated.Rdata")
+
+    message("annotations dataframe generated, saving to ", udp.file.path)
+
+    save(x.train.udp, file = udp.file.path)
+
     #RAKE analysis
+
+    #hyperparams
+    min.occurrence = 10
+    ngram.max = 2
+    desired.pos = c("NOUN", "VERB", "PROPN", "ADJ")
+
     rake.stats <- keywords_rake(x = x.train.udp,
                                 term = "lemma",
                                 group = "doc_id",
-                                relevant = x.train.udp$upos %in% c("NOUN", "ADJ"))
+                                relevant = x.train.udp$upos %in% desired.pos,
+                                n_min = min.occurrence,
+                                ngram_max = ngram.max)
 
     rake.stats.relevant <- keywords_rake(x = x.train.udp[x.train.udp$evaluation,],
                                          term = "lemma",
                                          group = "doc_id",
-                                         relevant = x.train.udp$upos[x.train.udp$evaluation] %in% c("NOUN", "ADJ"))
+                                         relevant = x.train.udp$upos[x.train.udp$evaluation] %in% desired.pos,
+                                         n_min = min.occurrence,
+                                         ngram_max = ngram.max)
 
     rake.stats.irrelevant <- keywords_rake(x = x.train.udp[!x.train.udp$evaluation,],
                                            term = "lemma",
                                            group = "doc_id",
-                                           relevant = x.train.udp$upos[!x.train.udp$evaluation] %in% c("NOUN", "ADJ"))
+                                           relevant = x.train.udp$upos[!x.train.udp$evaluation] %in% desired.pos,
+                                           n_min = min.occurrence,
+                                           ngram_max = ngram.max)
 
+    rake.stats$key <- factor(rake.stats$keyword, levels = rev(rake.stats$keyword))
     rake.stats.relevant$key <- factor(rake.stats.relevant$keyword, levels = rev(rake.stats.relevant$keyword))
     rake.stats.irrelevant$key <- factor(rake.stats.irrelevant$keyword, levels = rev(rake.stats.irrelevant$keyword))
 
 
 
     barchart(key ~ rake, data = head(subset(rake.stats, freq > 3), 20), col = "cornflowerblue",
-             main = "Overall Keywords by RAKE",
+             main = paste0("Overall Keywords by RAKE (", ngram.max, "-grams)"),
              xlab = "RAKE score")
 
     barchart(key ~ rake, data = head(subset(rake.stats.relevant, freq > 3), 20), col = "chartreuse4",
-             main = "Relevant Keywords by RAKE",
+             main = paste0("Relevant Keywords by RAKE (", ngram.max, "-grams)"),
              xlab = "RAKE score")
 
     barchart(key ~ rake, data = head(subset(rake.stats.irrelevant, freq > 3), 20), col = "coral",
-             main = "Irrelevant Keywords by RAKE",
+             main = paste0("Irrelevant Keywords by RAKE (", ngram.max, "-grams)"),
              xlab = "RAKE score")
 
     count_r_words = function(rake.word, count_string){
