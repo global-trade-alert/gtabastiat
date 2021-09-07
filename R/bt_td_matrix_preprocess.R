@@ -79,6 +79,9 @@ bt_td_matrix_preprocess = function(num_words=15000, max_length=100, text, tokeni
     )
 
 
+  } else{ #if a tokeniser is provided as a param
+
+    mrs.hudson.tokeniser = reticulate::py_load_object(tokeniser)
   }
   # if(!exists("mrs.hudson.tokeniser")){
   #   stop("Mrs Hudson's text tokeniser not loaded! Text cannot be tokenised for preprocessing.")

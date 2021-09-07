@@ -4,10 +4,12 @@
 #'   acting.agency, act.title.en, act.description.en
 #' @param keep.results.ratio what fraction of the results you want to keep. 1 =
 #'   keep all, 0 = discard all. the ones with lowest relevance prob will be
-#'   discarded.
+#'   discarded. If set to 1, the conf.cutoff value will be used to determine the
+#'   binary.prediction.
 #' @param binary.prediction return results as a binary prediction or as their
 #'   raw 0 ~ 1 confidence values.
-#'
+#' @param conf.cutoff threshold score for a doc to qualify as 'relevant', lower
+#'   tends to mean more recall and less precision
 #' @param return.both return both binary and raw.score in a list.
 #'
 #' @return A vector of Mrs. Hudson's predictions.
@@ -16,7 +18,7 @@
 #' @Author Callum Campbell for Global Trade Alert.
 #'
 bt_estimate_news_leads = function(leads.core.news,
-                                  keep.results.ratio = 0.95,
+                                  keep.results.ratio = 1,
                                   binary.prediction = T,
                                   return.both = F,
                                   conf.cutoff = 0.2){
@@ -50,7 +52,7 @@ bt_estimate_news_leads = function(leads.core.news,
 
   if(mrs.h.gen.method == "tokeniser"){
   #make the td matrix for prediction
-  x.predict = bt_td_matrix_preprocess(text = cl.text)
+  x.predict = bt_td_matrix_preprocess(text = cl.text, tokeniser = tokeniser)
   }
 
   if(mrs.h.gen.method == "d2v"){

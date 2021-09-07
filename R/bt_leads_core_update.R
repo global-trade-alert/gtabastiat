@@ -391,7 +391,7 @@ bt_leads_core_update = function(update.df=NULL,
       #ensure classify = 0 for good measure - they will be classified later anyway if they progress
       lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
 
-      print(paste(sum(lc.update$mrs.hudson.rating), "leads will be sent to state 8"))
+      print(paste(sum(lc.update$mrs.hudson.rating==0), "leads will be sent to state 8"))
 
       #remove column
       lc.update$mrs.hudson.rating = NULL
