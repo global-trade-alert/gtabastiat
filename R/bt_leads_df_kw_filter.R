@@ -14,14 +14,23 @@
 bt_leads_df_kw_filter = function(leads.df,
                                  key.words,
                                  positive = T,
-                                 filter.cols = c("act.title.en", "act.description.en"),
+                                 filter.cols = c("act.title.en", "act.description.en", "act.title.ll", "act.description.ll"),
                                  case.sensitive = F){
 
-  message("this can be a bit slow for dfs containing long character vectors")
-  filtered = leads.df[0,]
 
+
+  message("this can be a bit slow for dfs containing long character vectors")
+
+
+  filter.cols = filter.cols[which(filter.cols %in% colnames(leads.df))]
+
+  if(is.na(filter.cols)[1]){
+    stop("filter cols provided were not found in the target datafame")
+  }
 
   if(positive){
+    #add matches constructively
+    filtered = leads.df[0,]
     for(word in key.words){
       for(filter.column in filter.cols){
 
@@ -34,19 +43,29 @@ bt_leads_df_kw_filter = function(leads.df,
 
       }
     }
+    print(paste("retained", (nrow(leads.df) - nrow(filtered)), "rows"))
   } else {
+    #negative, i.e.
+    #remove matches each iteration
+
+    filtered = leads.df
+
     for(word in key.words){
       for(filter.column in filter.cols){
 
-        filtered = rbind(filtered,
-                         subset(leads.df, !grepl(word,
-                                                 unlist(leads.df[filter.column]),
-                                                 ignore.case = !case.sensitive)
-                         )
-        )
+        #=TRUE for entries containing the negative words so we want to remove these
+        match.vect = !grepl(word,
+                            unlist(filtered[filter.column]),
+                            ignore.case = !case.sensitive)
+
+        filtered = filtered[match.vect, ]
+
+
+
 
       }
     }
+    print(paste("removed", (nrow(leads.df) - nrow(filtered)), "rows"))
   }
 
   filtered=subset(filtered, !duplicated(unlist(filtered[filter.cols[1]])))
