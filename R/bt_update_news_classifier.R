@@ -19,7 +19,8 @@ bt_update_news_classifier = function(db.connection=NULL,
                                      show.text.summary=T,
                                      create.training.testing.split=F,
                                      training.testing.split = 0.9,
-                                     mrs.h.method = "d2v"){
+                                     mrs.h.method = "d2v",
+                                     mrs.h.grid.search = F){
 
 
   accepted.methods= c("tokenise", "d2v")
