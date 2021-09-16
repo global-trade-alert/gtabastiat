@@ -384,10 +384,10 @@ LIMIT 25000;")
   write.word2vec(model.w2v, file = mrs.hudson.w2v.emb.fname)
 
 
-  x.train = bt_d2v_preprocess(doc_id = training.b221$bid, text=training.b221$text)
+  x.train = bt_d2v_preprocess(model.w2v, doc_id = training.b221$bid, text=training.b221$text)
 
   if(create.training.testing.split){
-    x.test = bt_d2v_preprocess(doc_id = testing.b221$bid, text = testing.b221$text)
+    x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
   }
 
   }
