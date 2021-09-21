@@ -87,7 +87,7 @@ bt_leads_core_update = function(update.df=NULL,
     #NB this filters any leads with USA/Can in the titles etc.
     #So lead like 'Indonesia implements AD duties on blah from the USA' will be send to Marshall Is.
     # With the new US FR RSS scraper we should be OK
-    filter.usa.can.td = F
+    filter.usa.can.td = T
 
     if(filter.usa.can.td){
 
