@@ -91,7 +91,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(filter.usa.can.td){
 
-      north.american.countries = "(United States of America)|(Canada)"
+      north.american.countries = "(USA\\s)|(United States of America)|(Canada)"
       # Title (en)
       lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
                                (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
