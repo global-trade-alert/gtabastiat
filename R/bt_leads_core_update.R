@@ -87,6 +87,9 @@ bt_leads_core_update = function(update.df=NULL,
     #NB this filters any leads with USA/Can in the titles etc.
     #So lead like 'Indonesia implements AD duties on blah from the USA' will be send to Marshall Is.
     # With the new US FR RSS scraper we should be OK
+
+    #Works on the same trade defence phrases as the normal TD filter
+
     filter.usa.can.td = T
 
     if(filter.usa.can.td){
@@ -571,7 +574,7 @@ bt_leads_core_update = function(update.df=NULL,
       col.index = which(colnames(lc.update)==kanji.col)
 
       #check if the column is filled with only NAs, don't need to convert these
-      if(!all(grepl(x = lc.update[,col.index], pattern = "NA"))){
+      if(!all(grepl(x = lc.update[,col.index], pattern = "^NA$"))){
 
         if(incl.kanji){
 
