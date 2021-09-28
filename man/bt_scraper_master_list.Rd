@@ -4,7 +4,12 @@
 \alias{bt_scraper_master_list}
 \title{Show/update DB for the master list of GTA scrapers}
 \usage{
-bt_scraper_master_list(show.stock.data.errors = F, update.db = F)
+bt_scraper_master_list(
+  show.stock.data.errors = F,
+  update.db = F,
+  quiet = T,
+  incl.under.maintenance = F
+)
 }
 \arguments{
 \item{show.stock.data.errors}{show scrapers for which stock data could not be loaded. Inaccurate as some scrapers work differently (e.g. EIB).}
