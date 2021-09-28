@@ -9,7 +9,8 @@ bt_leads_df_kw_filter(
   leads.df,
   key.words,
   positive = T,
-  filter.cols = c("act.title.en", "act.description.en"),
+  filter.cols = c("act.title.en", "act.description.en", "act.title.ll",
+    "act.description.ll"),
   case.sensitive = F
 )
 }

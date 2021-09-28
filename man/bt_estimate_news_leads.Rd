@@ -6,7 +6,7 @@
 \usage{
 bt_estimate_news_leads(
   leads.core.news,
-  keep.results.ratio = 0.95,
+  keep.results.ratio = 1,
   binary.prediction = T,
   return.both = F,
   conf.cutoff = 0.2
@@ -18,12 +18,16 @@ acting.agency, act.title.en, act.description.en}
 
 \item{keep.results.ratio}{what fraction of the results you want to keep. 1 =
 keep all, 0 = discard all. the ones with lowest relevance prob will be
-discarded.}
+discarded. If set to 1, the conf.cutoff value will be used to determine the
+binary.prediction.}
 
 \item{binary.prediction}{return results as a binary prediction or as their
 raw 0 ~ 1 confidence values.}
 
 \item{return.both}{return both binary and raw.score in a list.}
+
+\item{conf.cutoff}{threshold score for a doc to qualify as 'relevant', lower
+tends to mean more recall and less precision}
 }
 \value{
 A vector of Mrs. Hudson's predictions.

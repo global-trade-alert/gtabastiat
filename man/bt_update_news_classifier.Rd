@@ -10,7 +10,8 @@ bt_update_news_classifier(
   show.text.summary = T,
   create.training.testing.split = F,
   training.testing.split = 0.9,
-  mrs.h.method = "d2v"
+  mrs.h.method = "d2v",
+  mrs.h.grid.search = F
 )
 }
 \arguments{
