@@ -65,6 +65,14 @@ bt_leads_core_update = function(update.df=NULL,
 
 # CLEANING & PREPARATION --------------------------------------------------
 
+    #the db uses latin-1 encoding, fix it here so we do not end up with mojibake
+    library(stringi)
+
+    #possible could do a mapply here, the iterations are needed in case there encodings on different strings is different.
+    for(i in 1:nrow(lc.update)){
+      stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+      stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+    }
 
 
     ## ad-hoc irrelevance decisions based on noisy sources
