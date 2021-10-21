@@ -26,6 +26,9 @@ bt_update_core_kw_filter = function(update.core,
 
   filtered = update.core
 
+  filter.cols = filter.cols[filter.cols %in% colnames(filtered)]
+  message(paste("Filtering on:", paste(filter.cols, collapse = ", ")))
+
   filtered$match.words = NA
 
   if(positive & only.keep.matches){
