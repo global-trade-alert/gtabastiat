@@ -198,6 +198,7 @@ bt_sync_221_main = function(){
     ## gtamain source types
     new.leads$source.type=1
     new.leads$source.type[new.leads$url.type.name!="official"]=4
+    new.leads$source.type[!grepl(pattern = "GNEWS", x=new.leads$bid)]=3
 
     ## lead.date (R misbehving badly, hence the for loop :/ )
     new.leads$lead.date=Sys.Date()
