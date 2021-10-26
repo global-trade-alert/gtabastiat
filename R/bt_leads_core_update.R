@@ -79,7 +79,7 @@ bt_leads_core_update = function(update.df=NULL,
     noise.agencies=c("Radio Petrer 107,2 fm", "Business Post",
                      "Radio hong kong","Tek'n'Life", "Stand news",
                      "El Pas", "StrandGazetteDe", "TV Serien News",
-                     "Corriente Alterna", "Munchen Zeitung", "hkcnews.com")
+                     "Corriente Alterna", "Munchen Zeitung", "hkcnews.com", "CENTRAL AFRICAN INFO")
 
     lc.update$relevant[lc.update$acting.agency %in% noise.agencies]=0
 
