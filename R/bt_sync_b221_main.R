@@ -126,6 +126,18 @@ bt_sync_221_main = function(){
                               AND bhda2.date_accepted = 1
                               GROUP BY nh.hint_id")
 
+  #I think it's much quicker doing this in a separate query due to size of bt_hint_relevance
+  hint.relevance = gta_sql_get_value(query = paste0("SELECT distinct bhr.hint_id, bhr.relevance_probability
+                                     FROM bt_hint_relevance bhr
+                                     WHERE bhr.hint_id IN (", paste0(new.leads$hint.id, collapse=", "), ")"))
+
+  #remove NAs
+  hint.relevance = subset(hint.relevance, !(is.na(relevance.probability)))
+  hint.relevance = subset(hint.relevance, !duplicated(hint.id))
+
+  #merge back in, not all have a relevance score for some reason
+  new.leads = merge(new.leads, hint.relevance, all.x = T)
+
   egi.hints=gta_sql_get_value(paste0("SELECT hint_id
                                      FROM b221_hint_product_group
                                      WHERE product_group_id IN (2,3,4,5,7);"))
@@ -232,6 +244,7 @@ bt_sync_221_main = function(){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
+      #TODO add relevance_probability here when PB signals it is ready
       gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
