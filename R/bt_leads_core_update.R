@@ -486,6 +486,22 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
 
+# DPA Classification ------------------------------------------------------
+
+    if(destination == "dpa"){
+
+      library(dpaclassifier)
+
+      dpa.hypermodel.result = dpa_hypermodel_estimate_leads(leads.core)
+
+      leads.core$relevance.probability = dpa.hypermodel.result$raw.score
+
+    }
+
+
+
+
+
 
 # DB upload process start -------------------------------------------------
 
