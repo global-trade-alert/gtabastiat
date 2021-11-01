@@ -1,7 +1,7 @@
 # Roxygen documentation
 
 
-#'
+#' Perform estimation of squad classifier
 #' @return Several data frames about how the detective did.
 #' @references www.globaltradealert.org
 #' @author Johannes Fritz for GTA
