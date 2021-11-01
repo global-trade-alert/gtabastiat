@@ -161,8 +161,9 @@ bt_estimate_squad = function(detectives=NULL,
   #dbg
 
   #there are a few NAs in the training data. very rare but causes classifier to break, so let's remove them
-  squad.predictions = training.data[rowSums(is.na(training.data)) == 0,]
+  #squad.predictions = training.data[rowSums(is.na(training.data)) == 0,]
 
+  squad.predictions = training[rowSums(is.na(training)) == 0,]
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
                                           training.y="evaluation",
