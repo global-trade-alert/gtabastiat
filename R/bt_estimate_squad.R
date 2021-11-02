@@ -68,10 +68,16 @@ bt_estimate_squad = function(detectives=NULL,
                       classifier.location=NA,
                       stringsAsFactors = F)
 
-  for(i in 1:nrow(bt.squad)){
-    bt.squad$classifier.location[i]=model.files[grepl( bt.squad$member.name[i], model.files)][1]
-  }
 
+  #for the squad members
+  #this is very important. it loads the MOST RECENT classifier - i.e. the all.classifiers[num.total.classifiers] : the one at the end of this list
+  for(i in 1:nrow(bt.squad)){
+    if(bt.squad$member.name[i]!= "incumbent"){
+      bt.squad$classifier.location[i]=model.files[grepl(bt.squad$member.name[i], model.files)][length(model.files[grepl(bt.squad$member.name[i], model.files)])]
+    }
+    }
+
+  #for the incumbent
   bt.squad$classifier.location[bt.squad$member.name=="incumbent"]="content/0 core/Bastiat classifier.Rdata"
   bt.squad$member.name[bt.squad$member.name=="incumbent"]=model$name[nrow(model)]
 
