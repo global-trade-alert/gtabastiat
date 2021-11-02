@@ -95,6 +95,7 @@ bt_estimate_classifier = function(training.data=NULL,
                                               stringsAsFactors = F))
 
 
+
       print(paste("Concluded estimation round",round,"for model", model))
     }
 
@@ -118,11 +119,11 @@ bt_estimate_classifier = function(training.data=NULL,
                                             stringsAsFactors = F))
 
 
-    if(classifier.performance$score>=classifier.performance$score.adjusted){
-      cutoff=classifier.performance$observed.cutoff
+    if(classifier.performance$score[classifier.performance$algorithm==sl.model]>=classifier.performance$score.adjusted[classifier.performance$algorithm==sl.model]){
+      cutoff=classifier.performance$observed.cutoff[classifier.performance$algorithm==sl.model]
 
     } else {
-      cutoff=classifier.performance$assumed.cutoff
+      cutoff=classifier.performance$assumed.cutoff[classifier.performance$algorithm==sl.model]
     }
 
 
