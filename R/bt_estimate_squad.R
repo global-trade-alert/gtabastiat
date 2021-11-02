@@ -127,7 +127,7 @@ bt_estimate_squad = function(detectives=NULL,
   #training = training[sample(nrow(training), (nrow(training)/data.downscale)),]
 
   if(nrow(training)>limit.classification){
-  training = training[sample(nrow(training), limit.classification),]
+    training = training[sample(nrow(training), limit.classification),]
   }
   for(squad.member in bt.squad$member.name){
 
@@ -145,6 +145,10 @@ bt_estimate_squad = function(detectives=NULL,
   }
 
   print("Squad members made their predictions.")
+
+  #dbg
+  #sp2 = squad predictions
+
   ## squad variable selection here
   # currently only use prediction probability, not whether it is classified as relevant.
   squad.predictions$relevant=NULL
@@ -158,12 +162,13 @@ bt_estimate_squad = function(detectives=NULL,
   print("Estimating squad classifier ...")
   # Estimating squad classifier
 
-  #dbg
+
 
   #there are a few NAs in the training data. very rare but causes classifier to break, so let's remove them
+
+  #not sure why this line was here. caused the entire thing to break. CC 2021-11-02
   #squad.predictions = training.data[rowSums(is.na(training.data)) == 0,]
 
-  squad.predictions = training[rowSums(is.na(training)) == 0,]
   squad.estimation=bt_estimate_classifier(training.data=squad.predictions,
                                           training.id="bid",
                                           training.y="evaluation",
