@@ -221,6 +221,14 @@ bt_leads_core_update = function(update.df=NULL,
     gta.sa$source=stringi::stri_trans_general(gta.sa$source, "latin-ascii")
 
 
+
+    # Check before adding boilerplate -----------------------------------------
+
+    if(any(grepl("<br ? /?>[\\s\\S]+", lc.update$act.description.en))){
+      stop("Description text cannot contain any <br> or <br/> tags! Please use `gsub(\"<br ?/?>.+\", \"\", text)` to remove.")
+    }
+
+
     ## URL cleanout
 
     #get standard regex for identifying urls

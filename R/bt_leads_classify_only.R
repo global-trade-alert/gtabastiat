@@ -13,6 +13,10 @@
 bt_leads_classify_only = function(update.core,
                                   assign.relevance=F){
 
+  if(any(grepl("<br ? /?>[\\s\\S]+", lc.update$act.description.en))){
+    stop("Description text cannot contain any <br> or <br/> tags! Please use `gsub(\"<br ?/?>.+\", \"\", text)` to remove.")
+  }
+
   lc.update = update.core
 
   ## classifying results

@@ -78,6 +78,7 @@ AND bthl.hint_state_id IN (7, 8, 9);")
 
 
 
+
   ## Source 2: Import from XLSX sent out to team members
   team.leads=read.csv("data/training/bid training.csv", sep=";")
   team.training=merge(leads.core, team.leads[,c("bid","evaluation")], by="bid")
@@ -180,6 +181,11 @@ AND bthl.hint_state_id IN (7, 8, 9);")
   ### processing the acting agencies
   #source("code/daily/infrastructure/Bastiat base.R")
   #training$acting.agency[!training$acting.agency %in% agency.dummies]="Other"
+
+  print("Removing boilerplate GTA text...")
+
+  #scraped sources MUST NOT HAVE <BR> tags in them
+  training$text = gsub("</? ?br>[\\s\\S]+", "", training$text)
 
   print("new training data generated. Saving...")
 
