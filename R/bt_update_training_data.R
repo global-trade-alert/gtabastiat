@@ -187,6 +187,13 @@ AND bthl.hint_state_id IN (7, 8, 9);")
   #scraped sources MUST NOT HAVE <BR> tags in them
   training$text = gsub("</? ?br>[\\s\\S]+", "", training$text)
 
+  n.d.bid = sum(duplicated(training$bid))
+
+  training = subset(training, !duplicated(bid))
+
+  print(paste("removed", n.d.bid, "duplicated training leads based on bid"))
+
+
   print("new training data generated. Saving...")
 
   ### store new data.
