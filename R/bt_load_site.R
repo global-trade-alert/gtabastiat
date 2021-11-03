@@ -20,7 +20,7 @@
 
 # Function infos and parameters  --------------------------------------------
 bt_load_site = function(xpath=NULL,
-                        wait=60,
+                        wait=30,
                         abort=F,
                         wait.interval=1.5,
                         assign.html=F){
