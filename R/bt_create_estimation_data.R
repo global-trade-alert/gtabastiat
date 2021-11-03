@@ -643,9 +643,37 @@ bt_create_estimation_data <- function(bid=NULL,
    keyword.variables=b_process_keywords(bid=aggregate.variables$bid,
                                         text=aggregate.variables$text)
 
-   aggregate.variables=merge(aggregate.variables,
-                             keyword.variables[,c("bid","pos.word","pos.word.char", "neg.word", "neg.word.char")],
-                             by="bid", all.x=T)
+   keyword.variables = keyword.variables[,c("bid","pos.word","pos.word.char", "neg.word", "neg.word.char")]
+
+
+   #the merge is the way to go here, but it causes memory overflow
+   # aggregate.variables=merge(aggregate.variables,
+   #                           keyword.variables[,c("bid","pos.word","pos.word.char", "neg.word", "neg.word.char")],
+   #                           by="bid", all.x=T)
+
+
+   aggregate.variables$pos.word = NA
+   aggregate.variables$pos.word.char = NA
+   aggregate.variables$neg.word = NA
+   aggregate.variables$neg.word.char = NA
+
+   pb = txtProgressBar(min = 1, max = nrow(keyword.variables), char = "~", style = 3)
+
+   for(i in 1:nrow(keyword.variables)){
+     #dont need second comparison in the kw.vars table as we are iterating through the rows sequentially anyway, i.e.
+     # keyword.variables$pos.word[keyword.variables$bid = keyword.variables$bid[i]] == keyword.variables$pos.word[i]
+     setTxtProgressBar(pb, i)
+     #aggregate.variables$pos.word[aggregate.variables$bid == keyword.variables$bid[i]] = keyword.variables$pos.word[keyword.variables$bid = keyword.variables$bid[i]]
+     aggregate.variables$pos.word[aggregate.variables$bid == keyword.variables$bid[i]] = keyword.variables$pos.word[i]
+     aggregate.variables$pos.word.char[aggregate.variables$bid == keyword.variables$bid[i]] = keyword.variables$pos.word.char[i]
+     aggregate.variables$neg.word[aggregate.variables$bid == keyword.variables$bid[i]] = keyword.variables$neg.word[i]
+     aggregate.variables$neg.word.char[aggregate.variables$bid == keyword.variables$bid[i]] = keyword.variables$neg.word.char[i]
+
+
+
+   }
+   close(pb)
+
 
    print("Generating keyword-related variables ... complete.")
  }
