@@ -1,6 +1,6 @@
 # Roxygen documentation
 
-#' Bastiat, please process my text to find the GTA keywprds.
+#' Bastiat, please process my text to find the GTA keywords.
 #'
 #' @return A data frame with variables for each keyword dimension.
 #' @references www.globaltradealert.org
