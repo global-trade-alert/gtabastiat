@@ -245,7 +245,7 @@ bt_sync_221_main = function(){
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
       #TODO add relevance_probability here when PB signals it is ready
-      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency)
+      gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency, relevance_probability)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
                                                     upload.chunk$bid,"',",
@@ -253,8 +253,10 @@ bt_sync_221_main = function(){
                                                     as.Date(upload.chunk$lead.date),
                                                     "', CURRENT_TIMESTAMP,",
                                                     upload.chunk$hint.type.id,",'",
-                                                    upload.chunk$acting.agency,"')"), collapse=","),";"),
+                                                    upload.chunk$acting.agency,"', ",
+                                                    upload.chunk$relevance.probability, ")"), collapse=","),";"),
                            "main")
+
 
       print("leads")
 
