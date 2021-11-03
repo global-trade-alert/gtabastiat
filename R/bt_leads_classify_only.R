@@ -74,22 +74,22 @@ bt_leads_classify_only = function(update.core,
 
 
     lc.update = merge(lc.update, classify[,c("bid", "relevance.probability")], all.x = T)
-
-    lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
-                    classify)
+#
+#     lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
+#                     classify)
 
     #need to preserve the col order
 
     #this func is usually used on DPA leads where we only want the relevance prob as a continuous value
     #binary relevance is not appropriate for DPA leads as it is trained on GTA content
-    if(assign.relevance){
-    update.core$relevant = lc.update$relevant
+    if(!assign.relevance){
+      lc.update$relevant = NULL
     }
 
 
-    update.core$relevance.probability = lc.update$relevance.probability
+#    update.core$relevance.probability = lc.update$relevance.probability
 
-    return(update.core)
+    return(lc.update)
 
 
 
