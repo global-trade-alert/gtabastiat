@@ -104,9 +104,9 @@ bt_create_estimation_data <- function(bid=NULL,
   tf$text = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
                  replacement = " ",
                  x = tf$text)
-
-  train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
-
+  if(for.training){
+    train.split=sample(unique(tf$bid), ceiling(nrow(tf)*train.share))
+  }
   variables=detective.characteristics$variables
   estimation.variables=variables
 
