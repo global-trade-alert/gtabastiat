@@ -506,7 +506,6 @@ bt_leads_core_update = function(update.df=NULL,
       #if the rel prob column was already there, the merging of results will not work, so best to remove it.
       lc.update$relevance.probability = NULL
       lc.update = merge(lc.update, dpa.hypermodel.result$raw.score, all.x = T)
-      setnames(lc.update, "predict.result.yes", "relevance.probability")
 
     }
 
