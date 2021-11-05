@@ -33,7 +33,9 @@ bt_load_site = function(xpath=NULL,
   cat("waiting")
 
   safety = 0 # using Sys.time() not reliable on server
-  while((refreshed==F & as.numeric(Sys.time()-t)<=wait)|safety<=wait){
+  while(refreshed==F
+        & as.numeric(Sys.time()-t)<=wait
+        & safety<=wait){
     cat(".")
     Sys.sleep(wait.interval)
     html.load = htmlParse(remDr$getSource()[[1]], asText=T)
