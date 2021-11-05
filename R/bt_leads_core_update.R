@@ -32,7 +32,7 @@ bt_leads_core_update = function(update.df=NULL,
   # all.covid=F
   # force.create=F
   # set.official=T
-  # destination="b221"
+  # destination="dpa"
   # incl.kanji=T
   # invoke.mrs.hudson=T
   # mrs.hudson.keep.results.ratio=0.95
@@ -63,7 +63,7 @@ bt_leads_core_update = function(update.df=NULL,
   } else{
 
 
-# CLEANING & PREPARATION --------------------------------------------------
+    # CLEANING & PREPARATION --------------------------------------------------
 
     #the db uses latin-1 encoding, fix it here so we do not end up with mojibake
     library(stringi)
@@ -117,16 +117,16 @@ bt_leads_core_update = function(update.df=NULL,
                                (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
 
 
-      }else {
+    }else {
 
-    # Title (en)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))] = "Vatican"
-    # Description (en)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T))] = "Vatican"
-    # Title (local lang)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T))] = "Vatican"
-    # Description (local lang)
-    lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T))] = "Vatican"
+      # Title (en)
+      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))] = "Vatican"
+      # Description (en)
+      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T))] = "Vatican"
+      # Title (local lang)
+      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T))] = "Vatican"
+      # Description (local lang)
+      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T))] = "Vatican"
 
     }
 
@@ -139,7 +139,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
       lc.update$relevant[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                             (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
+                           (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
 
       lc.update$classify[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
                            (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
@@ -177,7 +177,7 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$is.covid=1
 
 
-      } else {
+    } else {
       lc.update$is.covid=0
       lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.en, ignore.case = T)]=1
       lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.ll, ignore.case = T)]=1
@@ -382,14 +382,14 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
-# Mrs Hudson --------------------------------------------------------------
+    # Mrs Hudson --------------------------------------------------------------
 
 
     #Use on leads from google news search and reuters.
     if(invoke.mrs.hudson
        & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))
        & !(destination %in% c("citation"))
-       ){
+    ){
 
       #add col with the rating
       mrs.hudson.result = bt_estimate_news_leads(lc.update,
@@ -421,7 +421,7 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
 
-# Detective classification ------------------------------------------------
+    # Detective classification ------------------------------------------------
 
 
     ## classifying results
@@ -429,7 +429,7 @@ bt_leads_core_update = function(update.df=NULL,
                     & relevant==1
                     & country.lead!="Vatican"
                     & !(destination %in% c("dpa", "citation"))
-                    )
+    )
 
     if(nrow(classify)>0){
 
@@ -457,8 +457,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
       classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
-                                               prediction.data.text=classify$text,
-                                               prediction.acting.agency=classify$acting.agency)
+                                                prediction.data.text=classify$text,
+                                                prediction.acting.agency=classify$acting.agency)
 
       classify$relevant=NULL
       classify$relevance.probability=NULL
@@ -494,7 +494,7 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
 
-# DPA Classification ------------------------------------------------------
+    # DPA Classification ------------------------------------------------------
 
     if(destination == "dpa"){
 
@@ -505,7 +505,7 @@ bt_leads_core_update = function(update.df=NULL,
       #in case it was assigned above - DPA leads should have their relevance probability assigned here.
       #if the rel prob column was already there, the merging of results will not work, so best to remove it.
       lc.update$relevance.probability = NULL
-      lc.update$relevance.probability = merge(lc.update, dpa.hypermodel.result, all.x = T)
+      lc.update = merge(lc.update, dpa.hypermodel.result$raw.score, all.x = T)
 
     }
 
@@ -514,7 +514,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
-# DB upload process start -------------------------------------------------
+    # DB upload process start -------------------------------------------------
 
 
     ## UPLOAD TO RICARDO
@@ -541,7 +541,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
-# pre sql debug checkpoint ------------------------------------------------
+    # pre sql debug checkpoint ------------------------------------------------
 
     lc.update.copy = lc.update
 
