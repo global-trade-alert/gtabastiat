@@ -502,7 +502,11 @@ bt_leads_core_update = function(update.df=NULL,
 
       dpa.hypermodel.result = dpa_hypermodel_estimate_leads(leads.core)
 
-      leads.core$relevance.probability = dpa.hypermodel.result$raw.score
+      #in case it was assigned above - DPA leads should have their relevance probability assigned here.
+      #if the rel prob column was already there, the merging of results will not work, so best to remove it.
+      leads.core$relevance.probability = NULL
+
+      leads.core$relevance.probability = merge(leads.core, dpa.hypermodel.result, all.x = T)
 
     }
 
