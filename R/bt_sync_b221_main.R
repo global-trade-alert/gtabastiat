@@ -363,8 +363,31 @@ bt_sync_221_main = function(){
                                  WHERE creation_time>='2020-08-01'
                                  AND is_remove=1","main")
 
+    # hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
+    #                                  WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason!="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
+
+
+    #reminder of reasons
+    # discard_reason_id - discard_reason_name
+    # 1 - no policy mentioned
+    # 2 - is technical standard (TBT)
+    # 3 - is health standard (SPS)
+    # 4 - not a commercial policy
+    # 5 - no meaningful change / below de minimis
+    # 6 - fails RTT
+    # 7 - no change
+    # 8 - other, see comment
+    # 9 - no credible action
+    # 10 - update to existing intervention
+    # 11 - duplicate of other hint or GTA entry
+    # 12 - no unilateral act (but bi- or multilateral)
+    # 13 - useful
+    # 14 - keep for EGI
+    # 15 - beyond DPA scope
+    # 16 - No thanks
+
     hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason!="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
 
     if(length(hints.relevant)>0){
@@ -390,7 +413,7 @@ bt_sync_221_main = function(){
     #                                  WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
 
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason %in% c(1:9))$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
     hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
 
