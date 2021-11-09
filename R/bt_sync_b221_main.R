@@ -392,6 +392,8 @@ bt_sync_221_main = function(){
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
                                      WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason %in% c(1:9))$bastiat.id,"'"), collapse=","),")"))
 
+    hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
+
     if(length(hints.irrelevant)>0){
 
       gta_sql_update_table(paste("UPDATE bt_hint_log
