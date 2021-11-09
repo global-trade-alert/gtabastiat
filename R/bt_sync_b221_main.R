@@ -152,7 +152,7 @@ bt_sync_221_main = function(){
   new.leads$acting.agency = str_trunc(new.leads$acting.agency, width = 85)
 
   if(nrow(new.leads)==0){
-    stop("No new hints.")
+    warning("No new hints.")
   } else {
 
     ## (1b) upload into gtamain leads section
@@ -330,6 +330,8 @@ bt_sync_221_main = function(){
     #
     # gta_sql_update_table("UPDATE bt_hint_log SET hint_type_id=2;")
 
+  }
+
     ## (4) set gtamain lead priorities
     priority.time=90
     gta_sql_multiple_queries(paste0("UPDATE gta_leads SET is_priority_processing=0;
@@ -483,7 +485,7 @@ bt_sync_221_main = function(){
     #                                               WHERE lead_id IN(",paste(useless, collapse=","),"));"))
 
 
-  }
+
 
 
 
