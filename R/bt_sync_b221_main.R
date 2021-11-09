@@ -391,12 +391,18 @@ bt_sync_221_main = function(){
     hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
                                      WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
+    #very rarely, duplicate BIDs get into this table and are assigned hint_id as
+    #NULL. should be OK, as they are duplicates anyway, so remove the NAs.
+
+    hints.relevant = hints.relevant[!is.na(hints.relevant)]
 
     if(length(hints.relevant)>0){
 
       gta_sql_update_table(paste("UPDATE bt_hint_log
                                 SET hint_state_id=7
                                 WHERE hint_id IN (",paste(hints.relevant, collapse=","),")"))
+
+      print(paste(length(hints.relevant), "leads sent to state 7"))
 
       # ... and for collections
       gta_sql_update_table(paste("UPDATE bt_hint_log
@@ -417,6 +423,7 @@ bt_sync_221_main = function(){
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
                                      WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
+    #see above for whence the NAs here can arise
     hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
 
     if(length(hints.irrelevant)>0){
@@ -424,6 +431,7 @@ bt_sync_221_main = function(){
       gta_sql_update_table(paste("UPDATE bt_hint_log
                                 SET hint_state_id=9
                                 WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")"))
+      print(paste(length(hints.relevant), "leads sent to state 9"))
 
       gta_sql_get_value(paste("INSERT INTO bt_hint_relevance (hint_id, relevance,classification_id, relevance_accepted, validation_classification, confirm_status)
                               SELECT hint_id, 0 as relevance, validation_classification as classification_id, 1 as relevance_accepted, validation_classification, 0 as confirm_status
