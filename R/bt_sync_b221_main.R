@@ -7,6 +7,10 @@
 
 bt_sync_221_main = function(){
 
+
+  #turned off while fixing
+  if(F){
+
   library(gtasql)
   library(gtalibrary)
   library(pool)
@@ -509,3 +513,4 @@ bt_sync_221_main = function(){
 
 
 }
+  }
