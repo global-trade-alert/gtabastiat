@@ -657,7 +657,7 @@ bt_create_estimation_data <- function(bid=NULL,
    aggregate.variables$neg.word = NA
    aggregate.variables$neg.word.char = NA
 
-   pb = txtProgressBar(min = 1, max = nrow(keyword.variables), char = "~", style = 3)
+   pb = txtProgressBar(min = 0, max = nrow(keyword.variables), char = "~", style = 3)
 
    for(i in 1:nrow(keyword.variables)){
      #dont need second comparison in the kw.vars table as we are iterating through the rows sequentially anyway, i.e.
