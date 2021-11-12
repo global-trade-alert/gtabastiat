@@ -130,6 +130,24 @@ bt_sync_221_main = function(){
                               AND bhda2.date_accepted = 1
                               GROUP BY nh.hint_id")
 
+  #failsafe in case of duplicates
+
+
+
+  dup.bid.check = gta_sql_get_value(paste0("SELECT DISTINCT gl.bastiat_id
+                                    FROM gta_leads gl
+                                    WHERE gl.bastiat_id IN (", paste("'", new.leads$bid, "'", sep = "", collapse = ", "), ");"), "main")
+
+
+  if(length(dup.bid.check)>0){
+
+    stop("Some BIDs are already in the gtamain database - please check these!")
+
+  }
+
+
+
+
   #I think it's much quicker doing this in a separate query due to size of bt_hint_relevance
   hint.relevance = gta_sql_get_value(query = paste0("SELECT distinct bhr.hint_id, bhr.relevance_probability
                                      FROM bt_hint_relevance bhr
@@ -139,8 +157,10 @@ bt_sync_221_main = function(){
   hint.relevance = subset(hint.relevance, !(is.na(relevance.probability)))
   hint.relevance = subset(hint.relevance, !duplicated(hint.id))
 
+
   #merge back in, not all have a relevance score for some reason
   new.leads = merge(new.leads, hint.relevance, all.x = T)
+  new.leads$relevance.probability[is.na(new.leads$relevance.probability)] = "NULL"
 
   egi.hints=gta_sql_get_value(paste0("SELECT hint_id
                                      FROM b221_hint_product_group
@@ -256,11 +276,10 @@ bt_sync_221_main = function(){
 
     ## upload in chunks
 
-    for(chunk in seq(1, nrow(new.leads), 50)){
+    for(chunk in seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))]){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
-      #TODO add relevance_probability here when PB signals it is ready
       gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency, relevance_probability)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
                                                     upload.chunk$hint.text,"','",
@@ -447,7 +466,7 @@ bt_sync_221_main = function(){
       gta_sql_update_table(paste("UPDATE bt_hint_log
                                 SET hint_state_id=9
                                 WHERE hint_id IN (",paste(hints.irrelevant, collapse=","),")"))
-      print(paste(length(hints.relevant), "leads sent to state 9"))
+      print(paste(length(hints.irrelevant), "leads sent to state 9"))
 
       gta_sql_get_value(paste("INSERT INTO bt_hint_relevance (hint_id, relevance,classification_id, relevance_accepted, validation_classification, confirm_status)
                               SELECT hint_id, 0 as relevance, validation_classification as classification_id, 1 as relevance_accepted, validation_classification, 0 as confirm_status
