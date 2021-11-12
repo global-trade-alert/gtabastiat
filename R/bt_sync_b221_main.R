@@ -145,7 +145,7 @@ bt_sync_221_main = function(){
   egi.hints=gta_sql_get_value(paste0("SELECT hint_id
                                      FROM b221_hint_product_group
                                      WHERE product_group_id IN (2,3,4,5,7);"))
-  egi.hints=egi.hints[egi.hints %in% new.leads$hint.id]
+  egi.hints=egi.hints[egi.hints %in% new.leads$hint.id] %>% unique()
 
   ## correct for hints from collections that are already on the site
   main.bid=gta_sql_get_value("SELECT DISTINCT(bastiat_id) FROM gta_leads WHERE creation_time>='2020-08-01';","main")
@@ -217,12 +217,19 @@ bt_sync_221_main = function(){
     new.leads$source.type[!grepl(pattern = "GNEWS", x=new.leads$bid)]=3
 
     ## lead.date (R misbehving badly, hence the for loop :/ )
+    # FTFY in here also as an attempt at fixing encoding
     new.leads$lead.date=Sys.Date()
 
+    ftfy=reticulate::import("ftfy")
     for(i in 1:nrow(new.leads)){
 
       new.leads$lead.date[i]=as.Date(as.numeric(min(c(as.Date(new.leads$date.announced[i]), as.Date(new.leads$date.implemented[i]), Sys.Date()),na.rm = T)), origin="1970-01-01")
+      new.leads$hint.text[i] = ftfy$fix_text(new.leads$hint.text[i])
 
+      #APOSTROPHES
+      new.leads$hint.text[i] = gsub(pattern = "'",
+                                    replacement = "\\\\'",
+                                    x = new.leads$hint.text[i])
 
     }
 
@@ -240,7 +247,7 @@ bt_sync_221_main = function(){
     nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
 
     tryCatch(expr={
-    xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
+      xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
     },error = function(e){
       warning(paste("problem writing new leads xlsx:", e))
     }
