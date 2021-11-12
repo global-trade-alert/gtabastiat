@@ -130,20 +130,6 @@ bt_sync_221_main = function(){
                               AND bhda2.date_accepted = 1
                               GROUP BY nh.hint_id")
 
-  #failsafe in case of duplicates
-
-
-
-  dup.bid.check = gta_sql_get_value(paste0("SELECT DISTINCT gl.bastiat_id
-                                    FROM gta_leads gl
-                                    WHERE gl.bastiat_id IN (", paste("'", new.leads$bid, "'", sep = "", collapse = ", "), ");"), "main")
-
-
-  if(length(dup.bid.check)>0){
-
-    stop("Some BIDs are already in the gtamain database - please check these!")
-
-  }
 
 
 
@@ -174,6 +160,18 @@ bt_sync_221_main = function(){
   #fix problem where acting.agency > 100 chars (nb sometimes diacritics corrupted to several chars hence limit of 85 for safety)
 
   new.leads$acting.agency = str_trunc(new.leads$acting.agency, width = 85)
+
+
+
+  #failsafe in case of duplicates
+  dup.bid.check = gta_sql_get_value(paste0("SELECT DISTINCT gl.bastiat_id
+                                    FROM gta_leads gl
+                                    WHERE gl.bastiat_id IN (", paste("'", new.leads$bid, "'", sep = "", collapse = ", "), ");"), "main")
+
+  if(!is.na(dup.bid.check)){
+    stop("Some BIDs are already in the gtamain database - please check these!")
+  }
+
 
   if(nrow(new.leads)==0){
     warning("No new hints.")
