@@ -124,7 +124,7 @@ AND bthl.hint_state_id IN (7, 8, 9);")
 
   gta.training=merge(leads.core, subset(gta.leads, is.remove==1)[,c("bid","removal.reason")], by="bid")
   gta.training$evaluation=1
-  gta.training$evaluation[gta.training$removal.reason %in% c(1:9)]=0
+  gta.training$evaluation[gta.training$removal.reason %in% c(1,4,7,8,9)]=0
   gta.training$evaluation[gta.training$relevant==0]=0 #mark the state 9 (trash) leads as evaluated irrelevant
   gta.training$removal.reason=NULL
   gta.training=subset(gta.training, !bid %in% team.training$bid)
