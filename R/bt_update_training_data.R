@@ -58,7 +58,7 @@ AND bthj.hint_id = btht.hint_id
 AND bthj.jurisdiction_id = btjl.jurisdiction_id
 
 AND btht.language_id = 1
-AND bthl.hint_state_id IN (7, 8, 9);")
+AND bthl.hint_state_id IN (7, 9);") #state 8 = too many from Mrs H, i.e. overfitting
 
   #reminder:
   #state 7 = processed by editors
