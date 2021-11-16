@@ -450,6 +450,12 @@ bt_leads_core_update = function(update.df=NULL,
         nchar() <= 1
       if(sum(potential.problems)>0){
         prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
+
+        #get bids for easier dbg
+        potential.problems.bids = classify$bid[grepl(pattern = "[^A-zÀ-ÿ]|_", x = classify$text)] %>%
+          paste(collapse = ", ")
+
+        prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
         message(prob.msg)
         classify = classify[!potential.problems,]
 

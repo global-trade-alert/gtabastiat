@@ -43,6 +43,8 @@ bt_leads_classify_only = function(update.core,
     classify$text=gsub("[^\001-\177]","",classify$text)
 
     #check for bad chars
+
+
     potential.problems = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
          replacement = " ",
          x = classify$text) %>%
@@ -50,6 +52,12 @@ bt_leads_classify_only = function(update.core,
       nchar() <= 1
     if(sum(potential.problems)>0){
       prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
+
+      #get bids for easier dbg
+      potential.problems.bids = classify$bid[grepl(pattern = "[^A-zÀ-ÿ]|_", x = classify$text)] %>%
+        paste(collapse = ", ")
+
+      prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
       message(prob.msg)
       classify = classify[!potential.problems,]
 
