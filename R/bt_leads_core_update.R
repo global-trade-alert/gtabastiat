@@ -26,6 +26,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 mrs.hudson.keep.results.ratio=1){
 
   #### for testing/dbg
+  #run the below lines to instantiate lc.update then skip to 'Begin upload process' section
   # load(file = "uc.Rdata")
   # lc.update = update.core
   # exclude.by="bid"
@@ -62,6 +63,9 @@ bt_leads_core_update = function(update.df=NULL,
 
   } else{
 
+# Begin upload process ----------------------------------------------------
+
+
 
     # CLEANING & PREPARATION --------------------------------------------------
 
@@ -70,8 +74,10 @@ bt_leads_core_update = function(update.df=NULL,
 
     #possible could do a mapply here, the iterations are needed in case there encodings on different strings is different.
     for(i in 1:nrow(lc.update)){
-      stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
-      stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+      if(!is.na(lc.update$act.title.en[i]) && lc.update$act.title.en[i] != "NA"){
+        stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+        stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+      }
     }
 
 
