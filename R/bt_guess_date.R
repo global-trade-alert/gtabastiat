@@ -41,6 +41,16 @@ bt_guess_date = function(tgt.string){
 
   tryCatch(expr = {
     tgt.year = str_extract(tgt.string, "\\d{4}")
+    #check if it contains thai months, and it is using buddhist years (543 years ahead of gregorian calendar)
+    if((any(grepl(
+      paste(gtabastiat::month.names$thai, collapse = "|"),
+      tgt.string
+    ))) & all(as.numeric(tgt.year) > 2500)) {
+      tgt.year = as.numeric(tgt.year) - 543
+      tgt.year = as.character(tgt.year)
+      warning("Thai dates detected, converting years to Gregorian...")
+    }
+
   },error = function(e){
     stop(message = "error extracting year value")
   }
