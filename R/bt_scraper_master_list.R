@@ -69,6 +69,8 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
 
   bid.stem.master = list()
 
+  #include itself so it is not deleted later
+  non.cleanup.vars = c("non.cleanup.vars", ls())
 
 
   #if the code has a 'main.url', it is scraping from one URL
@@ -201,7 +203,6 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
       prog = match(scraper.path, scraper.master$scraper.path)
       cat(prog)
       if(quiet){
-        if(prog<nrow(scraper.master)){
           cat(", ")
         } else{
           cat("\n")
@@ -211,6 +212,8 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
       }
     }
 
+
+
   }
 
   if(show.stock.data.errors){
@@ -218,6 +221,9 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
     for(err in errorifications){
       message(err)
     }
+
+
+    rm(list = setdiff(non.cleanup.vars, ls()))
   }
 
   #fix integer dates
