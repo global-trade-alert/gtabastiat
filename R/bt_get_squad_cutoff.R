@@ -4,8 +4,7 @@
 #'
 #' @return the cutoff value used by the squad to determine relevance
 #'
-bt_get_squad_cutoff = function(){
+bt_get_squad_cutoff = function(squad.classifier="content/0 core/Bastiat squad classifier.Rdata"){
   load(squad.classifier)
   return(cutoff)
-
 }
