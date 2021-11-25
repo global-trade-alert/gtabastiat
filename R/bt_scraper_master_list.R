@@ -214,17 +214,17 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
 
 
 
-  }
+
 
   if(show.stock.data.errors){
     message("Stock data problems:")
     for(err in errorifications){
       message(err)
     }
-
-
-    rm(list = setdiff(non.cleanup.vars, ls()))
   }
+
+
+  rm(list = setdiff(non.cleanup.vars, ls()))
 
   #fix integer dates
   scraper.master$most.recent = as.Date(scraper.master$most.recent, origin = "1970-01-01")
