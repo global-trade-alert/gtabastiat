@@ -6,7 +6,7 @@
 \usage{
 bt_load_site(
   xpath = NULL,
-  wait = 60,
+  wait = 30,
   abort = F,
   wait.interval = 1.5,
   assign.html = F

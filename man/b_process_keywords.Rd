@@ -2,7 +2,7 @@
 % Please edit documentation in R/b_process_keywords.R
 \name{b_process_keywords}
 \alias{b_process_keywords}
-\title{Bastiat, please process my text to find the GTA keywprds.}
+\title{Bastiat, please process my text to find the GTA keywords.}
 \usage{
 b_process_keywords(bid = NULL, text = NULL)
 }
@@ -10,7 +10,7 @@ b_process_keywords(bid = NULL, text = NULL)
 A data frame with variables for each keyword dimension.
 }
 \description{
-Bastiat, please process my text to find the GTA keywprds.
+Bastiat, please process my text to find the GTA keywords.
 }
 \references{
 www.globaltradealert.org
