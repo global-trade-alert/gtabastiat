@@ -62,13 +62,15 @@ bt_guess_country = function(tgt.string, placeholder.result = NA, top.match.only 
   #
   # }
 
-  #load(file = "R help files/countries_matcher.Rdata")
+  load(file = "R help files/countries_matcher.Rdata")
+
+  #load(file="0 gtabastiat/data/countries_matcher.Rda")
   #save(countries.matcher, file="0 gtabastiat/data/countries_matcher.Rda")
 
   #this looks weird because the syntax of sapply() and grepl() mean that the 'y'
   #variable in the sapply() is used as the 'x' variable in the grepl()
 
-  countries.matcher = gtabastiat::countries.matcher
+  #countries.matcher = gtabastiat::countries.matcher
 
   country_returner = function(tgt.string){
 
