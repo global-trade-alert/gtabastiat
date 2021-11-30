@@ -265,18 +265,20 @@ bt_sync_221_main = function(){
     Encoding(new.leads$hint.description)="UTF-8"
     new.leads=unique(new.leads)
 
-    nl.xlsx=new.leads
-    nl.xlsx$priority="yes"
-    nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
-    nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
 
-    tryCatch(expr={
-      xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
-    },error = function(e){
-      warning(paste("problem writing new leads xlsx:", e))
-    }
-    )
-    rm(nl.xlsx)
+    # even with the tryCatch() there is some nasty error causing this to fail. disabled until required.
+    # nl.xlsx=new.leads
+    # nl.xlsx$priority="yes"
+    # nl.xlsx$priority[nl.xlsx$lead.date<Sys.Date()-90 ]="no"
+    # nl.xlsx=nl.xlsx[,c("hint.id","bid","jurisdiction.name","acting.agency","priority", "lead.date","date.announced","date.implemented","date.removed","assessment.name","hint.title","hint.description","url")]
+    #
+    # tryCatch(expr={
+    #   xlsx::write.xlsx(nl.xlsx, file=paste0("0 projects/BT leads sync/BT leads - ",Sys.time(),".xlsx"), row.names = F, showNA = F)
+    # },error = function(e){
+    #   warning(paste("problem writing new leads xlsx:", e))
+    # }
+    # )
+    # rm(nl.xlsx)
 
     ## upload in chunks
 
