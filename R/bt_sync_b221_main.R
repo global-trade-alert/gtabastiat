@@ -169,7 +169,15 @@ bt_sync_221_main = function(){
                                     WHERE gl.bastiat_id IN (", paste("'", new.leads$bid, "'", sep = "", collapse = ", "), ");"), "main")
 
   if(!is.na(dup.bid.check)){
-    stop("Some BIDs are already in the gtamain database - please check these!")
+    warning("Some BIDs are already in the gtamain database - please check these! Saving recorded duplicates to `logs/duplicated_bids.Rdata`")
+    load("logs/duplicated_bids.Rdata")
+
+    duplicated.bids = c(duplicated.bids, dup.bid.check)
+
+    save(duplicated.bids, "logs/duplicated_bids.Rdata")
+
+
+
   }
 
 
@@ -273,6 +281,9 @@ bt_sync_221_main = function(){
     rm(nl.xlsx)
 
     ## upload in chunks
+
+    #dbg
+    #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
 
     for(chunk in seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))]){
 
