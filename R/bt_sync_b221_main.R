@@ -170,13 +170,11 @@ bt_sync_221_main = function(){
 
   if(!is.na(dup.bid.check)){
     warning("Some BIDs are already in the gtamain database - please check these! Saving recorded duplicates to `logs/duplicated_bids.Rdata`")
-    load("logs/duplicated_bids.Rdata")
+    load(file = "logs/duplicated_bids.Rdata")
 
     duplicated.bids = c(duplicated.bids, dup.bid.check)
 
-    save(duplicated.bids, "logs/duplicated_bids.Rdata")
-
-
+    save(duplicated.bids, file = "logs/duplicated_bids.Rdata")
 
   }
 
