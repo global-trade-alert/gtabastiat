@@ -56,7 +56,7 @@ bt_scraper_init = function(){
   setwd(bastiat.wd)
   source("setup/keys/ric.R")
   pool <<- pool::dbPool(
-    drv = RMySQL::MySQL(),
+    drv = RMariaDB::MariaDB(),
     host = db.host,
     username = db.user,
     password = db.password,
