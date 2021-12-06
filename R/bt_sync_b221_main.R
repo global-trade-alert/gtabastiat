@@ -285,7 +285,7 @@ bt_sync_221_main = function(){
     #dbg
     #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
 
-    for(chunk in seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))]){
+    for(chunk in seq(1, nrow(new.leads), 50)){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
