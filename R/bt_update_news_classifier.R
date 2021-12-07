@@ -107,7 +107,7 @@ bt_update_news_classifier = function(db.connection=NULL,
       AND bthj.jurisdiction_id = gtajl.jurisdiction_id
 
       AND btht.language_id = 1
-      AND (bthl.hint_state_id IN (7))
+      AND (bthl.hint_state_id IN (5,6,7))
       AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
       LIMIT 25000;")
 
