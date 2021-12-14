@@ -20,7 +20,8 @@
 #' @export
 #'
 #' @examples
-bt_scraper_checkpoint_2 = function(ignore.url = F){
+bt_scraper_checkpoint_2 = function(ignore.url = F,
+                                   ignore.titles = F){
 
 
   check.update.table = exists("update.table")
@@ -56,6 +57,9 @@ bt_scraper_checkpoint_2 = function(ignore.url = F){
     check.unique.titles = TRUE
   }
 
+  if(ignore.titles){
+    check.unique.titles = TRUE
+  }
 
   check.unique.urls = (! any(duplicated(update.table$act.url))) | ignore.url
 
