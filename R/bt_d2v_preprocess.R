@@ -1,5 +1,7 @@
 #' Prepare a doc2vec matrix using a pretrained word2vec model.
 #'
+#' To be used when a model is classifying docs based on one string (e.g. paste(AA, title,description))
+#'
 #'
 #' @param model.w2v pretrained word embeddings
 #' @param doc_id the doc ids, probably the BID with Bastiat
