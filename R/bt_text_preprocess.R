@@ -13,11 +13,23 @@ bt_text_preprocess = function(text){
 
   library(tm)
 
+  # return(text %>%
+  #          removePunctuation() %>%
+  #          tolower() %>%
+  #          removeWords(tm::stopwords(kind = "en")) %>%
+  #          gsub(pattern = "\\s+", replacement = " ")
+  # )
+
   return(text %>%
+           gsub(pattern = "< ?br[\\s\\S]+", replacement = "", perl = T) %>%
            removePunctuation() %>%
            tolower() %>%
            removeWords(tm::stopwords(kind = "en")) %>%
-           gsub(pattern = "\\s+", replacement = " ")
+           gsub(pattern = "[‒–—]", replacement = "") %>%
+           gsub(pattern = "[^a-z]", replacement = " ") %>%
+           gsub(pattern = "\\s+", replacement = " ") %>%
+           trimws()
+
   )
 
 
