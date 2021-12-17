@@ -20,12 +20,15 @@ bt_update_news_classifier = function(db.connection=NULL,
                                      create.training.testing.split=F,
                                      training.testing.split = 0.9,
                                      mrs.h.method = "d2v",
-                                     mrs.h.grid.search = F){
+                                     mrs.h.gen.alg = "XGB"){
 
 
   accepted.methods= c("tokenise", "d2v")
   if(! mrs.h.method %in% accepted.methods){
    stop(paste("method must be one of", accepted.methods))
+  }
+  if(mrs.h.method == "tokenise"){
+    warning("Spare-matrix tokenisation is deprecated - it is only kept for compatibility and may not work.")
   }
 
   ##### DEPENDENCIES AND INIT #####
@@ -65,7 +68,7 @@ bt_update_news_classifier = function(db.connection=NULL,
 
   ## opening connection
 
-  print(is.null(db.connection))
+  #print(is.null(db.connection))
   if(is.null(db.connection)){
     print("retrieving training data from DB...")
     database="ricardomain"
@@ -81,7 +84,9 @@ bt_update_news_classifier = function(db.connection=NULL,
 
   }
 
-  ##### TRAINING DATA GET #####
+
+# GET TRAINING DATA -------------------------------------------------------
+
 
   #list of google, reuters news leads in 4 states - this is broader than what we
   #use for BT usually in order to increase the amount of training data
@@ -107,7 +112,8 @@ bt_update_news_classifier = function(db.connection=NULL,
       AND bthj.jurisdiction_id = gtajl.jurisdiction_id
 
       AND btht.language_id = 1
-      AND (bthl.hint_state_id IN (5,6,7))
+      #AND (bthl.hint_state_id IN (5,6,7))
+      AND (bthl.hint_state_id IN (7))
       AND (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
       LIMIT 25000;")
 
@@ -205,8 +211,10 @@ LIMIT 25000;")
 
   training.b221.full = data.frame(bid = leads.core.b221$bid,
                                   text = paste(leads.core.b221$acting.agency, leads.core.b221$hint.title, leads.core.b221$hint.description),
+                                  hint.title = leads.core.b221$hint.title,
+                                  hint.description = leads.core.b221$hint.description,
                                   acting.agency = leads.core.b221$acting.agency,
-                                  evaluation = leads.core.b221$hint.state.id %in% c(5, 6, 7)
+                                  evaluation = leads.core.b221$hint.state.id %in% c(5,6,7)
   )
 
   #in case there are duplicates
@@ -214,23 +222,7 @@ LIMIT 25000;")
 
 
 
-  #clean up the text (I was doing this per model but in all cases I think we
-  #don't want punctuation and uppercase)
-
-
-
-  training.b221.full$text = bt_text_preprocess(training.b221.full$text)
-
-  #show summary of the text
-  if(show.text.summary){
-    print("Summary of training corpus documents word counts:")
-    training.b221.full$text %>%
-      strsplit(" ") %>%
-      sapply(length) %>%
-      summary() %>%
-      print()
-  }
-
+# TRAINING TESTING SPLIT --------------------------------------------------
 
   #random ids to separate into training/testing sets (if desired)
   #ratio can be changed if necessary
@@ -250,7 +242,10 @@ LIMIT 25000;")
 
 
 
-  ##### UDPipe! #####
+
+# UDPipe! -----------------------------------------------------------------
+
+
 
   #UDPipe is very cool, but not sure if it is that useful in this case. I leave the code here for future reference.
   #useful for metrics, better to split out into its own thing but no time now
@@ -260,7 +255,7 @@ LIMIT 25000;")
   if(want.udpipe){
 
     #download model if for the first time, filepath here needs editing if we want to use this
-    #model <- udpipe_download_model(language = "english")
+    model <- udpipe_download_model(language = "english")
     udmodel_english <- udpipe_load_model(file = 'english-ewt-ud-2.5-191206.udpipe')
 
 
@@ -363,7 +358,117 @@ LIMIT 25000;")
   }
 
 
-  ##### W2V/D2V METHOD #####
+  #clean up the text (I was doing this per model but in all cases I think we
+  #don't want punctuation and uppercase)
+
+
+
+
+
+
+
+
+
+
+# d2v Advanced implementation -------------------------------------------
+
+  if(mrs.h.method == "d2v"){
+
+    #tb = training.b221
+    #training.b221 = tb
+    # Preprocess text ---------------------------------------------------------
+
+    orig.rows = nrow(training.b221)
+    orig.bids = training.b221$bid
+
+    print("preprocessing text...")
+
+    training.cols = c("hint.title", "hint.description", "acting.agency")
+
+    for(col in training.cols){
+      print(col)
+
+      col.idx = match(col, colnames(training.b221))
+
+      #overprocessing the AA means a lot of them become empty strings
+      if(col == "acting.agency"){
+        training.b221[,col.idx] = bt_text_preprocess(training.b221[,col.idx], stop.rm = F)
+      }else{
+        training.b221[,col.idx] = bt_text_preprocess(training.b221[,col.idx])
+      }
+
+      #training.b221 = subset(training.b221, grepl(pattern = "[a-z]", training.b221[,col.idx]))
+
+      rm(col.idx)
+    }
+
+    training.b221$text = paste(training.b221$acting.agency, training.b221$hint.title, training.b221$hint.description)
+
+    problem.leads = subset(training.b221, !grepl(pattern = "[a-z]", training.b221$text))
+
+    #rem.bids = orig.bids[which(! orig.bids %in% training.b221.full$bid)] %>% paste(collapse = ", ")
+
+    rem.bids = problem.leads$bid %>% paste(collapse = ", ")
+
+    training.b221 = subset(training.b221, !bid %in% rem.bids)
+
+    #show summary of the text
+    if(show.text.summary){
+      print("Summary of training corpus documents word counts:")
+      training.b221$text %>%
+        strsplit(" ") %>%
+        sapply(length) %>%
+        summary() %>%
+        print()
+    }
+
+    n.rm.rows = orig.rows-nrow(training.b221)
+
+    if(n.rm.rows>0){
+      warning(paste(n.rm.rows, "rows removed during preprocessing! probably because they consisted of only bad chars ([^A-z]) which cannot be classified! The BIDs for the removed rows were:", rem.bids))
+    }
+
+
+    train.w2v = training.b221$text
+
+    set.seed(221)
+
+    print("preparing word vector embeddings, may take a while...")
+
+    model.w2v = word2vec(x = train.w2v,
+                         type = "skip-gram",
+                         dim = 150,
+                         iter = 20,
+                         min_count = 2,
+                         window = 10)
+
+    mrs.hudson.w2v.emb.fname = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson w2v.bin")
+
+    print(paste("w2v embeddings created! saving to",mrs.hudson.w2v.emb.fname))
+    write.word2vec(model.w2v, file = mrs.hudson.w2v.emb.fname)
+
+
+    x.train = bt_d2v_preprocess(model.w2v, doc_id = training.b221$bid, text=training.b221$text)
+
+
+    #preprocessing testing data
+
+    if(create.training.testing.split){
+
+      testing.b221$text = paste(bt_text_preprocess(testing.b221$acting.agency, stop.rm = F),
+                                bt_text_preprocess(testing.b221$hint.title),
+                                bt_text_preprocess(testing.b221$hint.description))
+
+      x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
+    }
+
+
+
+
+
+# Generic w2v/d2v method --------------------------------------------------
+
+
 
   if(mrs.h.method == "d2v"){
     ##### word2vec #####
@@ -394,7 +499,10 @@ LIMIT 25000;")
   }
 
 
-  ##### TEXT TOKENISATION METHOD #####
+
+# Basic tokenisation method (deprecated) ----------------------------------
+
+
 
   if(mrs.h.method == "tokenise"){
     #The tokeniser is now in a separate function.
@@ -447,9 +555,12 @@ LIMIT 25000;")
   #other models were tested, but RF seems to perform well. Definitely future optimisation is possible.
 
 
+    #TODO remove this
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
   #i used the number of mrs hudson's house here
-  set.seed(221)
+  if(F){
+
+    set.seed(221)
 
   x.train$evaluation = as.factor(training.b221$evaluation)
 
@@ -493,6 +604,221 @@ LIMIT 25000;")
   save(mrs.h.gen.method, mrs.hudson.model, file = mrs.hudson.model.file.name)
 
 
+  }
+
+
+# Generate model using specified method -----------------------------------
+
+
+  set.seed(221)
+
+  x.train$evaluation = as.factor(training.b221$evaluation)
+
+
+  rownames(x.train) = training.b221$bid
+
+  #use this to tune the sample size... it can't be larger than this number of course
+  class.freq.min = min(table(x.train$evaluation))
+
+
+  # 1. Simple RandomForest with no grid search etc - this is the fastest to train (and not bad performance!)
+  if(mrs.h.gen.alg == "RFstandard"){
+
+    library(randomForest)
+    print(paste("Creating new Mrs H RF model... (non-grid search)"))
+
+    hypermodel = randomForest(evaluation ~ .,
+                              data=x.train)
+
+
+    #2. RandomForest with grid search and other tuning params - slower (prelim acc = 58%)
+  }else if(mrs.h.gen.alg == "RFgrid"){
+    library(caret)
+    library(randomForest)
+
+    print(paste("Creating new Mrs H model... (RF w/ grid search, may take a while)"))
+
+    #with grid search - prepare your RAM
+
+    # K-fold cross-validation from caret
+    # Define the control
+    # took about 40-45 mins to train on my machine
+    # rf.trControl <- trainControl(method = "repeatedcv",
+    #                              number = 5,
+    #                              repeats = 1,
+    #                              search = "grid",
+    #                              sampling = "up",
+    #                              verboseIter = TRUE)
+
+    # normal cv, much faster
+    rf.trControl <- trainControl(
+      method = "cv",
+      number = 5,
+      search = "random",
+      verboseIter = TRUE
+    )
+
+
+    dynamic.mtry <- sqrt(ncol(x.train %>% select(-evaluation)))
+
+    rf.tunegrid <- expand.grid(.mtry=dynamic.mtry)
+
+    hypermodel = train(evaluation ~ .,
+                       data=x.train,
+                       method='rf',
+                       metric="Accuracy",
+                       #mtry=dynamic.mtry,
+                       tunegrid = rf.tunegrid,
+                       trControl = rf.trControl)
+
+
+
+
+
+
+    # 3. XGBoost
+
+  }else if(mrs.h.gen.alg == "XGB"){
+
+    library(caret)
+    print(paste("Creating new hypermodel... (XGB w/ grid search, may take a while)"))
+    library(xgboost)
+    library(ROSE)
+
+    #xgb likes to use dmatrices - IIRC this is required in python but not in R,
+    #either way I do it here
+    x.train.xgb = xgb.DMatrix(as.matrix(x.train %>% select(-evaluation)))
+    y.train = as.factor(x.train$evaluation)
+
+    # cross-validation method and number of folds + enable parallel computation
+    xgb.trControl = trainControl(
+      method = "cv",
+      number = 10,
+      allowParallel = TRUE,
+      verboseIter = TRUE,
+      returnData = FALSE
+    )
+
+    #grid space to search for the best hyperparameters
+    xgbGrid <- expand.grid(nrounds = c(50,100),#nrounds = c(100,200),
+                           max_depth = c(10, 15, 20, 25),
+                           colsample_bytree = seq(0.5, 0.9, length.out = 5),
+                           # The values below are default values in the sklearn-api.
+                           eta = 0.1,
+                           gamma=0,
+                           min_child_weight = 1,
+                           subsample = 1
+    )
+
+    hypermodel = train(
+      x.train.xgb, y.train,
+      trControl = xgb.trControl,
+      tuneGrid = xgbGrid,
+      method = "xgbTree"
+    )
+
+    # Support Vector Machines - Linear
+    # prelim.acc ~50%
+    # unfortunately errors out when used on unseen data, which is apparently common to this implementation of SVM
+    # nothing I can do to fix except trying random seed values, which sounds problematic
+  }else if(mrs.h.gen.alg == "svmLinear"){
+
+    library(caret)
+    library(kernlab)
+    library(ROSE)#for sampling
+
+    #these params are the best result I got after many tests
+    #including a 1000 fold cv
+    svm.trControl <- trainControl(method = "repeatedcv",
+                                  number = 10,
+                                  repeats = 3,
+                                  sampling = "up")
+    #classProbs = T)
+
+    hypermodel <-
+      train(
+        evaluation ~ .,
+        data = x.train,
+        method = "svmLinear",
+        trControl = svm.trControl,
+        preProcess = c("center", "scale"),
+        tuneGrid = expand.grid(C = seq(0.5, 2, length = 20))
+      )
+
+
+
+
+    #Relevance Vector Machines (RVM)
+    #currently not supported for classification in R :(
+    #I leave it here in case it is one day
+  }else if(mrs.h.gen.alg == "rvm"){
+
+    rvm.trControl <- trainControl(method = "repeatedcv",
+                                  number = 10,
+                                  repeats = 3)
+
+    hypermodel <- train(evaluation ~.,
+                        data = col.predictions,
+                        method = "rvmLinear",
+                        trControl=rvm.trControl,
+                        preProcess = c("center", "scale"),
+                        tuneLength = 10)
+
+    #standard Naive Bayes
+  }else if(mrs.h.gen.alg == "NBstandard"){
+
+    library(caret)
+    library(klaR)
+    library(e1071) #this may not be required here
+
+    nb.trControl <- trainControl(method = "repeatedcv",
+                                 number = 10,
+                                 repeats = 3,
+                                 search = "grid")
+
+    #fL = laplace correction - during testing this appeared to make zero difference,
+    #may be due to the specific nature of the training data used
+
+    # accuracy seems lower than RF or XGB
+    nb.tuneGrid <- data.frame(fL = seq(1, length = 4),
+                              usekernel = T,
+                              adjust = seq(0.25, 1.5, length = 4))
+
+
+    hypermodel <- train(evaluation ~.,
+                        data = x.train,
+                        method = "nb",
+                        trControl=nb.trControl,
+                        preProcess = c("center", "scale"),
+                        tuneGrid = nb.tuneGrid)
+
+
+
+
+  }
+
+  # mrs.h.model = list(mrs.h.model = hypermodel,
+  #                    mrs.h.model.method = hypermodel.method)
+
+  mrs.hudson.model = hypermodel
+
+
+
+  mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
+
+
+  mrs.h.gen.method = mrs.h.method
+  mrs.h.gen.alg = mrs.h.gen.alg
+
+  print(paste("New model created using", mrs.h.gen.method, "with", mrs.h.gen.alg,"! Saving to", mrs.hudson.model.file.name))
+
+
+  save(mrs.h.gen.method, mrs.h.gen.alg, mrs.hudson.model, file = mrs.hudson.model.file.name)
+
+
+
+
+  #testb = testing.b221
 
   ##### TESTING NEW CLASSIFIER #####
 
@@ -542,4 +868,5 @@ LIMIT 25000;")
   }
 
 
+}
 }

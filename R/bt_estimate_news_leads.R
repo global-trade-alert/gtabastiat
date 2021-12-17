@@ -21,7 +21,7 @@ bt_estimate_news_leads = function(leads.core.news,
                                   keep.results.ratio = 1,
                                   binary.prediction = T,
                                   return.both = F,
-                                  conf.cutoff = 0.2){
+                                  conf.cutoff = 0.3){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     warning("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
@@ -41,13 +41,13 @@ bt_estimate_news_leads = function(leads.core.news,
   load(mrs.hudson.model.file.name)
 
   #construct text
-  acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))]
-  act.title.en = leads.core.news[,match("act.title.en", colnames(leads.core.news))]
-  act.description.en = leads.core.news[,match("act.description.en", colnames(leads.core.news))]
+  acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))] %>% bt_text_preprocess(stop.rm = F)
+  act.title.en = leads.core.news[,match("act.title.en", colnames(leads.core.news))] %>% bt_text_preprocess()
+  act.description.en = leads.core.news[,match("act.description.en", colnames(leads.core.news))] %>% bt_text_preprocess()
 
   cl.text = paste(acting.agency,
                   act.title.en,
-                  act.description.en) %>% bt_text_preprocess()
+                  act.description.en)
 
 
   if(mrs.h.gen.method == "tokeniser"){
@@ -65,6 +65,30 @@ bt_estimate_news_leads = function(leads.core.news,
     x.predict = bt_d2v_preprocess(mrs.h.w2v,
                                   doc_id = leads.core.news[,match("bid", colnames(leads.core.news))],
                                   text = cl.text)
+  }
+
+
+
+  #control which libraries are loaded so we are not loading a billion ML libraries each time
+  #feel free to add more
+  if(mrs.h.gen.alg == "RFstandard"){
+    #add things here if required
+  }
+
+  if(mrs.h.gen.alg == "RFgrid"){
+    library(caret)
+  }
+
+  #xgb needs its special matrices UwU
+  if(mrs.h.gen.alg == "XGB"){
+    library(caret)
+    library(xgboost)
+    x.predict = xgb.DMatrix(as.matrix(x.predict))
+  }
+
+  if(mrs.h.gen.alg %in% c("svmlinear", "rvm")){
+    library(caret)
+    library(kernlab)
   }
 
   print("Showing the leads to Mrs Hudson...")
