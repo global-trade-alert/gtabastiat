@@ -39,6 +39,7 @@ bt_estimate_news_leads = function(leads.core.news,
   mrs.hudson.model.list = classifiers[grepl("Mrs Hudson model", classifiers)]
   mrs.hudson.model.file.name = mrs.hudson.model.list[length(mrs.hudson.model.list)]
   load(mrs.hudson.model.file.name)
+  print(paste("Using", mrs.hudson.model.file.name))
 
   #construct text
   acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))] %>% bt_text_preprocess(stop.rm = F)
@@ -51,8 +52,11 @@ bt_estimate_news_leads = function(leads.core.news,
 
 
   if(mrs.h.gen.method == "tokeniser"){
-  #make the td matrix for prediction
-  x.predict = bt_td_matrix_preprocess(text = cl.text, tokeniser = tokeniser)
+    # !!!
+    warning("Tokenisastion is deprecated - kept here for compatibility purposes.")
+
+    #make the td matrix for prediction
+    x.predict = bt_td_matrix_preprocess(text = cl.text, tokeniser = tokeniser)
   }
 
   if(mrs.h.gen.method == "d2v"){
