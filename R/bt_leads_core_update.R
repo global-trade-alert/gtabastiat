@@ -33,10 +33,10 @@ bt_leads_core_update = function(update.df=NULL,
   # all.covid=F
   # force.create=F
   # set.official=T
-  # destination="dpa"
+  # destination="b221"
   # incl.kanji=T
   # invoke.mrs.hudson=T
-  # mrs.hudson.keep.results.ratio=0.95
+  # mrs.hudson.keep.results.ratio=1
 
 
 
@@ -69,16 +69,19 @@ bt_leads_core_update = function(update.df=NULL,
 
     # CLEANING & PREPARATION --------------------------------------------------
 
-    #the db uses latin-1 encoding, fix it here so we do not end up with mojibake
-    library(stringi)
 
-    #possible could do a mapply here, the iterations are needed in case there encodings on different strings is different.
-    for(i in 1:nrow(lc.update)){
-      if(!is.na(lc.update$act.title.en[i]) && lc.update$act.title.en[i] != "NA"){
-        stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
-        stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
-      }
-    }
+
+    # This *should* be fixed now with the update to the new SQL driver
+    # #the db uses latin-1 encoding, fix it here so we do not end up with mojibake
+    # library(stringi)
+    #
+    # #possible could do a mapply here, the iterations are needed in case there encodings on different strings is different.
+    # for(i in 1:nrow(lc.update)){
+    #   if(!is.na(lc.update$act.title.en[i]) && lc.update$act.title.en[i] != "NA"){
+    #     stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+    #     stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
+    #   }
+    # }
 
 
     ## ad-hoc irrelevance decisions based on noisy sources
@@ -235,7 +238,10 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
 
-    ## URL cleanout
+
+# URL cleanout ------------------------------------------------------------
+
+
 
     #get standard regex for identifying urls
     regex_url = gtabastiat::regex_url
@@ -393,7 +399,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     #Use on leads from google news search and reuters.
     if(invoke.mrs.hudson
-       & all(grepl("(GNEWS)|(RTNEWS)", lc.update$bid))
+       & all(grepl("(GNEWS)", lc.update$bid))
        & !(destination %in% c("citation"))
     ){
 
@@ -402,7 +408,7 @@ bt_leads_core_update = function(update.df=NULL,
                                                  keep.results.ratio = mrs.hudson.keep.results.ratio,
                                                  binary.prediction = F,
                                                  return.both = T,
-                                                 conf.cutoff = 0.4)
+                                                 conf.cutoff = 0.2)
       #old
       #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
       #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)
@@ -429,66 +435,70 @@ bt_leads_core_update = function(update.df=NULL,
 
     # Detective classification ------------------------------------------------
 
-
-    ## classifying results
-    classify=subset(lc.update, classify==1
-                    & relevant==1
-                    & country.lead!="Vatican"
-                    & !(destination %in% c("dpa", "citation"))
-    )
-
-    if(nrow(classify)>0){
-
-
-      classify$text=classify$act.title.en
-      classify$text[is.na(classify$act.description.en)==F]=paste(classify$text[is.na(classify$act.description.en)==F], classify$act.description.en[is.na(classify$act.description.en)==F], sep=" ")
-      classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
-
-      # removing non-ASCII
-      classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
-      classify$text=gsub("[^\001-\177]","",classify$text)
-
-      #check for bad chars
-      potential.problems = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
-                                replacement = " ",
-                                x = classify$text) %>%
-        str_squish() %>%
-        nchar() <= 1
-      if(sum(potential.problems)>0){
-        prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
-
-        #get bids for easier dbg
-        potential.problems.bids = classify$bid[potential.problems] %>%
-          paste(collapse = ", ")
-
-        prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
-        message(prob.msg)
-        classify = classify[!potential.problems,]
-
-      }
-
-
-      classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
-                                                prediction.data.text=classify$text,
-                                                prediction.acting.agency=classify$acting.agency)
-
-      classify$relevant=NULL
-      classify$relevance.probability=NULL
-      classify$text=NULL
-
-      classify=merge(classify, classification.result, by.x="bid",by.y="text.id")
-
-      classified.bids=classify$bid
-      classified.lids=classify$lead.id
-      classified.relevance=classify$relevant
-      classified.rel.prob=round(classify$relevance.probability,4)
-
-      lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
-                      classify)
-
-
-
+    if(!(all(grepl("(GNEWS)", lc.update$bid)))){
+      lc.update2 = bt_leads_classify_only(lc.update, assign.relevance = T)
     }
+    #
+    #
+    # ## classifying results
+    # classify=subset(lc.update, classify==1
+    #                 & relevant==1
+    #                 & country.lead!="Vatican"
+    #                 & !(destination %in% c("dpa", "citation"))
+    # )
+    #
+    # if(nrow(classify)>0){
+    #
+    #
+    #   classify$text=classify$act.title.en
+    #   classify$text[is.na(classify$act.description.en)==F]=paste(classify$text[is.na(classify$act.description.en)==F], classify$act.description.en[is.na(classify$act.description.en)==F], sep=" ")
+    #   classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
+    #
+    #   # removing non-ASCII
+    #   classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
+    #   classify$text=gsub("[^\001-\177]","",classify$text)
+    #
+    #   #check for bad chars
+    #   potential.problems = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
+    #                             replacement = " ",
+    #                             x = classify$text) %>%
+    #     str_squish() %>%
+    #     nchar() <= 1
+    #   if(sum(potential.problems)>0){
+    #     prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
+    #
+    #     #get bids for easier dbg
+    #     potential.problems.bids = classify$bid[potential.problems] %>%
+    #       paste(collapse = ", ")
+    #
+    #     prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
+    #     message(prob.msg)
+    #     classify = classify[!potential.problems,]
+    #
+    #   }
+    #
+    #
+    #   classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
+    #                                             prediction.data.text=classify$text,
+    #                                             prediction.acting.agency=classify$acting.agency)
+    #
+    #   classify$relevant=NULL
+    #   classify$relevance.probability=NULL
+    #   classify$text=NULL
+    #
+    #   classify=merge(classify, classification.result, by.x="bid",by.y="text.id")
+    #
+    #   classified.bids=classify$bid
+    #   classified.lids=classify$lead.id
+    #   classified.relevance=classify$relevant
+    #   classified.rel.prob=round(classify$relevance.probability,4)
+    #
+    #   lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
+    #                   classify)
+    #
+    #
+    #
+    # }
 
 
 
