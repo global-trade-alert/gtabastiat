@@ -120,38 +120,6 @@ bt_update_news_classifier = function(db.connection=NULL,
   paste(nrow(leads.core.b221.rlv.news), "relevant NEWS rows retrieved") %>% print()
 
 
-  #too much of these are bad, plus we have a lot more news training data now.
-  #NON NEWS, NON-TD to increase training set
-#   leads.core.b221.rlv.notnews = gta_sql_get_value(
-#     "SELECT DISTINCT btbid.bid, bthl.acting_agency, btht.hint_title, btht.hint_description, bthl.hint_values, bthl.registration_date, gtajl.jurisdiction_name, bthl.hint_state_id
-# FROM bt_hint_log bthl,
-# 	bt_hint_bid btbid,
-# 	bt_hint_text btht,
-# 	bt_hint_jurisdiction bthj,
-# 	gta_jurisdiction_list gtajl
-#
-# WHERE bthl.hint_id = btbid.hint_id
-# AND bthl.hint_id = btht.hint_id
-# AND bthl.hint_id = bthj.hint_id
-#
-# AND btbid.hint_id = bthj.hint_id
-# AND btbid.hint_id = btht.hint_id
-#
-# AND bthj.hint_id = btht.hint_id
-#
-# AND bthj.jurisdiction_id = gtajl.jurisdiction_id
-#
-# AND btht.language_id = 1
-# AND (bthl.hint_state_id IN (5, 6, 7))
-# AND NOT (btbid.bid LIKE 'GNEWS-%' OR btbid.bid LIKE 'RTNEWS-%')
-#
-# AND bthj.jurisdiction_id NOT IN (89)
-#
-# LIMIT 25000;")
-#
-#   paste(nrow(leads.core.b221.rlv.notnews), "relevant NON-NEWS rows retrieved") %>% print()
-
-
 
   #IRRELEVANT NEWS LEADS
   leads.core.b221.irv = gta_sql_get_value(
@@ -181,11 +149,9 @@ LIMIT 25000;")
   paste(nrow(leads.core.b221.irv), "IRrelevant rows retrieved") %>% print()
 
   leads.core.b221 = rbind(leads.core.b221.rlv.news,
-                          #leads.core.b221.rlv.notnews, #removed for reasons stated above
                           leads.core.b221.irv)
 
   rm(leads.core.b221.irv,
-     #leads.core.b221.rlv.notnews,
      leads.core.b221.rlv.news)
 
   paste(nrow(leads.core.b221), "total rows retrieved") %>% print()
@@ -199,9 +165,9 @@ LIMIT 25000;")
   # "4"	"OSC - editor desk"
   # "5"	"BT - ready for dispatch"
   # "6"	"lead - sent out" #ie has been accepted in b221
-  # "7"	"lead - fully processed"
+  # "7"	"lead - fully processed" <- the 'best' leads
   # "8"	"trash bin - entered"
-  # "9"	"trash bin - fully processed"
+  # "9"	"trash bin - fully processed" <- the 'worst' leads
 
 
 
@@ -254,6 +220,8 @@ LIMIT 25000;")
 
   if(want.udpipe){
 
+    library(udpipe)
+
     #download model if for the first time, filepath here needs editing if we want to use this
     model <- udpipe_download_model(language = "english")
     udmodel_english <- udpipe_load_model(file = 'english-ewt-ud-2.5-191206.udpipe')
@@ -262,7 +230,9 @@ LIMIT 25000;")
 
 
     #remove rubbish and prepare annotations DF
-    udp.input = training.b221$text
+    #udp.input = training.b221$text
+    udp.input = leads.core.b221$hint.title
+    names(udp.input) = leads.core.b221$bid
 
     #UDPipe MUST have ONLY UTF-8 input or it will not work
     if (any(!stri_enc_isutf8(udp.input))) {
@@ -281,16 +251,17 @@ LIMIT 25000;")
 
     message("creating udpipe annotated model, may take a while...")
     s2 <- udpipe_annotate(udmodel_english,
-                          x=udp.input)
+                          x=udp.input, doc_id = names(udp.input))
 
     message("annotated model generated! converting to dataframe...")
     x.train.udp <- as.data.frame(s2)
 
-    x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
+    #x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
+    x.train.udp$evaluation = x.train.udp$doc_id %in% training.b221$bid[training.b221$evaluation]
 
 
     udp.file.path = str_extract(string = getwd(), pattern = ".+Bastiat") %>%
-      paste0(., "/0 projects/udpipe/udp_annotated.Rdata")
+      paste0(., "/0 projects/021 udpipe/udp_annotated.Rdata")
 
     message("annotations dataframe generated, saving to ", udp.file.path)
 
@@ -299,7 +270,7 @@ LIMIT 25000;")
     #RAKE analysis
 
     #hyperparams
-    min.occurrence = 10
+    min.occurrence = 5
     ngram.max = 2
     desired.pos = c("NOUN", "VERB", "PROPN", "ADJ")
 
@@ -458,45 +429,44 @@ LIMIT 25000;")
       testing.b221$text = paste(bt_text_preprocess(testing.b221$acting.agency, stop.rm = F),
                                 bt_text_preprocess(testing.b221$hint.title),
                                 bt_text_preprocess(testing.b221$hint.description))
-
-      x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
+      x.test = bt_d2v_col_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
     }
 
 
 
 
 
-# Generic w2v/d2v method --------------------------------------------------
+
+# Generic w2v/d2v method (SUPERSEDED) -------------------------------------
 
 
-
-  if(mrs.h.method == "d2v"){
-    ##### word2vec #####
-
-  train.w2v = training.b221$text
-
-  set.seed(221)
-
-  print("preparing word vector embeddings, may take a while...")
-
-  model.w2v = word2vec(x = train.w2v,
-                       type = "cbow",
-                       dim = 100,
-                       iter = 20)
-
-  mrs.hudson.w2v.emb.fname = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson w2v.bin")
-
-  print(paste("w2v embeddings created! saving to",mrs.hudson.w2v.emb.fname))
-  write.word2vec(model.w2v, file = mrs.hudson.w2v.emb.fname)
-
-
-  x.train = bt_d2v_preprocess(model.w2v, doc_id = training.b221$bid, text=training.b221$text)
-
-  if(create.training.testing.split){
-    x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
-  }
-
-  }
+  # if(mrs.h.method == "d2v"){
+  #   ##### word2vec #####
+  #
+  # train.w2v = training.b221$text
+  #
+  # set.seed(221)
+  #
+  # print("preparing word vector embeddings, may take a while...")
+  #
+  # model.w2v = word2vec(x = train.w2v,
+  #                      type = "cbow",
+  #                      dim = 100,
+  #                      iter = 20)
+  #
+  # mrs.hudson.w2v.emb.fname = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson w2v.bin")
+  #
+  # print(paste("w2v embeddings created! saving to",mrs.hudson.w2v.emb.fname))
+  # write.word2vec(model.w2v, file = mrs.hudson.w2v.emb.fname)
+  #
+  #
+  # x.train = bt_d2v_preprocess(model.w2v, doc_id = training.b221$bid, text=training.b221$text)
+  #
+  # # if(create.training.testing.split){
+  # #   x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
+  # # }
+  #
+  # }
 
 
 
@@ -542,11 +512,11 @@ LIMIT 25000;")
                                       max_length = max_length,
                                       text = training.b221$text)
 
-    if(create.training.testing.split){
-      x.test = bt_td_matrix_preprocess(num_words = num_words,
-                                       max_length = max_length,
-                                       text = testing.b221$text)
-    }
+    # if(create.training.testing.split){
+    #   x.test = bt_td_matrix_preprocess(num_words = num_words,
+    #                                    max_length = max_length,
+    #                                    text = testing.b221$text)
+    # }
   }
 
 
@@ -818,7 +788,6 @@ LIMIT 25000;")
 
 
 
-  #testb = testing.b221
 
   ##### TESTING NEW CLASSIFIER #####
 
