@@ -354,6 +354,8 @@ LIMIT 25000;")
 
     print("preprocessing text...")
 
+
+    #the setup below allows for changing dynamically which cols are preprocessed
     training.cols = c("hint.title", "hint.description", "acting.agency")
 
     for(col in training.cols){
@@ -373,7 +375,9 @@ LIMIT 25000;")
       rm(col.idx)
     }
 
-    training.b221$text = paste(training.b221$acting.agency, training.b221$hint.title, training.b221$hint.description)
+    training.b221$text = paste(training.b221$acting.agency,
+                               training.b221$hint.title,
+                               training.b221$hint.description)
 
     problem.leads = subset(training.b221, !grepl(pattern = "[a-z]", training.b221$text))
 
