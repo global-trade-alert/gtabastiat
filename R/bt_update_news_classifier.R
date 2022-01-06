@@ -222,7 +222,11 @@ LIMIT 25000;")
                                   hint.title = leads.core.b221$hint.title,
                                   hint.description = leads.core.b221$hint.description,
                                   acting.agency = leads.core.b221$acting.agency,
-                                  evaluation = leads.core.b221$hint.state.id %in% c(5,6,7)
+                                  evaluation = leads.core.b221$hint.state.id %in% c(5,6,7),
+                                  tf.idf.rlv = leads.core.b221$tf.idf.rlv,
+                                  tf.idf.irv = leads.core.b221$tf.idf.irv,
+                                  bm25.rlv = leads.core.b221$bm25.rlv,
+                                  bm25.irv = leads.core.b221$bm25.irv
   )
 
   #in case there are duplicates
@@ -441,11 +445,22 @@ LIMIT 25000;")
 
     x.train = bt_d2v_preprocess(model.w2v, doc_id = training.b221$bid, text=training.b221$text)
 
-
+    x.train = merge(training.b221[,c("bid", "tf.idf.rlv", "tf.idf.irv", "bm25.rlv", "bm25.irv")],
+                    x.train,
+                    by.x = "bid",
+                    by.y = "row.names",
+                    all.y = T)
+    x.train$bid = NULL
+    x.train$evaluation = as.factor(training.b221$evaluation)
     #preprocessing testing data
 
     if(create.training.testing.split){
-      x.test = bt_d2v_col_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
+      x.test = bt_d2v_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
+      x.test = merge(testing.b221[,c("bid", "tf.idf.rlv", "tf.idf.irv", "bm25.rlv", "bm25.irv")],
+                     x.test,
+                     by.x = "bid", by.y = "row.names",
+                     all.y = T)
+      #x.test$evaluation = as.factor(testing.b221$evaluation)
     }
 
 
@@ -528,6 +543,8 @@ LIMIT 25000;")
                                       max_length = max_length,
                                       text = training.b221$text)
 
+
+
     # if(create.training.testing.split){
     #   x.test = bt_td_matrix_preprocess(num_words = num_words,
     #                                    max_length = max_length,
@@ -597,11 +614,6 @@ LIMIT 25000;")
 
 
   set.seed(221)
-
-
-    x.train = merge(leads.core.b221[,c("bid", "tf.idf.rlv", "tf.idf.irv", "bm25.rlv", "bm25.irv")], x.train, by.x = "bid", by.y = "row.names")
-  x.train$evaluation = as.factor(training.b221$evaluation)
-
 
   rownames(x.train) = training.b221$bid
 
@@ -817,7 +829,7 @@ LIMIT 25000;")
 
     #x.test$evaluation = as.factor(testing.b221$evaluation)
 
-    predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test, type = "prob"))
+    predictRF = as.data.frame(predict(mrs.hudson.model, newdata=x.test %>% select(-bid), type = "prob"))
     #table(x.test$evaluation, predictRF)
 
     testing.b221 = cbind(testing.b221, predictRF)
