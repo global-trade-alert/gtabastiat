@@ -88,8 +88,9 @@ bt_estimate_news_leads = function(leads.core.news,
       by.y = "row.names",
       all.y = T
     )
-
+    rownames(x.predict) = x.predict$doc.id
     x.predict$bid = NULL
+    x.predict$doc.id = NULL
   }
 
 
