@@ -20,7 +20,8 @@ bt_update_news_classifier = function(db.connection=NULL,
                                      create.training.testing.split=F,
                                      training.testing.split = 0.9,
                                      mrs.h.method = "d2v",
-                                     mrs.h.gen.alg = "XGB"){
+                                     mrs.h.gen.alg = "XGB",
+                                     use.tf.idf = TRUE){
 
 
   accepted.methods= c("tokenise", "d2v")
@@ -170,13 +171,54 @@ LIMIT 25000;")
   # "9"	"trash bin - fully processed" <- the 'worst' leads
 
 
+# PREPARE THE TEXT --------------------------------------------------------
+  leads.core.b221$text = paste(bt_text_preprocess(leads.core.b221$acting.agency, stop.rm = F),
+                               bt_text_preprocess(leads.core.b221$hint.title),
+                               bt_text_preprocess(leads.core.b221$hint.description))
+
+
+
+  # TF-IDF ------------------------------------------------------------------
+
+  if(use.tf.idf){
+
+    #generate master vocab
+    tf.idf.master = bt_unnest_tokens(doc.id = leads.core.b221$bid,
+                                     text = leads.core.b221$text) %>%
+      bt_generate_2cat_tf_idf(rlv.doc.ids = leads.core.b221$bid[leads.core.b221$hint.state.id == 7])
+
+
+
+    #save
+    tf.idf.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson tf-idf.Rdata")
+
+    print(paste("tf-idf values calculated for training data! Saving to", tf.idf.file.name))
+    save(tf.idf.master, file = tf.idf.file.name)
+
+
+
+    #add the scores to the df for training and testing purposes later using master vocab we just generated
+
+    tf.idf.agg = bt_generate_tf_idf_agg_score(tf.idf.file.name,
+                                              doc.id = leads.core.b221$bid,
+                                              text = leads.core.b221$text)
+
+    leads.core.b221 = merge(leads.core.b221, tf.idf.agg, all.x = T, by.x = "bid", by.y = "doc.id")
+
+  }
+
+
+
+
+
+
 
   #construct training data from the retrieved table
   #having AA + title first means these will always be included as the initial values when the T-D sparse matrix is created
   #this ensures they will be taken into account when the learning process occurs
 
   training.b221.full = data.frame(bid = leads.core.b221$bid,
-                                  text = paste(leads.core.b221$acting.agency, leads.core.b221$hint.title, leads.core.b221$hint.description),
+                                  text = leads.core.b221$text,
                                   hint.title = leads.core.b221$hint.title,
                                   hint.description = leads.core.b221$hint.description,
                                   acting.agency = leads.core.b221$acting.agency,
@@ -256,6 +298,7 @@ LIMIT 25000;")
     message("annotated model generated! converting to dataframe...")
     x.train.udp <- as.data.frame(s2)
 
+
     #x.train.udp$evaluation = str_extract(string=x.train.udp$doc_id, pattern = "\\d+") %in% which(training.b221$evaluation)
     x.train.udp$evaluation = x.train.udp$doc_id %in% training.b221$bid[training.b221$evaluation]
 
@@ -266,6 +309,8 @@ LIMIT 25000;")
     message("annotations dataframe generated, saving to ", udp.file.path)
 
     save(x.train.udp, file = udp.file.path)
+
+
 
     #RAKE analysis
 
@@ -329,13 +374,6 @@ LIMIT 25000;")
   }
 
 
-  #clean up the text (I was doing this per model but in all cases I think we
-  #don't want punctuation and uppercase)
-
-
-
-
-
 
 
 
@@ -345,39 +383,14 @@ LIMIT 25000;")
 
   if(mrs.h.method == "d2v"){
 
-    #tb = training.b221
-    #training.b221 = tb
-    # Preprocess text ---------------------------------------------------------
+
+# check the text before training ------------------------------------------
+
 
     orig.rows = nrow(training.b221)
     orig.bids = training.b221$bid
 
-    print("preprocessing text...")
-
-
-    #the setup below allows for changing dynamically which cols are preprocessed
-    training.cols = c("hint.title", "hint.description", "acting.agency")
-
-    for(col in training.cols){
-      print(col)
-
-      col.idx = match(col, colnames(training.b221))
-
-      #overprocessing the AA means a lot of them become empty strings
-      if(col == "acting.agency"){
-        training.b221[,col.idx] = bt_text_preprocess(training.b221[,col.idx], stop.rm = F)
-      }else{
-        training.b221[,col.idx] = bt_text_preprocess(training.b221[,col.idx])
-      }
-
-      #training.b221 = subset(training.b221, grepl(pattern = "[a-z]", training.b221[,col.idx]))
-
-      rm(col.idx)
-    }
-
-    training.b221$text = paste(training.b221$acting.agency,
-                               training.b221$hint.title,
-                               training.b221$hint.description)
+    print("checking preprocessed text...")
 
     problem.leads = subset(training.b221, !grepl(pattern = "[a-z]", training.b221$text))
 
@@ -402,6 +415,9 @@ LIMIT 25000;")
     if(n.rm.rows>0){
       warning(paste(n.rm.rows, "rows removed during preprocessing! probably because they consisted of only bad chars ([^A-z]) which cannot be classified! The BIDs for the removed rows were:", rem.bids))
     }
+
+
+# prepare w2v word vector model -------------------------------------------
 
 
     train.w2v = training.b221$text
@@ -429,10 +445,6 @@ LIMIT 25000;")
     #preprocessing testing data
 
     if(create.training.testing.split){
-
-      testing.b221$text = paste(bt_text_preprocess(testing.b221$acting.agency, stop.rm = F),
-                                bt_text_preprocess(testing.b221$hint.title),
-                                bt_text_preprocess(testing.b221$hint.description))
       x.test = bt_d2v_col_preprocess(model.w2v, doc_id = testing.b221$bid, text = testing.b221$text)
     }
 
@@ -532,53 +544,53 @@ LIMIT 25000;")
     #TODO remove this
   #the seed can be changed - but if it is changed the results will not be as exactly reproducible.
   #i used the number of mrs hudson's house here
-  if(F){
-
-    set.seed(221)
-
-  x.train$evaluation = as.factor(training.b221$evaluation)
-
-  print("Creating new model... (may take a while)")
-
-  if(!mrs.h.grid.search){
-    #without grid search - much faster
-    mrs.hudson.model = randomForest(evaluation ~ .,
-                                    data=x.train)
-
-  }else{
-
-    #with grid search - prepare your RAM
-
-    # K-fold cross-validation from caret
-    # Define the control
-    trControl <- trainControl(method = "cv",
-                              number = 5,
-                              search = "grid")
-
-    mrs.hudson.model = train(evaluation ~ .,
-                             data=x.train,
-                             method='rf',
-                             metric="Accuracy",
-                             #mtry=33,
-                             trControl=trControl)
-  }
-
-  # x.test = bt_td_matrix_preprocess(num_words = num_words,
-  #                                  max_length = max_length,
-  #                                  text = testing.b221$text)
-  # x.test$evaluation = as.factor(testing.b221$evaluation)
-
-
-  mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
-
-  mrs.h.gen.method = mrs.h.method
-  print(paste("New model created using", mrs.h.gen.method, "! Saving to", mrs.hudson.model.file.name))
-
-
-  save(mrs.h.gen.method, mrs.hudson.model, file = mrs.hudson.model.file.name)
-
-
-  }
+  # if(F){
+  #
+  #   set.seed(221)
+  #
+  # x.train$evaluation = as.factor(training.b221$evaluation)
+  #
+  # print("Creating new model... (may take a while)")
+  #
+  # if(!mrs.h.grid.search){
+  #   #without grid search - much faster
+  #   mrs.hudson.model = randomForest(evaluation ~ .,
+  #                                   data=x.train)
+  #
+  # }else{
+  #
+  #   #with grid search - prepare your RAM
+  #
+  #   # K-fold cross-validation from caret
+  #   # Define the control
+  #   trControl <- trainControl(method = "cv",
+  #                             number = 5,
+  #                             search = "grid")
+  #
+  #   mrs.hudson.model = train(evaluation ~ .,
+  #                            data=x.train,
+  #                            method='rf',
+  #                            metric="Accuracy",
+  #                            #mtry=33,
+  #                            trControl=trControl)
+  # }
+#
+#   # x.test = bt_td_matrix_preprocess(num_words = num_words,
+#   #                                  max_length = max_length,
+#   #                                  text = testing.b221$text)
+#   # x.test$evaluation = as.factor(testing.b221$evaluation)
+#
+#
+#   mrs.hudson.model.file.name = paste0("content/0 core/Mrs Hudson/", format(Sys.Date(), "%Y-%m-%d"), " - Mrs Hudson model.Rdata")
+#
+#   mrs.h.gen.method = mrs.h.method
+#   print(paste("New model created using", mrs.h.gen.method, "! Saving to", mrs.hudson.model.file.name))
+#
+#
+#   save(mrs.h.gen.method, mrs.hudson.model, file = mrs.hudson.model.file.name)
+#
+#
+#   }
 
 
 # Generate model using specified method -----------------------------------
@@ -586,6 +598,8 @@ LIMIT 25000;")
 
   set.seed(221)
 
+
+    x.train = merge(leads.core.b221[,c("bid", "tf.idf.rlv", "tf.idf.irv", "bm25.rlv", "bm25.irv")], x.train, by.x = "bid", by.y = "row.names")
   x.train$evaluation = as.factor(training.b221$evaluation)
 
 

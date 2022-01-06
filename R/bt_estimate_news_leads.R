@@ -39,7 +39,13 @@ bt_estimate_news_leads = function(leads.core.news,
   mrs.hudson.model.list = classifiers[grepl("Mrs Hudson model", classifiers)]
   mrs.hudson.model.file.name = mrs.hudson.model.list[length(mrs.hudson.model.list)]
   load(mrs.hudson.model.file.name)
-  print(paste("Using", mrs.hudson.model.file.name))
+  print(paste("Model:", mrs.hudson.model.file.name))
+
+  #load tf.idf master
+  mrs.hudson.tf.idf.list = classifiers[grepl("Mrs Hudson tf-idf", classifiers)]
+  mrs.hudson.tf.idf.file.name = mrs.hudson.tf.idf.list[length(mrs.hudson.tf.idf.list)]
+  #load(mrs.hudson.tf.idf.file.name)
+  print(paste("tf-idf:", mrs.hudson.tf.idf.file.name))
 
   #construct text
   acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))] %>% bt_text_preprocess(stop.rm = F)
@@ -69,6 +75,21 @@ bt_estimate_news_leads = function(leads.core.news,
     x.predict = bt_d2v_preprocess(mrs.h.w2v,
                                   doc_id = leads.core.news[,match("bid", colnames(leads.core.news))],
                                   text = cl.text)
+
+    tf.idf.agg = bt_generate_tf_idf_agg_score(tf.idf.master.path = mrs.hudson.tf.idf.file.name,
+                                              doc.id = leads.core.news[,match("bid", colnames(leads.core.news))],
+                                              text = cl.text)
+
+    #add tf.idf scores
+    x.predict = merge(
+      tf.idf.agg,
+      x.predict,
+      by.x = "doc.id",
+      by.y = "row.names",
+      all.y = T
+    )
+
+    x.predict$bid = NULL
   }
 
 
