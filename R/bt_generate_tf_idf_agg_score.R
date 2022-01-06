@@ -41,10 +41,10 @@ bt_generate_tf_idf_agg_score = function(tf.idf.master.path, doc.id, text){
     this.doc = subset(tf.idf.unnested, doc_id == doc)
 
     this.doc.agg = data.frame(doc.id = doc,
-                              tf.idf.rlv = sum(this.doc$tf.idf.rlv),
-                              tf.idf.irv = sum(this.doc$tf.idf.irv),
-                              bm25.rlv = sum(this.doc$bm25.rlv),
-                              bm25.irv = sum(this.doc$bm25.irv),
+                              tf.idf.rlv = sum(this.doc$tf.idf.rlv, na.rm = T),
+                              tf.idf.irv = sum(this.doc$tf.idf.irv, na.rm = T),
+                              bm25.rlv = sum(this.doc$bm25.rlv, na.rm = T),
+                              bm25.irv = sum(this.doc$bm25.irv, na.rm = T),
                               stringsAsFactors = F)
 
 
