@@ -701,10 +701,11 @@ LIMIT 25000;")
 
     #grid space to search for the best hyperparameters
     xgbGrid <- expand.grid(nrounds = c(50,100),#nrounds = c(100,200),
-                           max_depth = c(10, 15, 20, 25),
+                           #max_depth = c(10, 15, 20, 25),
+                           max_depth = c(25, 40, 55),
                            colsample_bytree = seq(0.5, 0.9, length.out = 5),
                            # The values below are default values in the sklearn-api.
-                           eta = 0.1,
+                           eta = c(0.05, 0.1),
                            gamma=0,
                            min_child_weight = 1,
                            subsample = 1
@@ -809,11 +810,12 @@ LIMIT 25000;")
 
   mrs.h.gen.method = mrs.h.method
   mrs.h.gen.alg = mrs.h.gen.alg
+  mrs.h.use.tf.idf = use.tf.idf
 
   print(paste("New model created using", mrs.h.gen.method, "with", mrs.h.gen.alg,"! Saving to", mrs.hudson.model.file.name))
 
 
-  save(mrs.h.gen.method, mrs.h.gen.alg, mrs.hudson.model, file = mrs.hudson.model.file.name)
+  save(mrs.h.gen.method, mrs.h.gen.alg, mrs.hudson.model, mrs.hudson.use.tf.idf, file = mrs.hudson.model.file.name)
 
 
 
