@@ -414,26 +414,27 @@ bt_sync_221_main = function(){
 
 
     #reminder of reasons
+    # * = relevant
     # discard_reason_id - discard_reason_name
     # 1 - no policy mentioned
-    # 2 - is technical standard (TBT)
-    # 3 - is health standard (SPS)
+    # 2 - is technical standard (TBT)*
+    # 3 - is health standard (SPS)*
     # 4 - not a commercial policy
-    # 5 - no meaningful change / below de minimis
-    # 6 - fails RTT
+    # 5 - no meaningful change / below de minimis*
+    # 6 - fails RTT*
     # 7 - no change
     # 8 - other, see comment
     # 9 - no credible action
-    # 10 - update to existing intervention
-    # 11 - duplicate of other hint or GTA entry
-    # 12 - no unilateral act (but bi- or multilateral)
-    # 13 - useful
-    # 14 - keep for EGI
+    # 10 - update to existing intervention*
+    # 11 - duplicate of other hint or GTA entry*
+    # 12 - no unilateral act (but bi- or multilateral)*
+    # 13 - useful*
+    # 14 - keep for EGI*
     # 15 - beyond DPA scope
-    # 16 - No thanks
+    # 16 - No thanks*
 
     hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,11,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
     #very rarely, duplicate BIDs get into this table and are assigned hint_id as
     #NULL. should be OK, as they are duplicates anyway, so remove the NAs.
