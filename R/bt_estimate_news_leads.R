@@ -21,7 +21,8 @@ bt_estimate_news_leads = function(leads.core.news,
                                   keep.results.ratio = 1,
                                   binary.prediction = T,
                                   return.both = F,
-                                  conf.cutoff = 0.3){
+                                  conf.cutoff = 0.3,
+                                  mrs.h.use.tf.idf = F){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
     warning("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
