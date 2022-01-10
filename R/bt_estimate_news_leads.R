@@ -114,7 +114,7 @@ bt_estimate_news_leads = function(leads.core.news,
   if(mrs.h.gen.alg == "XGB"){
     library(caret)
     library(xgboost)
-    x.predict = xgb.DMatrix(as.matrix(x.predict))
+    #x.predict = xgb.DMatrix(as.matrix(x.predict))
   }
 
   if(mrs.h.gen.alg %in% c("svmlinear", "rvm")){
