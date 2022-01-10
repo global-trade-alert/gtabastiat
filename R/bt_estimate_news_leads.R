@@ -21,11 +21,11 @@ bt_estimate_news_leads = function(leads.core.news,
                                   keep.results.ratio = 1,
                                   binary.prediction = T,
                                   return.both = F,
-                                  conf.cutoff = 0.3,
-                                  mrs.h.use.tf.idf = F){
+                                  conf.cutoff = 0.3){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
-    warning("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
+
+  warning("Mrs Hudson is trained to evaluate news leads only. It looks like some of your input leads are not news leads.")
   }
 
   library(randomForest)
@@ -44,10 +44,10 @@ bt_estimate_news_leads = function(leads.core.news,
 
   if(mrs.h.use.tf.idf){
     #load tf.idf master
-  mrs.hudson.tf.idf.list = classifiers[grepl("Mrs Hudson tf-idf", classifiers)]
-  mrs.hudson.tf.idf.file.name = mrs.hudson.tf.idf.list[length(mrs.hudson.tf.idf.list)]
-  #load(mrs.hudson.tf.idf.file.name)
-  print(paste("tf-idf:", mrs.hudson.tf.idf.file.name))}
+    mrs.hudson.tf.idf.list = classifiers[grepl("Mrs Hudson tf-idf", classifiers)]
+    mrs.hudson.tf.idf.file.name = mrs.hudson.tf.idf.list[length(mrs.hudson.tf.idf.list)]
+    #load(mrs.hudson.tf.idf.file.name)
+    print(paste("tf-idf:", mrs.hudson.tf.idf.file.name))}
 
   #construct text
   acting.agency = leads.core.news[,match("acting.agency", colnames(leads.core.news))] %>% bt_text_preprocess(stop.rm = F)
@@ -78,19 +78,19 @@ bt_estimate_news_leads = function(leads.core.news,
                                   doc_id = leads.core.news[,match("bid", colnames(leads.core.news))],
                                   text = cl.text)
     if(mrs.h.use.tf.idf){
-    tf.idf.agg = bt_generate_tf_idf_agg_score(tf.idf.master.path = mrs.hudson.tf.idf.file.name,
-                                              doc.id = leads.core.news[,match("bid", colnames(leads.core.news))],
-                                              text = cl.text)
+      tf.idf.agg = bt_generate_tf_idf_agg_score(tf.idf.master.path = mrs.hudson.tf.idf.file.name,
+                                                doc.id = leads.core.news[,match("bid", colnames(leads.core.news))],
+                                                text = cl.text)
 
-    #add tf.idf scores
-    x.predict = merge(
-      tf.idf.agg,
-      x.predict,
-      by.x = "doc.id",
-      by.y = "row.names",
-      all.y = T
-    )
-    x.predict$bid = NULL
+      #add tf.idf scores
+      x.predict = merge(
+        tf.idf.agg,
+        x.predict,
+        by.x = "doc.id",
+        by.y = "row.names",
+        all.y = T
+      )
+      x.predict$bid = NULL
     }
 
 
@@ -142,16 +142,16 @@ bt_estimate_news_leads = function(leads.core.news,
 
   }else{
     if(keep.results.ratio < 1){
-    confidence.quantile = quantile(predictRF$`TRUE`, 1-keep.results.ratio)
-    binary.prediction.result = sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.quantile)
+      confidence.quantile = quantile(predictRF$`TRUE`, 1-keep.results.ratio)
+      binary.prediction.result = sapply(predictRF$`TRUE`, function(x, y) ifelse(x > y, 1, 0), y=confidence.quantile)
     }else{
       binary.prediction.result = predictRF$`TRUE` > conf.cutoff
     }
 
-   return(
-     list(binary.prediction.result = binary.prediction.result,
-               raw.score = predictRF$`TRUE`)
-   )
+    return(
+      list(binary.prediction.result = binary.prediction.result,
+           raw.score = predictRF$`TRUE`)
+    )
   }
   #below was for 'response' prediction type, now is superseded
   #for some reason casting directly to numeric gives 1s and 2s

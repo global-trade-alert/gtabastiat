@@ -815,7 +815,7 @@ LIMIT 25000;")
   print(paste("New model created using", mrs.h.gen.method, "with", mrs.h.gen.alg,"! Saving to", mrs.hudson.model.file.name))
 
 
-  save(mrs.h.gen.method, mrs.h.gen.alg, mrs.hudson.model, mrs.hudson.use.tf.idf, file = mrs.hudson.model.file.name)
+  save(mrs.h.gen.method, mrs.h.gen.alg, mrs.hudson.model, mrs.h.use.tf.idf, file = mrs.hudson.model.file.name)
 
 
 
