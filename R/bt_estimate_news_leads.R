@@ -21,7 +21,7 @@ bt_estimate_news_leads = function(leads.core.news,
                                   keep.results.ratio = 1,
                                   binary.prediction = T,
                                   return.both = F,
-                                  conf.cutoff = 0.3){
+                                  conf.cutoff = 0.5){
 
   if(any(!grepl("NEWS-", leads.core.news$bid))){
 
