@@ -408,7 +408,7 @@ bt_leads_core_update = function(update.df=NULL,
                                                  keep.results.ratio = mrs.hudson.keep.results.ratio,
                                                  binary.prediction = F,
                                                  return.both = T,
-                                                 conf.cutoff = 0.2)
+                                                 conf.cutoff = 0.5)
       #old
       #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
       #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)
