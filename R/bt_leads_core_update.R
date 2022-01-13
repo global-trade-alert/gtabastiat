@@ -524,7 +524,13 @@ bt_leads_core_update = function(update.df=NULL,
 
       library(dpaclassifier)
 
-      dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
+      classify=subset(update.table$classify==1)
+
+      #dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
+
+      dpa.hypermodel.result = dpa_hypermodel_estimate_leads(classify)
+
+
 
       #in case it was assigned above - DPA leads should have their relevance probability assigned here.
       #if the rel prob column was already there, the merging of results will not work, so best to remove it.
