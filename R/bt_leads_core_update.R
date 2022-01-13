@@ -527,7 +527,7 @@ bt_leads_core_update = function(update.df=NULL,
       classify=subset(lc.update, update.table$classify==1)
 
       #dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
-
+    if(nrow(classify)>0){
       dpa.hypermodel.result = dpa_hypermodel_estimate_leads(classify)
 
 
@@ -536,6 +536,10 @@ bt_leads_core_update = function(update.df=NULL,
       #if the rel prob column was already there, the merging of results will not work, so best to remove it.
       lc.update$relevance.probability = NULL
       lc.update = merge(lc.update, dpa.hypermodel.result$raw.score, all.x = T)
+
+    }else{
+      lc.update$relevance.probability = 0
+    }
 
     }
 
