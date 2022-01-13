@@ -524,7 +524,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       library(dpaclassifier)
 
-      classify=subset(update.table$classify==1)
+      classify=subset(lc.update, update.table$classify==1)
 
       #dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
 
