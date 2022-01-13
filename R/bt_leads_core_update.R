@@ -435,7 +435,9 @@ bt_leads_core_update = function(update.df=NULL,
 
     # Detective classification ------------------------------------------------
 
-    if(!(all(grepl("(GNEWS)", lc.update$bid)))){
+    if(!(all(grepl("(GNEWS)", lc.update$bid)))
+       & !(destination %in% "dpa")
+       ){
       lc.update2 = bt_leads_classify_only(lc.update, assign.relevance = T)
     }
     #
