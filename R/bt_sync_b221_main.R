@@ -159,7 +159,17 @@ bt_sync_221_main = function(){
 
   #fix problem where acting.agency > 100 chars (nb sometimes diacritics corrupted to several chars hence limit of 85 for safety)
 
+
+# truncation --------------------------------------------------------------
+
+
   new.leads$acting.agency = str_trunc(new.leads$acting.agency, width = 85)
+
+  new.leads$hint.title = str_trunc(new.leads$hint.title, 1000, ellipsis = "[truncated]")
+
+
+
+
 
 
 
