@@ -165,7 +165,7 @@ bt_sync_221_main = function(){
 
   new.leads$acting.agency = str_trunc(new.leads$acting.agency, width = 85)
 
-  new.leads$hint.description = str_trunc(new.leads$hint.description, 1000, ellipsis = "[truncated]")
+  new.leads$hint.description = str_trunc(new.leads$hint.description, 3000, ellipsis = " [truncated by Bastiat]")
 
 
 
