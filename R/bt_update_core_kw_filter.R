@@ -19,7 +19,8 @@ bt_update_core_kw_filter = function(update.core,
                                     filter.cols = c("act.title.en", "act.description.en", "act.title.ll", "act.description.ll"),
                                     case.sensitive = F,
                                     only.keep.matches=T,
-                                    save.match.words = F){
+                                    save.match.words = F,
+                                    assign.relevance = T){
 
 
   library(data.table)
@@ -44,18 +45,20 @@ bt_update_core_kw_filter = function(update.core,
                          unlist(update.core[filter.column]),
                          ignore.case = !case.sensitive)
 
-      if(positive){
-        filtered$relevant[match.vect] <- 1 -> filtered$classify[match.vect]
+      if(assign.relevance){
+        if(positive){
+          filtered$relevant[match.vect] <- 1 -> filtered$classify[match.vect]
 
-        #save the word for context/meta-analysis
+          #save the word for context/meta-analysis
 
-        #create a vector to index rows that matched and do NOT already contain the word
-        add.words.vect = (match.vect & !grepl(word, filtered$match.words))
-        filtered$match.words[add.words.vect] = paste(filtered$match.words[add.words.vect], word, sep = ", ")
+          #create a vector to index rows that matched and do NOT already contain the word
+          add.words.vect = (match.vect & !grepl(word, filtered$match.words))
+          filtered$match.words[add.words.vect] = paste(filtered$match.words[add.words.vect], word, sep = ", ")
 
 
-      }else{
-        filtered$relevant[match.vect] <- 0 -> filtered$classify[match.vect]
+        }else{
+          filtered$relevant[match.vect] <- 0 -> filtered$classify[match.vect]
+        }
       }
     }
 
