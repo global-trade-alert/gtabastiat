@@ -9,7 +9,7 @@ bt_estimate_news_leads(
   keep.results.ratio = 1,
   binary.prediction = T,
   return.both = F,
-  conf.cutoff = 0.2
+  conf.cutoff = 0.5
 )
 }
 \arguments{

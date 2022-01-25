@@ -4,7 +4,7 @@
 \alias{bt_scraper_checkpoint_2}
 \title{checks scraped data is ready for upload}
 \usage{
-bt_scraper_checkpoint_2(ignore.url = F)
+bt_scraper_checkpoint_2(ignore.url = F, ignore.titles = F)
 }
 \arguments{
 \item{ignore.url}{set this as T if you know your source only has one URL shared for all leads.}

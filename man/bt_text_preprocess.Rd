@@ -4,10 +4,12 @@
 \alias{bt_text_preprocess}
 \title{Basic preprocessing of text for classification/training}
 \usage{
-bt_text_preprocess(text)
+bt_text_preprocess(text, stop.rm = T)
 }
 \arguments{
 \item{text}{string or character vector}
+
+\item{stop.rm}{remove stopwords. set to F for e.g. acting.agency}
 }
 \value{
 

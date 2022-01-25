@@ -13,7 +13,8 @@ bt_update_core_kw_filter(
     "act.description.ll"),
   case.sensitive = F,
   only.keep.matches = T,
-  save.match.words = F
+  save.match.words = F,
+  assign.relevance = T
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ bt_update_core_kw_filter(
 \item{only.keep.matches}{if True, sets all relevant/classify to 0 first}
 
 \item{save.match.words}{if True, add a column "key.words" containing all the words that generated matches}
+
+\item{assign.relevance}{if True, assign the relevant and classify 0/1 to the returned df. default is FALSE}
 }
 \value{
 filtered dataframe

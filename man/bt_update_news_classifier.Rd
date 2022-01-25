@@ -11,7 +11,8 @@ bt_update_news_classifier(
   create.training.testing.split = F,
   training.testing.split = 0.9,
   mrs.h.method = "d2v",
-  mrs.h.grid.search = F
+  mrs.h.gen.alg = "XGB",
+  use.tf.idf = TRUE
 )
 }
 \arguments{
