@@ -8,7 +8,7 @@
 #' @param filter.cols which columns to use for filtering
 #' @param only.keep.matches if True, sets all relevant/classify to 0 first
 #' @param save.match.words if True, add a column "key.words" containing all the words that generated matches
-#' @param assign.relevance if True, assign the relevant and classify 0/1 to the returned df. default is FALSE
+#' @param assign.relevance if True, assign the relevant and classify 0/1 to the returned df. default is TRUE
 #'
 #' @return filtered dataframe
 #' @export

@@ -30,7 +30,7 @@ bt_update_core_kw_filter(
 
 \item{save.match.words}{if True, add a column "key.words" containing all the words that generated matches}
 
-\item{assign.relevance}{if True, assign the relevant and classify 0/1 to the returned df. default is FALSE}
+\item{assign.relevance}{if True, assign the relevant and classify 0/1 to the returned df. default is TRUE}
 }
 \value{
 filtered dataframe
