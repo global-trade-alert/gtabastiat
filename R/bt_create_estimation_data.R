@@ -604,6 +604,10 @@ bt_create_estimation_data <- function(bid=NULL,
   ##TODO I think this would work nicely as a w2v model.
   ## acting.agency
 
+
+# acting agencies ---------------------------------------------------------
+
+
   #TODO generate all the vars without having to run this function repeatedly as it is s l o w
   if(detective.characteristics$vars.incl.acting.agency){
 
