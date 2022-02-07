@@ -88,7 +88,7 @@ bt_leads_core_update = function(update.df=NULL,
     pb = txtProgressBar(min = 0, max = nrow(lc.update), char = "~", style = 3)
     for(i in 1:nrow(lc.update)){
 
-      tr_hash = str_trunc(lc.update$act.title.ll[i], 275, ellipsis = "") %>%
+      tr_hash = str_trunc(lc.update$act.description.ll[i], 275, ellipsis = "") %>%
         digest()
 
       hash.check.sql = glue("SELECT btl.text_hash
