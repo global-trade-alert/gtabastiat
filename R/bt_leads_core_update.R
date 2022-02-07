@@ -67,21 +67,59 @@ bt_leads_core_update = function(update.df=NULL,
 
 
 
+
+
+    # add BID to bt_translation_log -------------------------------------------
+
+    library(digest)
+    library(glue)
+
+    source("setup/keys/ric.R")
+    con=dbConnect(drv = RMariaDB::MariaDB(),
+                  host = db.host,
+                  username = db.user,
+                  password = db.password,
+                  dbname = db.name)
+
+    print("Updating bt_translation_log...")
+
+    tr.count = 0
+
+    pb = txtProgressBar(min = 0, max = nrow(lc.update), char = "~", style = 3)
+    for(i in 1:nrow(lc.update)){
+
+      tr_hash = str_trunc(lc.update$act.title.ll[i], 275, ellipsis = "") %>%
+        digest()
+
+      hash.check.sql = glue("SELECT btl.text_hash
+                            FROM bt_translation_log btl
+                            WHERE btl.text_hash = '{tr_hash}';")
+
+      hash.check = dbGetQuery(con, hash.check.sql) %>%
+        nrow() > 0
+
+      if(hash.check){
+
+        tr.bid.sql = glue("UPDATE bt_translation_log
+                      SET bid = '{lc.update$bid[i]}'
+                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
+
+        test = dbExecute(con, statement = tr.bid.sql)
+
+        tr.count = tr.count + 1
+      }
+
+        setTxtProgressBar(pb, i)
+
+    }
+    close(pb)
+    dbDisconnect(con)
+
+    print(glue("{tr.count} entries added!"))
+
+
+
     # CLEANING & PREPARATION --------------------------------------------------
-
-
-
-    # This *should* be fixed now with the update to the new SQL driver
-    # #the db uses latin-1 encoding, fix it here so we do not end up with mojibake
-    # library(stringi)
-    #
-    # #possible could do a mapply here, the iterations are needed in case there encodings on different strings is different.
-    # for(i in 1:nrow(lc.update)){
-    #   if(!is.na(lc.update$act.title.en[i]) && lc.update$act.title.en[i] != "NA"){
-    #     stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
-    #     stri_encode(lc.update$act.title.en[i], stri_enc_mark(lc.update$act.title.en[i]), "latin1")
-    #   }
-    # }
 
 
     ## ad-hoc irrelevance decisions based on noisy sources
