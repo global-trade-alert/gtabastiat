@@ -20,7 +20,7 @@ bt_translate = function(string, trunc = 275){
   tr.result=gl_translate(as.character(tr.string))
 
   source_lang = tr.result$detectedSourceLanguage
-  tr_text = tr.result$text
+  tr_text = tr.result$text %>% gsub(pattern = "'", replacement = "\\\\'")
   tr_hash = digest(tr.string) #this should == tr.result$text
   num_chars = nchar(tr.string)
 
