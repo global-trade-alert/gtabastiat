@@ -12,12 +12,40 @@ bt_translate = function(string, trunc = 275){
 
   library(stringr)
   library(googleLanguageR)
+  library(digest)
+  library(glue)
 
   tr.string = str_trunc(string, 275, ellipsis = "")
 
-  result=gl_translate(as.character(tr.string))
+  tr.result=gl_translate(as.character(tr.string))
 
-  return(result)
+  source_lang = tr.result$detectedSourceLanguage
+  tr_text = tr.result$text
+  tr_hash = digest(tr.string) #this should == tr.result$text
+  num_chars = nchar(tr.string)
+
+
+# db upload ---------------------------------------------------------------
+
+
+  source("setup/keys/ric.R")
+  con=dbConnect(drv = RMariaDB::MariaDB(),
+                host = db.host,
+                username = db.user,
+                password = db.password,
+                dbname = db.name)
+
+
+  tr.sql = glue("INSERT INTO bt_translation_log
+  VALUES(NULL, N'{tr_text}', '{source_lang}', '{tr_hash}', {num_chars})")
+
+  test = dbExecute(con, statement = tr.sql)
+
+  dbDisconnect(con)
+
+
+
+  return(tr.result)
 
 
 
