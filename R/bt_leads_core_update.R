@@ -88,6 +88,8 @@ bt_leads_core_update = function(update.df=NULL,
     pb = txtProgressBar(min = 0, max = nrow(lc.update), char = "~", style = 3)
     for(i in 1:nrow(lc.update)){
 
+      ### Description
+
       tr_hash = str_trunc(lc.update$act.description.ll[i], 275, ellipsis = "") %>%
         digest()
 
@@ -101,13 +103,39 @@ bt_leads_core_update = function(update.df=NULL,
       if(hash.check){
 
         tr.bid.sql = glue("UPDATE bt_translation_log
-                      SET bid = '{lc.update$bid[i]}'
+                      SET bid = '{lc.update$bid[i]}', text_type_id = 2 #description
                       WHERE bt_translation_log.text_hash = '{tr_hash}';")
 
         test = dbExecute(con, statement = tr.bid.sql)
 
         tr.count = tr.count + 1
       }
+
+
+      ### Title
+
+      tr_hash = str_trunc(lc.update$act.title.ll[i], 275, ellipsis = "") %>%
+        digest()
+
+      hash.check.sql = glue("SELECT btl.text_hash
+                            FROM bt_translation_log btl
+                            WHERE btl.text_hash = '{tr_hash}';")
+
+      hash.check = dbGetQuery(con, hash.check.sql) %>%
+        nrow() > 0
+
+      if(hash.check){
+
+        tr.bid.sql = glue("UPDATE bt_translation_log
+                      SET bid = '{lc.update$bid[i]}', text_type_id = 1 #title
+                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
+
+        test = dbExecute(con, statement = tr.bid.sql)
+
+        tr.count = tr.count + 1
+      }
+
+
 
         setTxtProgressBar(pb, i)
 
