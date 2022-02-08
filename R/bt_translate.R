@@ -36,8 +36,8 @@ bt_translate = function(string, trunc = 275){
                 dbname = db.name)
 
 
-  tr.sql = glue("INSERT INTO bt_translation_log
-  VALUES(NULL, N'{tr_text}', '{source_lang}', '{tr_hash}', {num_chars})")
+  tr.sql = glue("INSERT INTO bt_translation_log (source_text, source_lang, text_hash, num_chars)
+  VALUES(N'{tr_text}', '{source_lang}', '{tr_hash}', {num_chars})")
 
   test = dbExecute(con, statement = tr.sql)
 
