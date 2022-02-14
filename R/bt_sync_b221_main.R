@@ -197,8 +197,12 @@ bt_sync_221_main = function(){
 
 
     # confirming jurisdicition IDs:
-
+#nl2 = new.leads
     ## ensuring jurisdiciton ID correspondence
+
+    #this took me ages to find
+    new.leads$un.code = as.integer(new.leads$un.code)
+
     gta.jur=gtalibrary::country.names[,c("jurisdiction.id","name","un_code")]
     setnames(gta.jur, "jurisdiction.id","gta.jur.id")
     setnames(gta.jur, "un_code","un.code")
@@ -336,7 +340,6 @@ bt_sync_221_main = function(){
       }
 
       print("leads theme")
-
 
 
       upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
