@@ -270,12 +270,16 @@ bt_sync_221_main = function(){
                                     x = new.leads$hint.text[i])
 
       #EMOJI
-      new.leads$hint.text[i] = str_extract(new.leads$hint.text[i], pattern = "[:emoji:]") %>%
-        str_extract(pattern = "[\\D]") %>%
-        str_remove_all(string = new.leads$hint.text[i], pattern = .)
 
+      emoji = str_extract_all(new.leads$hint.text[i], pattern = "[:emoji:]")[[1]] %>%
+        str_extract(pattern = "[\\D]")
 
-
+      emoji = emoji[!is.na(emoji)]
+      if(length(emoji)>0){
+        for(j in 1:length(emoji)){
+        new.leads$hint.text[i] = str_remove_all(string = new.leads$hint.text[i], pattern = emoji[j])
+      }
+}
     }
 
     new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
