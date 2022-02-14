@@ -269,6 +269,13 @@ bt_sync_221_main = function(){
                                     replacement = "\\\\'",
                                     x = new.leads$hint.text[i])
 
+      #EMOJI
+      new.leads$hint.text[i] = str_extract(new.leads$hint.text[i], pattern = "[:emoji:]") %>%
+        str_extract(pattern = "[\\D]") %>%
+        str_remove_all(string = new.leads$hint.text[i], pattern = .)
+
+
+
     }
 
     new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
@@ -299,7 +306,7 @@ bt_sync_221_main = function(){
     #dbg
     #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
 
-    for(chunk in seq(1, nrow(new.leads), 50)){
+      for(chunk in seq(1, nrow(new.leads), 50)){
 
       upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
 
