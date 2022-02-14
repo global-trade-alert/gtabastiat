@@ -284,8 +284,11 @@ bt_sync_221_main = function(){
     #       }
     #     }
     #   }
-    # }
-    #
+
+      new.leads$hint.text[i] = textclean::replace_emoji(new.leads$hint.text[i])
+
+     }
+
       new.leads$hint.text[i] = textclean::replace_emoji(new.leads$hint.text[i])
 
     new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
