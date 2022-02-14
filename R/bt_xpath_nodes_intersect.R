@@ -12,3 +12,5 @@ bt_xpath_nodes_intersect = function(ns1, ns2){
     ns1, "[count(.| ", ns2, ")=count(", ns2, ")]"
   ))
 }
+
+
