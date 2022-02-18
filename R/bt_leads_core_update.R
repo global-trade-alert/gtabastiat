@@ -81,6 +81,15 @@ bt_leads_core_update = function(update.df=NULL,
                   password = db.password,
                   dbname = db.name)
 
+
+    trunc.amt = 275
+
+    if(grepl("(GNEWS-JP)|(GNEWS-KR)|(GNEWS-ZH)", lc.update$bid[1])){
+
+      trunc.amt = 175
+
+      }
+
     print("Updating bt_translation_log...")
 
     tr.count = 0
@@ -90,7 +99,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       ### Description
 
-      tr_hash = str_trunc(lc.update$act.description.ll[i], 275, ellipsis = "") %>%
+      tr_hash = str_trunc(lc.update$act.description.ll[i], trunc.amt, ellipsis = "") %>%
         digest()
 
       hash.check.sql = glue("SELECT btl.text_hash
@@ -114,7 +123,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       ### Title
 
-      tr_hash = str_trunc(lc.update$act.title.ll[i], 275, ellipsis = "") %>%
+      tr_hash = str_trunc(lc.update$act.title.ll[i], trunc.amt, ellipsis = "") %>%
         digest()
 
       hash.check.sql = glue("SELECT btl.text_hash
@@ -136,6 +145,35 @@ bt_leads_core_update = function(update.df=NULL,
       }
 
 
+
+      ### acting.agency
+
+      if(grepl("(GNEWS-JP)|(GNEWS-KR)|(GNEWS-ZH)", lc.update$bid[1])){
+
+        trunc.amt = 80
+
+      }
+
+      tr_hash = str_trunc(lc.update$acting.agency[i], trunc.amt, ellipsis = "") %>%
+        digest()
+
+      hash.check.sql = glue("SELECT btl.text_hash
+                            FROM bt_translation_log btl
+                            WHERE btl.text_hash = '{tr_hash}';")
+
+      hash.check = dbGetQuery(con, hash.check.sql) %>%
+        nrow() > 0
+
+      if(hash.check){
+
+        tr.bid.sql = glue("UPDATE bt_translation_log
+                      SET bid = '{lc.update$bid[i]}', text_type_id = 3 #acting_agency
+                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
+
+        test = dbExecute(con, statement = tr.bid.sql)
+
+        tr.count = tr.count + 1
+      }
 
         setTxtProgressBar(pb, i)
 
