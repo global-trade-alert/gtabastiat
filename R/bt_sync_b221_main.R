@@ -499,7 +499,7 @@ bt_sync_221_main = function(){
     #                                  WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
 
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,11,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
 
     #see above for whence the NAs here can arise
     hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
