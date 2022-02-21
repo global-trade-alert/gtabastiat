@@ -81,7 +81,7 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
     #could use 'source()' but I don't want to run the codes here
     #scraper.code = paste(readLines(scraper.path), collapse = "\\n")
 
-    scraper.code = readLines(scraper.path)
+    scraper.code = readLines(scraper.path, warn = F)
 
     Encoding(scraper.code) <- "UTF8"
 
