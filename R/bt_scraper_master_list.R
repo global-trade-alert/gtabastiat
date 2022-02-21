@@ -54,6 +54,7 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
     specialised.scraper = F,
     stock.data.file = "",
     bid.stem = "",
+    requires.translation = F,
     stringsAsFactors = F
   )
 
@@ -194,6 +195,11 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
       #for testing
       # str_extract(string = scraper.code,
       #             pattern = "\\$bid.+")
+
+
+      if(any(grepl("bt_translate", scraper.code))){
+        scraper.master$requires.translation[scraper.master$scraper.path == scraper.path] = T
+      }
 
 
       if(!quiet){
