@@ -174,7 +174,7 @@ bt_scraper_master_list = function(show.stock.data.errors = F,
       #update.table$bid=paste("CAN-EDC-", (nrow(table.stock)+1):(nrow(table.stock)+nrow(update.table)), sep="")
 
       tryCatch(expr={bid.stem = str_extract(string = scraper.code,
-                                            pattern = "\\$bid ?= ?paste0?\\(\\\".+?\\\"") %>%
+                                            pattern = "\\$bid ?[=<-]{1,2} ?paste0?\\(\\\".+?\\\"") %>%
         str_extract(pattern = "(?<=\\\").+(?=\\\")") %>%
         purrr::discard(is.na) %>%
         unique()# %>%
