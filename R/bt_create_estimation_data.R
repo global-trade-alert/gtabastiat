@@ -27,6 +27,20 @@ bt_create_estimation_data <- function(bid=NULL,
   library(data.table)
   library(caret)
 
+  # bid = update.core$bid
+  # text=paste(update.core$act.title.en, update.core$act.description.en)
+  # acting.agency = update.core$acting.agency
+
+  #for stack migration
+  #lc.update = read.csv("C:/Users/c-cam/GTA data team Dropbox/Bastiat/0 projects/033 stack migration/bt-stack-migration/gn_update_core.csv")
+  # bid = lc.update$bid
+  # text = paste(lc.update$act.title.en, lc.update$act.description.en)
+  # evaluation = sample(c(0,1),nrow(lc.update), replace = T)
+  # acting.agency = lc.update$acting.agency
+  # train.share = .82
+  # for.training = T
+
+
 
   #!!!VERY IMPORTANT!!!
   #in R integer variables can only go up to ~+-2*10^9 which is exceeded later
@@ -186,6 +200,9 @@ bt_create_estimation_data <- function(bid=NULL,
 
     #test
     #tf3=tf
+
+# GINI --------------------------------------------------------------------
+
 
     ### GINI ###
 
@@ -374,7 +391,10 @@ bt_create_estimation_data <- function(bid=NULL,
 
     # }
 
-    ### odds ratio
+
+# ODDS RATIO --------------------------------------------------------------
+
+
     # if(sum(as.numeric((c("odds.relevant","odds.irrelevant", "odds.ratio") %in% unique(c(variables, detective.characteristics$dtmatrix.metric)))))>0){
 
     #odds=as.data.frame(table(subset(tf, bid %in% train.split)$word))
@@ -415,6 +435,9 @@ bt_create_estimation_data <- function(bid=NULL,
 
 
 
+# INFORMATION GAIN --------------------------------------------------------
+
+
     ### information gain
     # observations=length(unique(tf$bid))
     # prob.relevant=length(unique(tf$bid[tf$evaluation==1]))/length(unique(tf$bid))
@@ -444,6 +467,11 @@ bt_create_estimation_data <- function(bid=NULL,
 
     ### NMF
     # https://sites.google.com/site/mlshortcourse/home/data-sets/text-classification-in-r
+
+
+
+# WORD FREQUENCIES --------------------------------------------------------
+
 
     ### word frequencies
     #word.share.relevant=as.data.frame(table(subset(tf, evaluation==1 & bid %in% train.split)$word))
