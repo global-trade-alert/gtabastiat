@@ -289,8 +289,6 @@ bt_sync_221_main = function(){
 
      }
 
-      new.leads$hint.text[i] = textclean::replace_emoji(new.leads$hint.text[i])
-
     new.leads$lead.date=as.Date(as.numeric(new.leads$lead.date), origin="1970-01-01")
     new.leads$lead.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]=new.leads$registration.date[is.na(new.leads$date.announced) & is.na(new.leads$date.implemented)]
 
@@ -435,11 +433,16 @@ bt_sync_221_main = function(){
     ## fetch lead.ids that are not in bt_hint_lead from from gta main
 
 
+    #TODO
+    # fix memory overflow - the problem is that this tries to select ALL the checked leads and apply new hint_state_ids to them
+    # this loads too much unnecessarily
+    # better would be SELECT {...} WHERE bastiat_id IN({ricardo.bids that are not in states 7, 8, 9})
+
     ## (2)
     ## Add processed hints to leads section (incl conflict resolution)
     leads.checked=gta_sql_get_value("SELECT bastiat_id, removal_reason
                                  FROM gta_leads
-                                 WHERE creation_time>='2020-08-01'
+                                 WHERE creation_time>='2021-08-01'
                                  AND is_remove=1","main")
 
     # hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
