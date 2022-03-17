@@ -468,6 +468,7 @@ bt_sync_221_main = function(){
     # 14 - keep for EGI*
     # 15 - beyond DPA scope
     # 16 - No thanks*
+    # 17 - Link broken/paywall
 
     hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
                                      WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,11,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
@@ -501,8 +502,12 @@ bt_sync_221_main = function(){
     # hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
     #                                  WHERE bid IN (",paste(paste0("'",subset(leads.checked, removal.reason=="IRREVELANT")$bastiat.id,"'"), collapse=","),")"))
 
+
+    # Notice #17 is included here. 'link broken/paywall' content should not
+    # contribute to classification learning and should not be assigned any state
+    # (or maybe a new 'null' state of some kind).
     hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,11,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,11,12,13,14,16,17))$bastiat.id,"'"), collapse=","),")"))
 
     #see above for whence the NAs here can arise
     hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
