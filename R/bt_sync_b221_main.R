@@ -312,6 +312,11 @@ bt_sync_221_main = function(){
     # )
     # rm(nl.xlsx)
 
+    #this is needed to ensure no duplicates are entered later
+    egi.hints.main.db = gta_sql_get_value("SELECT glt.lead_id
+                                          FROM gta_lead_theme glt")
+
+
     ## upload in chunks
 
     #dbg
@@ -348,7 +353,10 @@ bt_sync_221_main = function(){
       ## adding EGI theme
       if(any(upload.chunk$hint.id %in% egi.hints)){
 
-        egi.leads=unique(upload.chunk$lead.id[upload.chunk$hint.id %in% egi.hints])
+        egi.leads = subset(upload.chunk, ! upload.chunk$lead.id %in% egi.hints.main.db)
+
+        #egi.leads=unique(upload.chunk$lead.id[upload.chunk$hint.id %in% egi.hints])
+        egi.leads=unique(egi.leads$lead.id[upload.chunk$hint.id %in% egi.hints])
 
 
         egi.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
@@ -369,7 +377,7 @@ bt_sync_221_main = function(){
 
       }
 
-      print("leads theme")
+      print("leads egi theme")
 
 
       upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
