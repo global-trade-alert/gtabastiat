@@ -9,7 +9,7 @@ bt_sync_221_main = function(){
 
 
   #change this to turn the function on or off (in case it breaks)
-  if(T){
+  if(F){
 
   library(gtasql)
   library(gtalibrary)
@@ -316,6 +316,7 @@ bt_sync_221_main = function(){
 
     #dbg
     #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
+    #chunk = seq(1, nrow(new.leads), 50)[1]
 
       for(chunk in seq(1, nrow(new.leads), 50)){
 
@@ -350,9 +351,20 @@ bt_sync_221_main = function(){
         egi.leads=unique(upload.chunk$lead.id[upload.chunk$hint.id %in% egi.hints])
 
 
-        gta_sql_update_table(paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
-                              VALUES ",paste(paste0("(",egi.leads,", 3)"), collapse=","),";"),
+        egi.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
+                              VALUES ",paste(paste0("(",egi.leads,", 3)"), collapse=","),";")
+
+        gta_sql_update_table(egi.sql,
                              "main")
+
+        save(
+          egi.leads,
+          egi.sql,
+          file = paste0("0 projects/037 lead theme fix/logs/lead_theme_log_",
+            format(Sys.Date(), "%Y-%m-%d"),
+            ".Rdata"
+          )
+        )
 
 
       }
