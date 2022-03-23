@@ -88,6 +88,12 @@ bt_leads_classify_only = function(update.core,
 
 
     lc.update = merge(lc.update, classify[,c("bid", "relevance.probability")], all.x = T)
+    if(any(is.na(lc.update$relevance.probability))){
+      for(bid in classify$bid){
+        lc.update$relevance.probability[lc.update$bid == bid] = classify$relevance.probability[classify$bid==bid]
+      }
+
+    }
 #
 #     lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
 #                     classify)
