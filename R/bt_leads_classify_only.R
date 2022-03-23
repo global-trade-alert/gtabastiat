@@ -90,7 +90,12 @@ bt_leads_classify_only = function(update.core,
     lc.update = merge(lc.update, classify[,c("bid", "relevance.probability")], all.x = T)
     if(any(is.na(lc.update$relevance.probability))){
       for(bid in classify$bid){
-        lc.update$relevance.probability[lc.update$bid == bid] = classify$relevance.probability[classify$bid==bid]
+
+        #have to do this weird indexing because you can't indext NA vector with logical vector
+        # (NA == TRUE) evaluates to NA
+        idx = match(bid, lc.update$bid)
+
+        lc.update$relevance.probability[idx] = subset(classify, bid == bid)$relevance.probability
       }
 
     }
