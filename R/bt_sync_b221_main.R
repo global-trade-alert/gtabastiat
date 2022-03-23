@@ -314,7 +314,7 @@ bt_sync_221_main = function(){
 
     #this is needed to ensure no duplicates are entered later
     egi.hints.main.db = gta_sql_get_value("SELECT glt.lead_id
-                                          FROM gta_lead_theme glt")
+                                          FROM gta_lead_theme glt", "main")
 
 
     ## upload in chunks
@@ -355,6 +355,9 @@ bt_sync_221_main = function(){
 
         egi.leads = subset(upload.chunk, ! upload.chunk$lead.id %in% egi.hints.main.db)
 
+        #hint.id is the id in ricardodb
+        #lead.id is the id in the main db
+
         #egi.leads=unique(upload.chunk$lead.id[upload.chunk$hint.id %in% egi.hints])
         egi.leads=unique(egi.leads$lead.id[upload.chunk$hint.id %in% egi.hints])
 
@@ -362,17 +365,12 @@ bt_sync_221_main = function(){
         egi.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
                               VALUES ",paste(paste0("(",egi.leads,", 3)"), collapse=","),";")
 
-        gta_sql_update_table(egi.sql,
-                             "main")
+        gta_sql_update_table(egi.sql, "main")
 
-        save(
-          egi.leads,
-          egi.sql,
-          file = paste0("0 projects/037 lead theme fix/logs/lead_theme_log_",
-            format(Sys.Date(), "%Y-%m-%d"),
-            ".Rdata"
-          )
-        )
+        save(egi.leads, egi.sql,
+             file = paste0("0 projects/037 lead theme fix/logs/lead_theme_log_",
+                           format(Sys.Date(), "%Y-%m-%d"),
+                           ".Rdata"))
 
 
       }
