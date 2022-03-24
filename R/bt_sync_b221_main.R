@@ -9,7 +9,7 @@ bt_sync_221_main = function(){
 
 
   #change this to turn the function on or off (in case it breaks)
-  if(F){
+  if(T){
 
   library(gtasql)
   library(gtalibrary)
