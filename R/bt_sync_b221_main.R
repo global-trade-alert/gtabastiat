@@ -385,7 +385,7 @@ bt_sync_221_main = function(){
 
       if(length(ru.sanctions.bids) > 0){
 
-        ru.sanctions = subset(upload.chunk$bid %in% ru.sanctions.bids)
+        ru.sanctions = subset(upload.chunk, upload.chunk$bid %in% ru.sanctions.bids)
 
         ru.sanctions.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
                               VALUES ",paste(paste0("(",ru.sanctions$lead.id,", 24)"), collapse=","),";")
