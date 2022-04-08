@@ -257,7 +257,7 @@ bt_sync_221_main = function(){
 
     #add Russia sanctions theme
 
-    ru.sanctions.bids = new.leads$bid[grepl(pattern="([Rr]ussia)|([Bb]elarus)", x = paste(new.leads$hint.title, new.leads$hint.description))
+    ru.sanctions.bids = new.leads$bid[grepl(pattern="([Rr]ussia)|([Bb]elarus)|([Uu]kraine)", x = paste(new.leads$hint.title, new.leads$hint.description))
                                    & grepl(pattern="[Ss]anction", x = paste(new.leads$hint.title, new.leads$hint.description))]
 
     ## lead.date (R misbehving badly, hence the for loop :/ )
