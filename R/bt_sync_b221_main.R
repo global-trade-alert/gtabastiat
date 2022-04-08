@@ -254,6 +254,12 @@ bt_sync_221_main = function(){
     new.leads$source.type[new.leads$url.type.name!="official"]=4
     new.leads$source.type[!grepl(pattern = "GNEWS", x=new.leads$bid)]=3
 
+
+    #add Russia sanctions theme
+
+    ru.sanctions.bids = new.leads$bid[grepl(pattern="([Rr]ussia)|([Bb]elarus)", x = paste(new.leads$hint.title, new.leads$hint.description))
+                                   & grepl(pattern="[Ss]anction", x = paste(new.leads$hint.title, new.leads$hint.description))]
+
     ## lead.date (R misbehving badly, hence the for loop :/ )
     # FTFY in here also as an attempt at fixing encoding
     new.leads$lead.date=Sys.Date()
@@ -376,6 +382,19 @@ bt_sync_221_main = function(){
       }
 
       print("leads egi theme")
+
+      if(length(ru.sanctions.bids) > 0){
+
+        ru.sanctions = subset(upload.chunk$bid %in% ru.sanctions.bids)
+
+        ru.sanctions.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
+                              VALUES ",paste(paste0("(",ru.sanctions$lead.id,", 24)"), collapse=","),";")
+
+        gta_sql_update_table(ru.sanctions.sql, "main")
+
+      }
+
+
 
 
       upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
