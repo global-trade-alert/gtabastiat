@@ -764,10 +764,22 @@ bt_leads_core_update = function(update.df=NULL,
 
     }
 
+    #add in scrape_run_id
+    lc.update$scrape_run_id = gta_sql_get_value("SELECT MAX(scrape_run_id) FROM bt_hint_log;") + 1
 
-    num.vars=c("act_url_official","relevant","act_values", "classify","relevance_probability", "is_covid","force_create")
 
-    for(var in  num.vars ){
+    num.vars=c(
+      "act_url_official",
+      "relevant",
+      "act_values",
+      "classify",
+      "relevance_probability",
+      "is_covid",
+      "force_create",
+      "scrape_run_id"
+    )
+
+    for(var in num.vars){
 
       eval(parse(text = paste0(
         "lc.update$", var, "=as.numeric(lc.update$", var, ")"
@@ -814,8 +826,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -948,8 +960,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 2 AS hint_type_id, 10 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 2 AS hint_type_id, 10 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -1070,8 +1082,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -1193,8 +1205,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 2 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -1330,8 +1342,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 3 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 3 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
@@ -1467,8 +1479,8 @@ bt_leads_core_update = function(update.df=NULL,
 
 
               /* Writing into hint_log */
-              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id)
-              SELECT 4 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id
+              INSERT INTO bt_hint_log(hint_type_id, hint_state_id, user_id, registration_date, acting_agency, hint_values, upload_id, scrape_run_id)
+              SELECT 4 AS hint_type_id, 5 AS hint_state_id, 70 AS user_id, collection_date, acting_agency, act_values, upload_id, scrape_run_id
               FROM bt_leads_core;
 
               /* store hint_id & bid pairs*/
