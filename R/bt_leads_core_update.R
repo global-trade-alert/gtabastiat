@@ -565,7 +565,7 @@ bt_leads_core_update = function(update.df=NULL,
     #   classify$text=gsub("[^\001-\177]","",classify$text)
     #
     #   #check for bad chars
-    #   potential.problems = gsub(pattern = "[^A-zÀ-ÿ]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
+    #   potential.problems = gsub(pattern = "[^A-z??-??]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
     #                             replacement = " ",
     #                             x = classify$text) %>%
     #     str_squish() %>%
@@ -653,6 +653,10 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     # DB upload process start -------------------------------------------------
+
+
+    #add in scrape_run_id
+    lc.update$scrape.run.id = gta_sql_get_value("SELECT MAX(scrape_run_id) FROM bt_hint_log;") + 1
 
 
     ## UPLOAD TO RICARDO
@@ -751,7 +755,7 @@ bt_leads_core_update = function(update.df=NULL,
 
         if(incl.kanji){
 
-          #N strings for unicode, e.g. '你好' -> N'你好'
+          #N strings for unicode, e.g. '??????' -> N'??????'
           #eval(parse(text=paste0("lc.update$",kanji.col,"=paste0(\"N'\",lc.update$",kanji.col,",\"'\")")))
           lc.update[,col.index] = paste0("N'", lc.update[,col.index], "'")
 
@@ -764,8 +768,6 @@ bt_leads_core_update = function(update.df=NULL,
 
     }
 
-    #add in scrape_run_id
-    lc.update$scrape_run_id = gta_sql_get_value("SELECT MAX(scrape_run_id) FROM bt_hint_log;") + 1
 
 
     num.vars=c(
