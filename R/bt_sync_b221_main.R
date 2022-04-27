@@ -383,7 +383,7 @@ bt_sync_221_main = function(){
 
       print("leads egi theme")
 
-      if(length(ru.sanctions.bids) > 0){
+      if(length(ru.sanctions.bids) > 0 & any(ru.sanctions.bids %in% upload.chunk$bid)){
 
         ru.sanctions = subset(upload.chunk, upload.chunk$bid %in% ru.sanctions.bids)
 
