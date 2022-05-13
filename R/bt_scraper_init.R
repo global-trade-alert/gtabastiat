@@ -50,7 +50,13 @@ bt_scraper_init = function(){
 
   print("Opening connection...")
 
-  bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
+
+# Old Dropbox stack -------------------------------------------------------
+
+
+  if(grepl(string = getwd(), pattern = ".+Dropbox/")){
+    bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
+
 
   #setwd("/home/rstudio/Dropbox/Bastiat")
   setwd(bastiat.wd)
@@ -73,6 +79,28 @@ bt_scraper_init = function(){
   bastiat=c("bastiat", ls())
 
 
+  } else {
 
+# New GDrive/AWS stack ----------------------------------------------------
+
+
+    bastiat.wd = str_extract(getwd(), ".+Bastiat")
+
+    setwd(bastiat.wd)
+    source("setup/keys/ric.R")
+    pool <<- pool::dbPool(
+      drv = RMariaDB::MariaDB(),
+      host = gta_pwd('ricardomain')$host,
+      username = gta_pwd('ricardomain')$user,
+      password = gta_pwd('ricardomain')$password,
+      dbname=gta_pwd('ricardomain')$name
+    )
+    #these are not retained when this is run as a function anyway
+    #rm(db.host, db.user, db.password, db.name)
+    session.prefix="bt_"
+
+    bastiat=c("bastiat", ls())
+
+  }
 
 }
