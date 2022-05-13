@@ -54,7 +54,7 @@ bt_scraper_init = function(){
 # Old Dropbox stack -------------------------------------------------------
 
 
-  if(grepl(string = getwd(), pattern = ".+Dropbox/")){
+  if(grepl(x = getwd(), pattern = ".+Dropbox/")){
     bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
 
 
