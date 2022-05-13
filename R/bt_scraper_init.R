@@ -70,7 +70,7 @@ bt_scraper_init = function(){
   )
   #these are not retained when this is run as a function anyway
   #rm(db.host, db.user, db.password, db.name)
-  session.prefix="bt_"
+  session.prefix<<-"bt_"
 
   print("Loading Bastiat base...")
 
@@ -96,7 +96,7 @@ bt_scraper_init = function(){
     )
     #these are not retained when this is run as a function anyway
     #rm(db.host, db.user, db.password, db.name)
-    session.prefix="bt_"
+    session.prefix<<-"bt_"
 
     bastiat=c("bastiat", ls())
 
