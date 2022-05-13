@@ -87,7 +87,6 @@ bt_scraper_init = function(){
     bastiat.wd = str_extract(getwd(), ".+Bastiat")
 
     setwd(bastiat.wd)
-    source("setup/keys/ric.R")
     pool <<- pool::dbPool(
       drv = RMariaDB::MariaDB(),
       host = gta_pwd('ricardomain')$host,
