@@ -65,9 +65,12 @@ bt_leads_core_update = function(update.df=NULL,
 
 # Begin upload process ----------------------------------------------------
 
+    # this is all now done in the Python version. All the R version needs to do is upload the text.
+    if(grepl(pattern = "Google Drive", x = getwd())){
 
+      lc.update$relevance.probability = NA
 
-
+    } else {
 
     # add BID to bt_translation_log -------------------------------------------
 
@@ -541,9 +544,14 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(!(all(grepl("(GNEWS)", lc.update$bid)))
        & !(destination %in% "dpa")
+       & !grepl(pattern = "Google Drive", x = getwd())
        ){
       lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
+
+
     }
+
+
     #
     #
     # ## classifying results
@@ -620,7 +628,7 @@ bt_leads_core_update = function(update.df=NULL,
       lc.update$relevant[contains.negative.key]=0
 
     }
-
+}
 
     # DPA Classification ------------------------------------------------------
 
@@ -1640,6 +1648,7 @@ bt_leads_core_update = function(update.df=NULL,
 
     print("SINGLE-LINK UPLOAD complete")
 
+  if(grepl(pattern="Google Drive", x=getwd())){
     #get lc.update back in its normal formatting (w/o vars surrounded by apostrophes etc.)
     lc.update = lc.update.copy
     rm(lc.update.copy)
@@ -1774,7 +1783,7 @@ bt_leads_core_update = function(update.df=NULL,
 
 
     }
-
+}
 
 
 
