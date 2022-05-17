@@ -63,7 +63,7 @@ bt_leads_core_update = function(update.df=NULL,
 
   } else{
 
-# Begin upload process ----------------------------------------------------
+    # Begin upload process ----------------------------------------------------
 
     # this is all now done in the Python version. All the R version needs to do is upload the text.
     if(!grepl(pattern = "Dropbox", x = getwd())){
@@ -109,562 +109,562 @@ bt_leads_core_update = function(update.df=NULL,
 
     } else {
 
-    # add BID to bt_translation_log -------------------------------------------
+      # add BID to bt_translation_log -------------------------------------------
 
-    library(digest)
-    library(glue)
+      library(digest)
+      library(glue)
 
-    source("setup/keys/ric.R")
-    con=dbConnect(drv = RMariaDB::MariaDB(),
-                  host = db.host,
-                  username = db.user,
-                  password = db.password,
-                  dbname = db.name)
-
-
-    trunc.amt = 275
-
-    if(grepl("(GNEWS-JP)|(GNEWS-KR)|(GNEWS-ZH)", lc.update$bid[1])){
-
-      trunc.amt = 175
-
-      }
-
-    print("Updating bt_translation_log...")
-
-    tr.count = 0
-
-    pb = txtProgressBar(min = 0, max = nrow(lc.update), char = "~", style = 3)
-    for(i in 1:nrow(lc.update)){
-
-      ### Description
-
-      tr_hash = str_trunc(lc.update$act.description.ll[i], trunc.amt, ellipsis = "") %>%
-        digest()
-
-      hash.check.sql = glue("SELECT btl.text_hash
-                            FROM bt_translation_log btl
-                            WHERE btl.text_hash = '{tr_hash}';")
-
-      hash.check = dbGetQuery(con, hash.check.sql) %>%
-        nrow() > 0
-
-      if(hash.check){
-
-        tr.bid.sql = glue("UPDATE bt_translation_log
-                      SET bid = '{lc.update$bid[i]}', text_type_id = 2 #description
-                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
-
-        test = dbExecute(con, statement = tr.bid.sql)
-
-        tr.count = tr.count + 1
-      }
+      source("setup/keys/ric.R")
+      con=dbConnect(drv = RMariaDB::MariaDB(),
+                    host = db.host,
+                    username = db.user,
+                    password = db.password,
+                    dbname = db.name)
 
 
-      ### Title
-
-      tr_hash = str_trunc(lc.update$act.title.ll[i], trunc.amt, ellipsis = "") %>%
-        digest()
-
-      hash.check.sql = glue("SELECT btl.text_hash
-                            FROM bt_translation_log btl
-                            WHERE btl.text_hash = '{tr_hash}';")
-
-      hash.check = dbGetQuery(con, hash.check.sql) %>%
-        nrow() > 0
-
-      if(hash.check){
-
-        tr.bid.sql = glue("UPDATE bt_translation_log
-                      SET bid = '{lc.update$bid[i]}', text_type_id = 1 #title
-                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
-
-        test = dbExecute(con, statement = tr.bid.sql)
-
-        tr.count = tr.count + 1
-      }
-
-
-
-      ### acting.agency
+      trunc.amt = 275
 
       if(grepl("(GNEWS-JP)|(GNEWS-KR)|(GNEWS-ZH)", lc.update$bid[1])){
 
-        trunc.amt = 80
+        trunc.amt = 175
 
       }
 
-      tr_hash = str_trunc(lc.update$acting.agency[i], trunc.amt, ellipsis = "") %>%
-        digest()
+      print("Updating bt_translation_log...")
 
-      hash.check.sql = glue("SELECT btl.text_hash
+      tr.count = 0
+
+      pb = txtProgressBar(min = 0, max = nrow(lc.update), char = "~", style = 3)
+      for(i in 1:nrow(lc.update)){
+
+        ### Description
+
+        tr_hash = str_trunc(lc.update$act.description.ll[i], trunc.amt, ellipsis = "") %>%
+          digest()
+
+        hash.check.sql = glue("SELECT btl.text_hash
                             FROM bt_translation_log btl
                             WHERE btl.text_hash = '{tr_hash}';")
 
-      hash.check = dbGetQuery(con, hash.check.sql) %>%
-        nrow() > 0
+        hash.check = dbGetQuery(con, hash.check.sql) %>%
+          nrow() > 0
 
-      if(hash.check){
+        if(hash.check){
 
-        tr.bid.sql = glue("UPDATE bt_translation_log
+          tr.bid.sql = glue("UPDATE bt_translation_log
+                      SET bid = '{lc.update$bid[i]}', text_type_id = 2 #description
+                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
+
+          test = dbExecute(con, statement = tr.bid.sql)
+
+          tr.count = tr.count + 1
+        }
+
+
+        ### Title
+
+        tr_hash = str_trunc(lc.update$act.title.ll[i], trunc.amt, ellipsis = "") %>%
+          digest()
+
+        hash.check.sql = glue("SELECT btl.text_hash
+                            FROM bt_translation_log btl
+                            WHERE btl.text_hash = '{tr_hash}';")
+
+        hash.check = dbGetQuery(con, hash.check.sql) %>%
+          nrow() > 0
+
+        if(hash.check){
+
+          tr.bid.sql = glue("UPDATE bt_translation_log
+                      SET bid = '{lc.update$bid[i]}', text_type_id = 1 #title
+                      WHERE bt_translation_log.text_hash = '{tr_hash}';")
+
+          test = dbExecute(con, statement = tr.bid.sql)
+
+          tr.count = tr.count + 1
+        }
+
+
+
+        ### acting.agency
+
+        if(grepl("(GNEWS-JP)|(GNEWS-KR)|(GNEWS-ZH)", lc.update$bid[1])){
+
+          trunc.amt = 80
+
+        }
+
+        tr_hash = str_trunc(lc.update$acting.agency[i], trunc.amt, ellipsis = "") %>%
+          digest()
+
+        hash.check.sql = glue("SELECT btl.text_hash
+                            FROM bt_translation_log btl
+                            WHERE btl.text_hash = '{tr_hash}';")
+
+        hash.check = dbGetQuery(con, hash.check.sql) %>%
+          nrow() > 0
+
+        if(hash.check){
+
+          tr.bid.sql = glue("UPDATE bt_translation_log
                       SET bid = '{lc.update$bid[i]}', text_type_id = 3 #acting_agency
                       WHERE bt_translation_log.text_hash = '{tr_hash}';")
 
-        test = dbExecute(con, statement = tr.bid.sql)
+          test = dbExecute(con, statement = tr.bid.sql)
 
-        tr.count = tr.count + 1
-      }
+          tr.count = tr.count + 1
+        }
 
         setTxtProgressBar(pb, i)
 
-    }
-    close(pb)
-    dbDisconnect(con)
+      }
+      close(pb)
+      dbDisconnect(con)
 
-    print(glue("{tr.count} entries added!"))
+      print(glue("{tr.count} entries added!"))
 
 
 
-    # CLEANING & PREPARATION --------------------------------------------------
+      # CLEANING & PREPARATION --------------------------------------------------
 
 
-    ## ad-hoc irrelevance decisions based on noisy sources
-    noise.agencies=c("Radio Petrer 107,2 fm", "Business Post",
-                     "Radio hong kong","Tek'n'Life", "Stand news",
-                     "El Pas", "StrandGazetteDe", "TV Serien News",
-                     "Corriente Alterna", "Munchen Zeitung", "hkcnews.com", "CENTRAL AFRICAN INFO")
+      ## ad-hoc irrelevance decisions based on noisy sources
+      noise.agencies=c("Radio Petrer 107,2 fm", "Business Post",
+                       "Radio hong kong","Tek'n'Life", "Stand news",
+                       "El Pas", "StrandGazetteDe", "TV Serien News",
+                       "Corriente Alterna", "Munchen Zeitung", "hkcnews.com", "CENTRAL AFRICAN INFO")
 
-    lc.update$relevant[lc.update$acting.agency %in% noise.agencies]=0
+      lc.update$relevant[lc.update$acting.agency %in% noise.agencies]=0
 
 
-    ### trade defence country correction
+      ### trade defence country correction
 
-    #USA/Canada TD cases handled by USA/Canada editor: do not send these to Vatican.
-    #change filter.usa.can.td = T to apply filter
+      #USA/Canada TD cases handled by USA/Canada editor: do not send these to Vatican.
+      #change filter.usa.can.td = T to apply filter
 
 
-    td.phrases = "anti[- ]?dumping|countervailing|anti[- ]?subsidy"
+      td.phrases = "anti[- ]?dumping|countervailing|anti[- ]?subsidy"
 
-    #NB this filters any leads with USA/Can in the titles etc.
-    #So lead like 'Indonesia implements AD duties on blah from the USA' will be send to Marshall Is.
-    # With the new US FR RSS scraper we should be OK
+      #NB this filters any leads with USA/Can in the titles etc.
+      #So lead like 'Indonesia implements AD duties on blah from the USA' will be send to Marshall Is.
+      # With the new US FR RSS scraper we should be OK
 
-    #Works on the same trade defence phrases as the normal TD filter
+      #Works on the same trade defence phrases as the normal TD filter
 
-    filter.usa.can.td = T
+      filter.usa.can.td = T
 
-    if(filter.usa.can.td){
+      if(filter.usa.can.td){
 
-      north.american.countries = "(USA\\s)|(United States of America)|(Canada)"
-      # Title (en)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
-      # Description (en)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) &
-                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
-      # Title (local lang)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) &
-                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
-      # Description (local lang)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
-                               (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+        north.american.countries = "(USA\\s)|(United States of America)|(Canada)"
+        # Title (en)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+                                 (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+        # Description (en)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T)) &
+                                 (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+        # Title (local lang)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)) &
+                                 (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
+        # Description (local lang)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)) &
+                                 (grepl(north.american.countries, lc.update$country.lead, ignore.case = T))] = "Marshall Islands"
 
 
-    }else {
+      }else {
 
-      # Title (en)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))] = "Vatican"
-      # Description (en)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T))] = "Vatican"
-      # Title (local lang)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T))] = "Vatican"
-      # Description (local lang)
-      lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T))] = "Vatican"
+        # Title (en)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T))] = "Vatican"
+        # Description (en)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.en, ignore.case = T))] = "Vatican"
+        # Title (local lang)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.title.ll, ignore.case = T))] = "Vatican"
+        # Description (local lang)
+        lc.update$country.lead[(grepl(td.phrases, lc.update$act.description.ll, ignore.case = T))] = "Vatican"
 
-    }
+      }
 
-    #Bastiat does a good job of tracking TD leads.
-    # when official.td.leads.only == T, the leads from Ricardo (i.e. Google News) will not be sent to the editor
+      #Bastiat does a good job of tracking TD leads.
+      # when official.td.leads.only == T, the leads from Ricardo (i.e. Google News) will not be sent to the editor
 
-    official.td.leads.only = T
+      official.td.leads.only = T
 
-    if(official.td.leads.only){
+      if(official.td.leads.only){
 
 
-      lc.update$relevant[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                           (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
+        lc.update$relevant[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+                             (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
 
-      lc.update$classify[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
-                           (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
+        lc.update$classify[(grepl(td.phrases, lc.update$act.title.en, ignore.case = T)) &
+                             (grepl("GNEWS", lc.update$bid, ignore.case = T)) ] = 0
 
-    }
+      }
 
 
 
-    ## adding leads-checker columns
-    #lc.update$relevance.probability=NA
-    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==1]=1
-    lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==0]=0
+      ## adding leads-checker columns
+      #lc.update$relevance.probability=NA
+      lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==1]=1
+      lc.update$relevance.probability[lc.update$classify==0 & lc.update$relevant==0]=0
 
-    ## act_url_official
-    if(set.official){
-      non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
-      lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
+      ## act_url_official
+      if(set.official){
+        non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
+        lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
 
-    }
+      }
 
 
-    ## force_create
-    if(! "force.create" %in% names(lc.update)){
-      lc.update$force.create=as.numeric(force.create)
-    }
+      ## force_create
+      if(! "force.create" %in% names(lc.update)){
+        lc.update$force.create=as.numeric(force.create)
+      }
 
 
 
-    ## is_covid this is basically all deprecated the reason it was originally
-    #here was because of the massive influx of corona-related stuff overflowing
-    #everyone's leads, so we put this here to try and separate them
+      ## is_covid this is basically all deprecated the reason it was originally
+      #here was because of the massive influx of corona-related stuff overflowing
+      #everyone's leads, so we put this here to try and separate them
 
-    if(all.covid){
+      if(all.covid){
 
-      lc.update$is.covid=1
+        lc.update$is.covid=1
 
-
-    } else {
-      lc.update$is.covid=0
-      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.en, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.ll, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.en, ignore.case = T)]=1
-      lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.ll, ignore.case = T)]=1
-      lc.update$is.covid[lc.update$act.date<="2019-12-01"]=0
-
-
-    }
-
-    ### COVID correction for trade defence
-    lc.update$is.covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
-    lc.update$is.covid[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]=0
-    lc.update$is.covid[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]=0
-    lc.update$is.covid[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]=0
-
-
-    ### Redundancy check
-    ### is it already in bt_url_log? If so, what hints?
-
-    bt.url=gta_sql_get_value("SELECT *
-                              FROM bt_url_log;")
-    bt.url$url=as.character(bt.url$url)
-
-
-    database <<- "gtamain"
-    gta_sql_pool_open(pool.name="main.pool",
-                      db.title=database,
-                      db.host = gta_pwd(database)$host,
-                      db.name = gta_pwd(database)$name,
-                      db.user = gta_pwd(database)$user,
-                      db.password = gta_pwd(database)$password,
-                      table.prefix = "bt_")
-
-
-    gta.sa=gta_sql_get_value("SELECT id, source
-                              FROM gta_measure;",
-                             db.connection = "main.pool")
-    gta_sql_pool_close("main.pool")
-    gta.sa$source=as.character(gta.sa$source)
-    gta.sa$source=stringi::stri_trans_general(gta.sa$source, "latin-ascii")
-
-
-
-    # Check before adding boilerplate -----------------------------------------
-
-    if(any(grepl("<br ? /?>[\\s\\S]+", lc.update$act.description.en))){
-      stop("Description text cannot contain any <br> or <br/> tags! Please use `gsub(\"<br ?/?>.+\", \"\", text)` to remove.")
-    }
-
-
-
-# URL cleanout ------------------------------------------------------------
-
-
-
-    #get standard regex for identifying urls
-    regex_url = gtabastiat::regex_url
-
-    lc.update$background.url=as.character(lc.update$background.url)
-    lc.update$act.url=as.character(lc.update$act.url)
-
-    lc.urls=data.frame()
-    for(i in 1:nrow(lc.update)){
-
-      ## checking act.url
-      this.source=lc.update$act.url[i]
-
-      if(is.na(nchar(this.source))|is.na(this.source)){
-        ## source field is empty
-
-        url.description=NA
-        url.value="No direct source provided. Please check background URL in description or discard."
 
       } else {
+        lc.update$is.covid=0
+        lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.en, ignore.case = T)]=1
+        lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.title.ll, ignore.case = T)]=1
+        lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.en, ignore.case = T)]=1
+        lc.update$is.covid[grepl("( covid)|( corona)|(pandemic)", lc.update$act.description.ll, ignore.case = T)]=1
+        lc.update$is.covid[lc.update$act.date<="2019-12-01"]=0
 
-        this.act.url=unique(bt_extract_url(this.source))
 
-        url.description= str_replace_all(this.source, regex_url, "<br />\\[source URL\\])")
+      }
 
-        url.description=gsub("\\s+"," ", gsub("(Viewed at:?)","", url.description))
+      ### COVID correction for trade defence
+      lc.update$is.covid[grepl(td.phrases, lc.update$act.title.en, ignore.case = T)]=0
+      lc.update$is.covid[grepl(td.phrases, lc.update$act.description.en, ignore.case = T)]=0
+      lc.update$is.covid[grepl(td.phrases, lc.update$act.title.ll, ignore.case = T)]=0
+      lc.update$is.covid[grepl(td.phrases, lc.update$act.description.ll, ignore.case = T)]=0
 
-        if(nchar(gsub("(<br />\\[source URL\\])|\\s+|","",url.description))<5){
+
+      ### Redundancy check
+      ### is it already in bt_url_log? If so, what hints?
+
+      bt.url=gta_sql_get_value("SELECT *
+                              FROM bt_url_log;")
+      bt.url$url=as.character(bt.url$url)
+
+
+      database <<- "gtamain"
+      gta_sql_pool_open(pool.name="main.pool",
+                        db.title=database,
+                        db.host = gta_pwd(database)$host,
+                        db.name = gta_pwd(database)$name,
+                        db.user = gta_pwd(database)$user,
+                        db.password = gta_pwd(database)$password,
+                        table.prefix = "bt_")
+
+
+      gta.sa=gta_sql_get_value("SELECT id, source
+                              FROM gta_measure;",
+                              db.connection = "main.pool")
+      gta_sql_pool_close("main.pool")
+      gta.sa$source=as.character(gta.sa$source)
+      gta.sa$source=stringi::stri_trans_general(gta.sa$source, "latin-ascii")
+
+
+
+      # Check before adding boilerplate -----------------------------------------
+
+      if(any(grepl("<br ? /?>[\\s\\S]+", lc.update$act.description.en))){
+        stop("Description text cannot contain any <br> or <br/> tags! Please use `gsub(\"<br ?/?>.+\", \"\", text)` to remove.")
+      }
+
+
+
+      # URL cleanout ------------------------------------------------------------
+
+
+
+      #get standard regex for identifying urls
+      regex_url = gtabastiat::regex_url
+
+      lc.update$background.url=as.character(lc.update$background.url)
+      lc.update$act.url=as.character(lc.update$act.url)
+
+      lc.urls=data.frame()
+      for(i in 1:nrow(lc.update)){
+
+        ## checking act.url
+        this.source=lc.update$act.url[i]
+
+        if(is.na(nchar(this.source))|is.na(this.source)){
+          ## source field is empty
+
           url.description=NA
+          url.value="No direct source provided. Please check background URL in description or discard."
 
         } else {
 
-          lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br />The source was described as: '", url.description," '.", sep="")
+          this.act.url=unique(bt_extract_url(this.source))
 
-          if(!is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
+          url.description= str_replace_all(this.source, regex_url, "<br />\\[source URL\\])")
 
-            lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br />The source was described as: '", url.description," '.", sep="")
-          }
+          url.description=gsub("\\s+"," ", gsub("(Viewed at:?)","", url.description))
 
-        }
+          if(nchar(gsub("(<br />\\[source URL\\])|\\s+|","",url.description))<5){
+            url.description=NA
 
+          } else {
 
-        if(length(this.act.url)==1 & any(is.na(this.act.url))){
+            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br />The source was described as: '", url.description," '.", sep="")
 
-          url.value="No specific URL was provided for this hint. All information is stated in the description."
+            if(!is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
 
-        } else {
-
-          url.value=this.act.url
-
-        }
-
-
-
-      }
-
-
-      lc.urls=rbind(lc.urls,
-                    data.frame(bid=lc.update$bid[i],
-                               url=url.value,
-                               url.description=url.description,
-                               stringsAsFactors = F))
-
-      ## checking background.
-      this.source=lc.update$background.url[i]
-
-      if(is.na(this.source)==F | is.na(nchar(this.source))==F ){
-
-
-        this.act.url=unique(bt_extract_url(this.source))
-
-        lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br>More background info: ", paste(this.act.url, collapse=" ;  "), sep="")
-
-        if( !is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
-
-          lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
-        }
-
-
-      }
-
-    }
-
-
-    lc.urls$url=gsub("^\\s+|\\s+$","",lc.urls$url)
-
-    lc.update=merge(lc.update, unique(lc.urls[,c("bid","url")]), by="bid", all.x=T)
-    lc.update$act.url=lc.update$url
-
-    print("Checking against existing GTA state acts...")
-    for(i in 1:nrow(lc.update)){
-
-      if(grepl("EU-SA",lc.update$bid[i])==F){
-
-        check.url=str_extract(lc.update$act.url[i], regex_url)
-
-        if(is.na(check.url)==F){
-
-          ## checking state acts
-          #sa.ids=unique(subset(gta.sa, grepl(check.url, this.source, fixed = T))$id)
-          sa.ids=unique(subset(gta.sa, grepl(check.url, gta.sa$source, fixed = T))$id)
-
-          if(length(sa.ids)>0){
-
-            lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:<br />",
-                                                  paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
-
-            if(! is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i]!="NA"){
-
-              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:<br />",
-                                                    paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
+              lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br />The source was described as: '", url.description," '.", sep="")
             }
 
           }
 
-          ## checking hints
-          bt.url.ids=subset(bt.url, grepl(check.url, url, fixed = T))$url_id
-          if(length(bt.url.ids)>0){
 
-            hints=gta_sql_get_value(paste0("SELECT hint_id
-                                            FROM bt_hint_url
-                                            WHERE url_id IN (",paste(bt.url.ids, collapse=","),");"))
-            hints=unique(hints[!is.na(hints)])
+          if(length(this.act.url)==1 & any(is.na(this.act.url))){
 
-            if(length(hints)>0){
+            url.value="No specific URL was provided for this hint. All information is stated in the description."
 
-              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
-                                                    paste(hints, collapse=", "),".", sep="")
+          } else {
 
-              if(! is.na(lc.update$act.description.ll[i])){
+            url.value=this.act.url
 
-                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
-                                                      paste(hints, collapse=", "),".", sep="")
+          }
+
+
+
+        }
+
+
+        lc.urls=rbind(lc.urls,
+                      data.frame(bid=lc.update$bid[i],
+                                 url=url.value,
+                                 url.description=url.description,
+                                 stringsAsFactors = F))
+
+        ## checking background.
+        this.source=lc.update$background.url[i]
+
+        if(is.na(this.source)==F | is.na(nchar(this.source))==F ){
+
+
+          this.act.url=unique(bt_extract_url(this.source))
+
+          lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br>More background info: ", paste(this.act.url, collapse=" ;  "), sep="")
+
+          if( !is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i] != "NA"){
+
+            lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br>More background information beyond the source can be found here: ", paste(this.act.url, collapse=" ;  "), sep="")
+          }
+
+
+        }
+
+      }
+
+
+      lc.urls$url=gsub("^\\s+|\\s+$","",lc.urls$url)
+
+      lc.update=merge(lc.update, unique(lc.urls[,c("bid","url")]), by="bid", all.x=T)
+      lc.update$act.url=lc.update$url
+
+      print("Checking against existing GTA state acts...")
+      for(i in 1:nrow(lc.update)){
+
+        if(grepl("EU-SA",lc.update$bid[i])==F){
+
+          check.url=str_extract(lc.update$act.url[i], regex_url)
+
+          if(is.na(check.url)==F){
+
+            ## checking state acts
+            #sa.ids=unique(subset(gta.sa, grepl(check.url, this.source, fixed = T))$id)
+            sa.ids=unique(subset(gta.sa, grepl(check.url, gta.sa$source, fixed = T))$id)
+
+            if(length(sa.ids)>0){
+
+              lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br />The following state acts have this lead URL among their sources:<br />",
+                                                    paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
+
+              if(! is.na(lc.update$act.description.ll[i]) & lc.update$act.description.ll[i]!="NA"){
+
+                lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following state acts have this lead URL among their sources:<br />",
+                                                      paste(paste("https://www.globaltradealert.org/state-act/",sa.ids, sep=""), collapse="<br />"), sep="")
               }
 
             }
-            rm(hints)
+
+            ## checking hints
+            bt.url.ids=subset(bt.url, grepl(check.url, url, fixed = T))$url_id
+            if(length(bt.url.ids)>0){
+
+              hints=gta_sql_get_value(paste0("SELECT hint_id
+                                            FROM bt_hint_url
+                                            WHERE url_id IN (",paste(bt.url.ids, collapse=","),");"))
+              hints=unique(hints[!is.na(hints)])
+
+              if(length(hints)>0){
+
+                lc.update$act.description.en[i]=paste(lc.update$act.description.en[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
+                                                      paste(hints, collapse=", "),".", sep="")
+
+                if(! is.na(lc.update$act.description.ll[i])){
+
+                  lc.update$act.description.ll[i]=paste(lc.update$act.description.ll[i], "<br /><br /> The following hint IDs have this URL among their sources:<br />",
+                                                        paste(hints, collapse=", "),".", sep="")
+                }
+
+              }
+              rm(hints)
+            }
           }
+
+
         }
+        cat(i)
+        if(i<nrow(lc.update)){
+          cat(", ")
+        }else {
+          cat("\n")
+        }
+      }
+
+
+
+      # Mrs Hudson --------------------------------------------------------------
+
+
+      #Use on leads from google news search and reuters.
+      if(invoke.mrs.hudson
+         & all(grepl("(GNEWS)", lc.update$bid))
+         & !(destination %in% c("citation"))
+      ){
+
+        #add col with the rating
+        mrs.hudson.result = bt_estimate_news_leads(lc.update,
+                                                   keep.results.ratio = mrs.hudson.keep.results.ratio,
+                                                   binary.prediction = F,
+                                                   return.both = T,
+                                                   conf.cutoff = 0.5)
+        #old
+        #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
+        #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)
+
+        lc.update$mrs.hudson.rating = mrs.hudson.result$binary.prediction.result
+
+        #in the SQL later on, leads that are relevant = 0 are
+        #sent directly to state 8
+        lc.update$relevant[lc.update$mrs.hudson.rating==0] = 0
+
+        #ensure classify = 0 for good measure - they will be classified later anyway if they progress
+        lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
+
+        print(paste(sum(lc.update$mrs.hudson.rating==0), "leads will be sent to state 8"))
+
+        #remove column
+        lc.update$mrs.hudson.rating = NULL
+
+        #add relevance probability
+        lc.update$relevance.probability = mrs.hudson.result$raw.score
+
+      }
+
+
+      # Detective classification ------------------------------------------------
+
+      if(!(all(grepl("(GNEWS)", lc.update$bid)))
+         & !(destination %in% "dpa")
+      ){
+        lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
 
 
       }
-      cat(i)
-      if(i<nrow(lc.update)){
-        cat(", ")
-      }else {
-        cat("\n")
+
+
+      #
+      #
+      # ## classifying results
+      # classify=subset(lc.update, classify==1
+      #                 & relevant==1
+      #                 & country.lead!="Vatican"
+      #                 & !(destination %in% c("dpa", "citation"))
+      # )
+      #
+      # if(nrow(classify)>0){
+      #
+      #
+      #   classify$text=classify$act.title.en
+      #   classify$text[is.na(classify$act.description.en)==F]=paste(classify$text[is.na(classify$act.description.en)==F], classify$act.description.en[is.na(classify$act.description.en)==F], sep=" ")
+      #   classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
+      #
+      #   # removing non-ASCII
+      #   classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
+      #   classify$text=gsub("[^\001-\177]","",classify$text)
+      #
+      #   #check for bad chars
+      #   potential.problems = gsub(pattern = "[^A-z??-??]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
+      #                             replacement = " ",
+      #                             x = classify$text) %>%
+      #     str_squish() %>%
+      #     nchar() <= 1
+      #   if(sum(potential.problems)>0){
+      #     prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
+      #
+      #     #get bids for easier dbg
+      #     potential.problems.bids = classify$bid[potential.problems] %>%
+      #       paste(collapse = ", ")
+      #
+      #     prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
+      #     message(prob.msg)
+      #     classify = classify[!potential.problems,]
+      #
+      #   }
+      #
+      #
+      #   classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
+      #                                             prediction.data.text=classify$text,
+      #                                             prediction.acting.agency=classify$acting.agency)
+      #
+      #   classify$relevant=NULL
+      #   classify$relevance.probability=NULL
+      #   classify$text=NULL
+      #
+      #   classify=merge(classify, classification.result, by.x="bid",by.y="text.id")
+      #
+      #   classified.bids=classify$bid
+      #   classified.lids=classify$lead.id
+      #   classified.relevance=classify$relevant
+      #   classified.rel.prob=round(classify$relevance.probability,4)
+      #
+      #   lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
+      #                   classify)
+      #
+      #
+      #
+      # }
+
+
+
+
+      ## checking for keywords
+      print("checking for negative keywords")
+      contains.negative.key=bt_classify_by_keyword(text.to.check=lc.update$act.title.en,
+                                                   text.id=lc.update$bid,
+                                                   flavour="negative")
+
+
+      if(any(contains.negative.key)){
+        lc.update$relevant[contains.negative.key]=0
+
       }
     }
-
-
-
-    # Mrs Hudson --------------------------------------------------------------
-
-
-    #Use on leads from google news search and reuters.
-    if(invoke.mrs.hudson
-       & all(grepl("(GNEWS)", lc.update$bid))
-       & !(destination %in% c("citation"))
-    ){
-
-      #add col with the rating
-      mrs.hudson.result = bt_estimate_news_leads(lc.update,
-                                                 keep.results.ratio = mrs.hudson.keep.results.ratio,
-                                                 binary.prediction = F,
-                                                 return.both = T,
-                                                 conf.cutoff = 0.5)
-      #old
-      #lc.update$mrs.hudson.rating = bt_estimate_news_leads(lc.update,
-      #                                                     keep.results.ratio = mrs.hudson.keep.results.ratio)
-
-      lc.update$mrs.hudson.rating = mrs.hudson.result$binary.prediction.result
-
-      #in the SQL later on, leads that are relevant = 0 are
-      #sent directly to state 8
-      lc.update$relevant[lc.update$mrs.hudson.rating==0] = 0
-
-      #ensure classify = 0 for good measure - they will be classified later anyway if they progress
-      lc.update$classify[lc.update$mrs.hudson.rating==0] = 0
-
-      print(paste(sum(lc.update$mrs.hudson.rating==0), "leads will be sent to state 8"))
-
-      #remove column
-      lc.update$mrs.hudson.rating = NULL
-
-      #add relevance probability
-      lc.update$relevance.probability = mrs.hudson.result$raw.score
-
-    }
-
-
-    # Detective classification ------------------------------------------------
-
-    if(!(all(grepl("(GNEWS)", lc.update$bid)))
-       & !(destination %in% "dpa")
-       ){
-      lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
-
-
-    }
-
-
-    #
-    #
-    # ## classifying results
-    # classify=subset(lc.update, classify==1
-    #                 & relevant==1
-    #                 & country.lead!="Vatican"
-    #                 & !(destination %in% c("dpa", "citation"))
-    # )
-    #
-    # if(nrow(classify)>0){
-    #
-    #
-    #   classify$text=classify$act.title.en
-    #   classify$text[is.na(classify$act.description.en)==F]=paste(classify$text[is.na(classify$act.description.en)==F], classify$act.description.en[is.na(classify$act.description.en)==F], sep=" ")
-    #   classify$text[is.na(classify$act.values)==F]=paste(classify$text[is.na(classify$act.values)==F], classify$act.values[is.na(classify$act.values)==F], sep=" ")
-    #
-    #   # removing non-ASCII
-    #   classify$text=stringi::stri_trans_general(classify$text, "latin-ascii")
-    #   classify$text=gsub("[^\001-\177]","",classify$text)
-    #
-    #   #check for bad chars
-    #   potential.problems = gsub(pattern = "[^A-z??-??]|_", #the regex engine in R treats _ as an alphanumeric, must include it explicitly
-    #                             replacement = " ",
-    #                             x = classify$text) %>%
-    #     str_squish() %>%
-    #     nchar() <= 1
-    #   if(sum(potential.problems)>0){
-    #     prob.msg = paste0("Warning! ", sum(potential.problems), " entries contain no ASCII chars and will not be classified!")
-    #
-    #     #get bids for easier dbg
-    #     potential.problems.bids = classify$bid[potential.problems] %>%
-    #       paste(collapse = ", ")
-    #
-    #     prob.msg = paste(prob.msg, "The BIDs of these:", potential.problems.bids)
-    #     message(prob.msg)
-    #     classify = classify[!potential.problems,]
-    #
-    #   }
-    #
-    #
-    #   classification.result=bt_squad_prediction(prediction.data.id=classify$bid,
-    #                                             prediction.data.text=classify$text,
-    #                                             prediction.acting.agency=classify$acting.agency)
-    #
-    #   classify$relevant=NULL
-    #   classify$relevance.probability=NULL
-    #   classify$text=NULL
-    #
-    #   classify=merge(classify, classification.result, by.x="bid",by.y="text.id")
-    #
-    #   classified.bids=classify$bid
-    #   classified.lids=classify$lead.id
-    #   classified.relevance=classify$relevant
-    #   classified.rel.prob=round(classify$relevance.probability,4)
-    #
-    #   lc.update=rbind(subset(lc.update, ! bid %in% classified.bids),
-    #                   classify)
-    #
-    #
-    #
-    # }
-
-
-
-
-    ## checking for keywords
-    print("checking for negative keywords")
-    contains.negative.key=bt_classify_by_keyword(text.to.check=lc.update$act.title.en,
-                                                 text.id=lc.update$bid,
-                                                 flavour="negative")
-
-
-    if(any(contains.negative.key)){
-      lc.update$relevant[contains.negative.key]=0
-
-    }
-}
 
     # DPA Classification ------------------------------------------------------
 
@@ -675,19 +675,19 @@ bt_leads_core_update = function(update.df=NULL,
       classify=subset(lc.update, update.table$classify==1)
 
       #dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
-    if(nrow(classify)>0){
-      dpa.hypermodel.result = dpa_hypermodel_estimate_leads(classify)
+      if(nrow(classify)>0){
+        dpa.hypermodel.result = dpa_hypermodel_estimate_leads(classify)
 
 
 
-      #in case it was assigned above - DPA leads should have their relevance probability assigned here.
-      #if the rel prob column was already there, the merging of results will not work, so best to remove it.
-      lc.update$relevance.probability = NULL
-      lc.update = merge(lc.update, dpa.hypermodel.result$raw.score, all.x = T)
+        #in case it was assigned above - DPA leads should have their relevance probability assigned here.
+        #if the rel prob column was already there, the merging of results will not work, so best to remove it.
+        lc.update$relevance.probability = NULL
+        lc.update = merge(lc.update, dpa.hypermodel.result$raw.score, all.x = T)
 
-    }else{
-      lc.update$relevance.probability = 0
-    }
+      }else{
+        lc.update$relevance.probability = 0
+      }
 
     }
 
@@ -715,6 +715,10 @@ bt_leads_core_update = function(update.df=NULL,
     lc.update=lc.update[,names(lc.update)[names(lc.update) %in% names(leads.core)]]
     lc.update=lc.update[,names(leads.core)[names(leads.core) %in% names(lc.update)]]
     lc.update=unique(lc.update)
+
+    #add in scrape_run_id
+    lc.update$scrape.run.id = gta_sql_get_value("SELECT MAX(scrape_run_id) FROM bt_hint_log;") + 1
+
 
     ## splitting away mutli-links
     # multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
@@ -1684,44 +1688,29 @@ bt_leads_core_update = function(update.df=NULL,
 
     print("SINGLE-LINK UPLOAD complete")
 
-  if(grepl(pattern="Google Drive", x=getwd())){
-    #get lc.update back in its normal formatting (w/o vars surrounded by apostrophes etc.)
-    lc.update = lc.update.copy
-    rm(lc.update.copy)
+    if(grepl(pattern="Google Drive", x=getwd())){
+      #get lc.update back in its normal formatting (w/o vars surrounded by apostrophes etc.)
+      lc.update = lc.update.copy
+      rm(lc.update.copy)
 
-    ## assign collections to multi-link hints
-    multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
+      ## assign collections to multi-link hints
+      multi.links=unique(names(table(lc.update$bid))[table(lc.update$bid)>1])
 
-    if(length(multi.links)>1){
-
-
-      source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
+      if(length(multi.links)>1){
 
 
-      lc.update=subset(lc.update, bid %in% multi.links)
+        source("https://raw.githubusercontent.com/global-trade-alert/ricardo/master/apps/b221/functions/b221_process_collections.R")
 
-      for(new.col in unique(lc.update$bid)){
 
-        col.country=unique(lc.update$country[lc.update$bid==new.col])
+        lc.update=subset(lc.update, bid %in% multi.links)
 
-        col.name=paste0(col.country, ": ")
+        for(new.col in unique(lc.update$bid)){
 
-        col.title=unique(lc.update$act.title.en[lc.update$bid==new.col])
+          col.country=unique(lc.update$country[lc.update$bid==new.col])
 
-        if(! is.na(col.title)){
+          col.name=paste0(col.country, ": ")
 
-          if(nchar(col.title)>50){
-
-            col.name=paste0(col.name, substr(col.title, 1,50),"... ")
-
-          } else {
-
-            col.name=paste0(col.name, col.title)
-          }
-
-        } else {
-
-          col.title=unique(lc.update$act.title.ll[lc.update$bid==new.col])
+          col.title=unique(lc.update$act.title.en[lc.update$bid==new.col])
 
           if(! is.na(col.title)){
 
@@ -1736,8 +1725,7 @@ bt_leads_core_update = function(update.df=NULL,
 
           } else {
 
-            col.title=unique(lc.update$act.description.en[lc.update$bid==new.col])
-
+            col.title=unique(lc.update$act.title.ll[lc.update$bid==new.col])
 
             if(! is.na(col.title)){
 
@@ -1752,7 +1740,8 @@ bt_leads_core_update = function(update.df=NULL,
 
             } else {
 
-              col.title=unique(lc.update$act.description.ll[lc.update$bid==new.col])
+              col.title=unique(lc.update$act.description.en[lc.update$bid==new.col])
+
 
               if(! is.na(col.title)){
 
@@ -1767,59 +1756,74 @@ bt_leads_core_update = function(update.df=NULL,
 
               } else {
 
-                col.name=paste0(col.name, "AUTO-GENERATED COLLECTION, PLEASE CORRECT")
+                col.title=unique(lc.update$act.description.ll[lc.update$bid==new.col])
+
+                if(! is.na(col.title)){
+
+                  if(nchar(col.title)>50){
+
+                    col.name=paste0(col.name, substr(col.title, 1,50),"... ")
+
+                  } else {
+
+                    col.name=paste0(col.name, col.title)
+                  }
+
+                } else {
+
+                  col.name=paste0(col.name, "AUTO-GENERATED COLLECTION, PLEASE CORRECT")
+
+
+
+                }
 
 
 
               }
 
 
-
             }
+
 
 
           }
 
-
-
-        }
-
-        Sys.setlocale("LC_ALL","English")
+          Sys.setlocale("LC_ALL","English")
 
 
 
 
-        col.name=paste0(col.country,": ", col.title," (",format(unique(lc.update$act.date[lc.update$bid==new.col]),"%B %Y") ,")")
+          col.name=paste0(col.country,": ", col.title," (",format(unique(lc.update$act.date[lc.update$bid==new.col]),"%B %Y") ,")")
 
-        col.hints=gta_sql_get_value(paste0("SELECT hint_id
+          col.hints=gta_sql_get_value(paste0("SELECT hint_id
                                  FROM bt_hint_bid
                                  WHERE bid IN (",paste(paste0("'",new.col,"'"), collapse=", "),");"))
 
-        if(all(is.na(col.hints))){
-          stop(paste0("No hints for this BID: ", new.col))
+          if(all(is.na(col.hints))){
+            stop(paste0("No hints for this BID: ", new.col))
+          }
+
+          b221_process_collections_hints(is.freelancer = FALSE,
+                                         user.id = 70,
+                                         new.collection.name = col.name,
+                                         collection.id = NULL,
+                                         hints.id = col.hints,
+                                         country = col.country,
+                                         product = NULL,
+                                         intervention = NULL,
+                                         assessment = NULL,
+                                         relevance = NULL,
+                                         collection.unchanged = F,
+                                         starred.hint.id = NA,
+                                         empty.attributes = T)
+
+
         }
 
-        b221_process_collections_hints(is.freelancer = FALSE,
-                                       user.id = 70,
-                                       new.collection.name = col.name,
-                                       collection.id = NULL,
-                                       hints.id = col.hints,
-                                       country = col.country,
-                                       product = NULL,
-                                       intervention = NULL,
-                                       assessment = NULL,
-                                       relevance = NULL,
-                                       collection.unchanged = F,
-                                       starred.hint.id = NA,
-                                       empty.attributes = T)
 
 
       }
-
-
-
     }
-}
 
 
 
