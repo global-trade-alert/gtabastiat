@@ -68,7 +68,31 @@ bt_leads_core_update = function(update.df=NULL,
     # this is all now done in the Python version. All the R version needs to do is upload the text.
     if(grepl(pattern = "Google Drive", x = getwd())){
 
+      #control whether to connect to dev db or normal ric db
+      test.mode = T
+
       lc.update$relevance.probability = NA
+
+      print("GDrive environment detected")
+
+      if(test.mode){
+        print("Test mode enabled. Edit the R package to turn it off.")
+        print("Closing ricardomain connection...")
+        gta_sql_pool_close()
+
+        print("Opening gta_dev.ricardo connection...")
+        pool <<- pool::dbPool(
+          drv = RMariaDB::MariaDB(),
+          host = gta_pwd('gtadev')$host,
+          username = gta_pwd('gtadev')$user,
+          password = gta_pwd('gtadev')$password,
+          #dbname=gta_pwd('gtadev')$name
+          dbname="ricardo"
+        )
+
+        session.prefix<<-"bt_"
+
+      }
 
     } else {
 
