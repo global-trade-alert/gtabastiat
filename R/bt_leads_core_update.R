@@ -66,7 +66,7 @@ bt_leads_core_update = function(update.df=NULL,
 # Begin upload process ----------------------------------------------------
 
     # this is all now done in the Python version. All the R version needs to do is upload the text.
-    if(grepl(pattern = "Google Drive", x = getwd())){
+    if(!grepl(pattern = "Dropbox", x = getwd())){
 
       #control whether to connect to dev db or normal ric db
       test.mode = T
