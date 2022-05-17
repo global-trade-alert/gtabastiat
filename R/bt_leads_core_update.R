@@ -73,6 +73,19 @@ bt_leads_core_update = function(update.df=NULL,
 
       lc.update$relevance.probability = NA
 
+      ## act_url_official
+      if(set.official){
+        non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
+        lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
+      }
+
+      ## force_create
+      if(! "force.create" %in% names(lc.update)){
+        lc.update$force.create=as.numeric(force.create)
+      }
+
+      lc.update$all.covid = 0
+
       print("GDrive environment detected")
 
       if(test.mode){
@@ -568,7 +581,6 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(!(all(grepl("(GNEWS)", lc.update$bid)))
        & !(destination %in% "dpa")
-       & !grepl(pattern = "Google Drive", x = getwd())
        ){
       lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
 
