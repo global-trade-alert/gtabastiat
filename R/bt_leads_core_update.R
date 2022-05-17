@@ -84,7 +84,7 @@ bt_leads_core_update = function(update.df=NULL,
         lc.update$force.create=as.numeric(force.create)
       }
 
-      lc.update$all.covid = 0
+      lc.update$is.covid = 0
 
       print("GDrive environment detected")
 
