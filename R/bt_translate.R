@@ -10,43 +10,53 @@
 #' @return exactly the same as googleLanguageR::gl_translate
 bt_translate = function(string, trunc = 275){
 
-  library(stringr)
-  library(googleLanguageR)
-  library(digest)
-  library(glue)
 
-  tr.string = str_trunc(string, 275, ellipsis = "")
+  if(grepl(pattern = "Dropbox", x = getwd())){
+    library(stringr)
+    library(googleLanguageR)
+    library(digest)
+    library(glue)
 
-  tr.result=gl_translate(as.character(tr.string))
+    tr.string = str_trunc(string, 275, ellipsis = "")
 
-  source_lang = tr.result$detectedSourceLanguage
-  tr_text = tr.result$text %>% gsub(pattern = "'", replacement = "\\\\'")
-  tr_hash = digest(tr.string) #this should == tr.result$text
-  num_chars = nchar(tr.string)
+    tr.result=gl_translate(as.character(tr.string))
 
+    source_lang = tr.result$detectedSourceLanguage
 
-# db upload ---------------------------------------------------------------
-
-
-  source("setup/keys/ric.R")
-  con=dbConnect(drv = RMariaDB::MariaDB(),
-                host = db.host,
-                username = db.user,
-                password = db.password,
-                dbname = db.name)
+    tr_text = tr.result$text %>% gsub(pattern = "'", replacement = "\\\\'")
+    tr_hash = digest(tr.string) #this should == tr.result$text
+    num_chars = nchar(tr.string)
 
 
-  tr.sql = glue("INSERT INTO bt_translation_log (source_text, source_lang, text_hash, num_chars)
+    # db upload ---------------------------------------------------------------
+
+
+    source("setup/keys/ric.R")
+    con=dbConnect(drv = RMariaDB::MariaDB(),
+                  host = db.host,
+                  username = db.user,
+                  password = db.password,
+                  dbname = db.name)
+
+
+    tr.sql = glue("INSERT INTO bt_translation_log (source_text, source_lang, text_hash, num_chars)
   VALUES(N'{tr_text}', '{source_lang}', '{tr_hash}', {num_chars})")
 
-  test = dbExecute(con, statement = tr.sql)
+    test = dbExecute(con, statement = tr.sql)
 
-  dbDisconnect(con)
+    dbDisconnect(con)
 
 
 
-  return(tr.result)
+    return(tr.result)
 
+
+  } else {
+    print("bt_translate() running in test mode! please disable in the R library if you want to change back to normal functionality.")
+    return(data.frame(translatedText=paste("translated:", str_trunc(string, 75)),
+                      original = string)
+    )
+  }
 
 
 }
