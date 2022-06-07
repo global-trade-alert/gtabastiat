@@ -19,7 +19,7 @@ bt_leads_core_update = function(update.df=NULL,
                                 exclude.by="act.url",
                                 all.covid=F,
                                 force.create=F,
-                                set.official=T,
+                                set.official=F,
                                 destination="b221",
                                 incl.kanji=F,
                                 invoke.mrs.hudson=T,
@@ -65,6 +65,8 @@ bt_leads_core_update = function(update.df=NULL,
 
     # Begin upload process ----------------------------------------------------
 
+
+
     # this is all now done in the Python version. All the R version needs to do is upload the text.
     if(!grepl(pattern = "Dropbox", x = getwd())){
 
@@ -77,6 +79,8 @@ bt_leads_core_update = function(update.df=NULL,
       if(set.official){
         non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
         lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
+      } else{
+        lc.update$act.url.official = 1
       }
 
       ## force_create
@@ -311,6 +315,8 @@ bt_leads_core_update = function(update.df=NULL,
         non.official=c("AGNET","CHN-GLOBAL", "CHN-KPMG", "HKTDC-PICK", "MENA-ZAWYA")
         lc.update$act.url.official=as.numeric(grepl(paste(non.official, collapse="|"), lc.update$bid, ignore.case = T))
 
+      } else{
+        lc.update$act.url.official = 1
       }
 
 
@@ -829,6 +835,7 @@ bt_leads_core_update = function(update.df=NULL,
       "scrape_run_id"
     )
 
+
     for(var in num.vars){
 
       eval(parse(text = paste0(
@@ -1152,7 +1159,7 @@ bt_leads_core_update = function(update.df=NULL,
 
               /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
-              SELECT hint_id, 70 AS user_id, 10 AS hint_state_id
+              SELECT hint_id, 70 AS user_id, 5 AS hint_state_id
               FROM bt_leads_core;
 
               /* adding act_urls */
