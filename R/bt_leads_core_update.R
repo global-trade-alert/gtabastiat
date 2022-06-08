@@ -676,6 +676,18 @@ bt_leads_core_update = function(update.df=NULL,
 
     if(destination == "dpa"){
 
+      #bad keywords
+
+      bad.words = c("webinar","staff appointment") %>%
+        paste0("(", ., ")", collapse = "|")
+
+      bad.words.vect = grepl(pattern = bad.words,
+                             x = lc.update$act.title.en,
+                             ignore.case = T)
+
+      lc.update$relevant[bad.words.vect] = 0
+      lc.update$classify[bad.words.vect] = 0
+
       library(dpaclassifier)
 
       classify=subset(lc.update, update.table$classify==1)
@@ -694,6 +706,9 @@ bt_leads_core_update = function(update.df=NULL,
       }else{
         lc.update$relevance.probability = 0
       }
+
+
+
 
     }
 
