@@ -24,25 +24,26 @@ bt_scraper_init = function(){
   library(RCurl)
   library(XML)
   library("data.table")
-  library(xlsx)
-  library("mailR")
+  # library(xlsx)
+  # library("mailR")
   library("stringr")
   library("tabulizer")
-  #library("htmltab")
-  library("splitstackshape")
+  library("htmltab")
+  # library("splitstackshape")
   library("webdriver")
   library("lubridate")
   library("textcat")
-  #library(flipTime)
+  # library(flipTime)
   library(tidytext)
-  library(gtabastiat)
-  library(gtalibrary)
-  library(xml2)
-  library(caret)
+  # library(caret)
   library("googleLanguageR")
   library(gtasql)
   library(pool)
   library(RMariaDB)
+
+  library(gtabastiat)
+  library(gtalibrary)
+  library(xml2)
 
 
   #clean workspace
@@ -55,7 +56,7 @@ bt_scraper_init = function(){
 
 
   if(grepl(x = getwd(), pattern = ".+Dropbox/")){
-    bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
+    bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "[Bb]astiat")
 
 
   #setwd("/home/rstudio/Dropbox/Bastiat")
