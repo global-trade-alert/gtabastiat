@@ -10,8 +10,8 @@
 #' @return exactly the same as googleLanguageR::gl_translate
 bt_translate = function(string, trunc = 275){
 
-
-  if(grepl(pattern = "Dropbox", x = getwd())){
+#remove the | T to enable bypass to test mode
+  if(grepl(pattern = "Dropbox", x = getwd()) | T){
     library(stringr)
     library(googleLanguageR)
     library(digest)
