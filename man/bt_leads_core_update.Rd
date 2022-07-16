@@ -10,7 +10,7 @@ bt_leads_core_update(
   exclude.by = "act.url",
   all.covid = F,
   force.create = F,
-  set.official = T,
+  set.official = F,
   destination = "b221",
   incl.kanji = F,
   invoke.mrs.hudson = T,
