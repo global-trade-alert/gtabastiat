@@ -4,83 +4,77 @@
 #'
 #' @return The complete file name of the collected url (incl. file format).
 #' @references www.globaltradealert.org
-#' @author Johannes Fritz for GTA
+#' @author Johannes Fritz, Robin Scherrer and Callum Campbell for GTA
 
 
 # Function infos and parameters  --------------------------------------------
 
 
 bt_collect_url = function(url=NULL,
-                           file.name=NULL,
-                           store.path=NULL,
-                           add.timestamp=T,
-                           update.file.name=T,
-                           js.path="setup/rasterize.js",
-                           phantom.path="~/bin/phantomjs"){
+                          file.name=NULL,
+                          store.path=NULL,
+                          add.timestamp=T,
+                          update.file.name=T,
+                          js.path="setup/rasterize.js",
+                          phantom.path="~/bin/phantomjs"){
 
-  library(stringr)
 
-  if(is.null(store.path)){
-    file.path=file.name
+  library(httr)
 
-  } else {
+  # send request to check if page is redirecting or broken
+  r = tryCatch({
+    httr::HEAD(url=url, timeout(5))
+  }, error = function(e) {
+    FALSE
+  })
 
-    file.path=paste0(gsub("/$","",store.path),"/", file.name)
-
+  if(is.logical(r)) {
+    return(list("new.file.name"=NA, "file.suffix"=NA, "url"=url))
+  } else if (((r$url != url) &
+              (paste0(r$url, "/") != url)) &
+             (gsub("www\\.", "", r$url) != url) |
+             r$status_code != "200") {
+    return(list("new.file.name"=NA, "file.suffix"=NA, "url"=url))
   }
 
+  # define where the file should be stored
+  if(is.null(store.path)){
+    file.path=file.name
+  } else {
+    file.path=paste0(gsub("/$", "", store.path), "/", file.name)
+  }
+
+  # create the time stamp to include it in the file name
   if(add.timestamp){
-
-    t.stamp=paste0(" - ", gsub("\\D","-",Sys.time()))
-
+    t.stamp=paste0(" - ", gsub("\\D", "-", Sys.time()))
   } else {
     t.stamp=""
   }
 
-
-  ## check whether URL leads to file
+  # check whether URL leads to a file
   file.types=c("doc", "pdf","xls","txt","csv","rdata")
-  is.file=grepl(paste(file.types, collapse="|"),str_extract(url,"\\.[A-Za-z]{1,5}$"), ignore.case = T)
+  is.file=grepl(paste(file.types, collapse="|"), str_extract(url, "\\.[A-Za-z]{1,5}$"), ignore.case = T)
 
-
-  if(is.file){
-    ## download file
-
+  # download the file if there is one or save a screenshot of the webpage
+  if(is.file) {
     file.suffix=str_extract(url,"\\.[A-Za-z]{1,5}$")
-
     GET(url, write_disk(paste0(file.path, t.stamp, file.suffix), overwrite=TRUE))
-
-
-
   } else {
-
-    ## print into PDF
-
     file.suffix=".pdf"
-
-
     cmd=paste(phantom.path,
               js.path,
               paste0("'",url,"'"),
               paste0("'",file.path, t.stamp, file.suffix,"'"),
               "'A1'")
-
     system(cmd)
-
   }
 
-
-
-
-  # return file name
+  # return the file name
   if(update.file.name){
-
     new.file.name=paste0(file.path, t.stamp, file.suffix)
-
-
   } else {
     new.file.name=file.name
   }
-  return(new.file.name)
-
+  return(list("new.file.name"=new.file.name, "file.suffix"=file.suffix, "url"=url))
 }
+
