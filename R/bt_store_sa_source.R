@@ -1,17 +1,34 @@
-# Roxygen documentation
+#' Update missing state act sources using rasterise.js.
+#'
+#' @param timeframe how long ago to check
+#' @param update.source.log whether to update the master table
+#'
+#' @return
+#' @export
+#'
+#' @examples
+bt_store_sa_source = function(timeframe = "30",
+                              update.source.log = T){
 
-#' Bastiat, please extract all URLs you find in the following string.
+  #these used to be params. should not be changed.
+  initialise.source.tables = F
+  path.root = "0 source completion"
 
 
-# Function infos and parameters  --------------------------------------------
-
-bt_store_sa_source = function(){
+  #check we are in BT WD
+  bastiat.wd = str_extract(getwd(), ".+Bastiat")
+  setwd(bastiat.wd)
 
   library(gtalibrary)
   library(gtasql)
   library(pool)
   library(RMariaDB)
   library(data.table)
+  library(stringr)
+  library(pdftools)
+  library(glue)
+
+
 
   gta_sql_pool_open(db.title="gtamain",
                     db.host = gta_pwd("gtamain")$host,
@@ -20,20 +37,90 @@ bt_store_sa_source = function(){
                     db.password = gta_pwd("gtamain")$password,
                     table.prefix = "gta_")
 
-
-  ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
-  bt_sa_record_new_source()
-
+  if(update.source.log){
+    print("Updating source log table with new entries")
+    ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
+    bt_sa_record_new_source(timeframe=timeframe)
+  }
 
   ### Collecting new URLs
+  # the old method should not be invoked, hence the '| T'.
+  if(!initialise.source.tables | T){
+    missing.sources=gta_sql_get_value(glue("SELECT *
+                                        FROM gta_url_log gul
+                                        WHERE (gul.check_status_id <> 0 #0=successfully collected
+                                              or gul.check_status_id IS NULL)
+                                        AND (gul.last_check IS NULL
+                                            OR gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
+                                            );"))
+  }else{
 
-  new.sources=gta_sql_get_value("SELECT source_id, url
-                                 FROM gta_source_log
-                                 WHERE source_collected=0;")
+    #Robin's approach
+    # works in theory. problem is that the gta_files does not have any correspondence to individual URLs, just SA IDs
+    # so we can't determine if an individual URL has been gathered or not.
 
-  if(nrow(new.sources)>0){
 
-    for(src.url in need.to.collect){
+
+    # define and create folders for output
+    path.current.scrape <- paste0(path.root, "/", gsub("\\D", "-", Sys.time()))
+    dir.create(path.current.scrape)
+
+    print(paste("Now set directory to:", path.current.scrape))
+
+    path.data <- paste0(path.current.scrape, "/data")
+    dir.create(path.data)
+
+    path.files <- paste0(path.current.scrape, "/files")
+    dir.create(path.files)
+
+    # get all published measures without an attached file and save them to disk
+    missing.sources <- gta_sql_get_value("SELECT *
+                                      FROM gta_measure AS gm
+                                      LEFT JOIN
+                                          (
+                                             SELECT field_id
+                                             FROM gta_files AS gf
+                                             WHERE gf.field_type = 'measure'
+                                          ) AS gf
+                                      ON gm.id = gf.field_id
+                                      WHERE gf.field_id IS NULL
+                                      AND gm.status_id = 4;")
+
+    save(missing.sources, file = paste0(path.data, "/missing_sources.RData"))
+  }
+
+
+
+
+  #must select executable path. depending on the OS
+  #could maybe use a switch?
+
+  #WINDOWS
+  if(grepl("Windows", Sys.info()['sysname'])){
+
+    #this assumes your wd and pjs exe are on the same disk and installed in the default directory
+
+    pfx = str_extract(getwd(), "^.+Users/[^/]+")
+
+    phantom.path.os = paste0(pfx, "/AppData/Roaming/PhantomJS/phantomjs")
+    #e.g. C:\Users\d-trump\AppData\Roaming\PhantomJS
+
+  } else if(grepl("Darwin", Sys.info()['sysname'])){
+
+    phantom.path.os = "~/Library/Application\\ Support/PhantomJS/phantomjs"
+
+  } else if(grepl("Linux", Sys.info()['sysname'])){
+
+    phantom.path.os = "~/bin/PhantomJS/phantomjs"
+
+  }
+
+
+  if(nrow(missing.sources)>0){
+
+    for(i in length(missing.sources$url)){
+
+      src.url = missing.sources$url[i]
 
       ## collect the source,
       ##TBA from here
@@ -43,13 +130,19 @@ bt_store_sa_source = function(){
 
       ## record file_id in gta_source_log
 
+      library(digest)
 
 
-      base.file.name=gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$"))
+      url.timestamp = gsub("\\D", "-", Sys.time())
+      url.hash = digest(src.url)
+      url.quick.id = gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$"))
+
+      base.file.name = glue("{path.root}/{url.timestamp}_{url.quick.id}-{url.hash}")
 
       this.file.name=bt_collect_url(file.name=base.file.name,
                                     url=as.character(src.url),
-                                    store.path="temp")
+                                    store.path="temp",
+                                    phantom.path = phantom.path.os)
 
 
       aws.url=bt_upload_to_aws(upload.file=this.file.name)
