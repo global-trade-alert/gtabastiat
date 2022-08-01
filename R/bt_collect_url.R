@@ -13,7 +13,7 @@
 bt_collect_url = function(url=NULL,
                           file.name=NULL,
                           store.path=NULL,
-                          add.timestamp=T,
+                          add.timestamp=F,
                           update.file.name=T,
                           js.path="setup/rasterize.js",
                           phantom.path="~/bin/phantomjs"){
