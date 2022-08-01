@@ -1,14 +1,16 @@
 #' Checks state acts for URLs and adds them to the tables for scraping later on.
 #'
-#' @param establish.connection
-#' @param timeframe
+#' @param establish.connection If T, opens the DB connection.
+#' @param timeframe Search for sources in the last {timeframe} days.
+#' @param recheck.existing.sources If T, try to scrape sources for entries which already have an attached PDF.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-bt_sa_record_new_source=function(establish.connection=F,
-                                 timeframe = NA){
+bt_sa_record_new_source=function(establish.connection=T,
+                                 timeframe = NA,
+                                 recheck.existing.sources = F){
 
   library(glue)
 
@@ -29,7 +31,7 @@ bt_sa_record_new_source=function(establish.connection=F,
     #for gtamain
     database <<- "gtamain"
 
-    con = dbConnect(drv = RMariaDB::MariaDB(),
+    con <<- dbConnect(drv = RMariaDB::MariaDB(),
                     user = gta_pwd(database)$user,
                     password = gta_pwd(database)$password,
                     dbname = gta_pwd(database)$name,
@@ -47,15 +49,18 @@ bt_sa_record_new_source=function(establish.connection=F,
   #this will only look for measures that have NEVER been added before
   if(is.na(timeframe)){
     sa.upd.sql = glue("SELECT gm.id, gm.source
-                      FROM gta_measure gm
-                      AND gm.id NOT IN (SELECT gmu.measure_id
-                                        FROM gta_measure_url gmu);")
+                      FROM gta_measure gm")
   }else{
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE gm.creation_date > (SELECT NOW() - INTERVAL {timeframe} DAY)
-                      AND gm.id NOT IN (SELECT gmu.measure_id
-                                        FROM gta_measure_url gmu);")
+                      WHERE gm.creation_date > (SELECT NOW() - INTERVAL {timeframe} DAY)")
+  }
+
+  if(!recheck.existing.sources){
+    sa.upd.sql = paste0(sa.upd.sql, " AND gm.id NOT IN (SELECT gmu.measure_id
+                                        FROM gta_measure_url gmu)")
+
+
   }
 
   sa.sources.update = dbFetch(con, sa.upd.sql)
@@ -85,11 +90,6 @@ bt_sa_record_new_source=function(establish.connection=F,
     new.urls$measure.url.updated = 0
 
 
-    ## remove all entries from gta_state_act_source
-    # gta_sql_update_table(paste0("DELETE FROM gta_state_act_source WHERE state_act_id IN (",paste(unique(new.urls$state.act.id), collapse=","),");"))
-
-
-    ## add processed URLS to gta_source_log and gta_state_act_source
     rnds.max=length(unique(new.urls$url))
     rnds=1
 
@@ -99,7 +99,7 @@ bt_sa_record_new_source=function(establish.connection=F,
     for(i in 1:nrow(new.urls)){
 
 
-      ## Adding URL if not already in gta_source_log
+      ## Adding URL if not already in gta_url_log
       if(is.na(gta_sql_get_value(glue("SELECT id FROM gta_url_log gul
                                         WHERE gul.url  = '{new.urls$url[i]}';")))){
 
