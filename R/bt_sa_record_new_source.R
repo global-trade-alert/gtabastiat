@@ -102,6 +102,9 @@ bt_sa_record_new_source=function(establish.connection=T,
 
     }
 
+    #some sources have duplicated URLs
+    new.urls = subset(new.urls, !duplicated(new.urls[,c("state.act.id", "url")]))
+
     new.urls$url.log.updated = 0
     new.urls$measure.url.updated = 0
 
