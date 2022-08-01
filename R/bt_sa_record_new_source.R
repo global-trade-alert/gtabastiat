@@ -15,7 +15,13 @@ bt_sa_record_new_source=function(establish.connection=T,
                                  recheck.existing.sources = F,
                                  ignore.manually.added = T){
 
-  library(glue)
+
+    library(glue)
+
+
+
+# Get sources -------------------------------------------------------------
+
 
   if(establish.connection){
     library(gtalibrary)
@@ -41,12 +47,8 @@ bt_sa_record_new_source=function(establish.connection=T,
                     host=gta_pwd(database)$host)
 
 
-#    test = dbGetQuery(con, statement = query)
   }
 
-  # updated.sa.sources=gta_sql_get_value("SELECT DISTINCT(state_act_id)
-  #                                       FROM gta_source_temp
-  #                                       WHERE source_processed=0;")
 
 
   #this will only look for measures that have NEVER been added before
@@ -85,9 +87,11 @@ bt_sa_record_new_source=function(establish.connection=T,
 
   if(!all(is.na(sa.sources.update))){
 
-    ## extract the URLs
-    # sources.to.parse=gta_sql_get_value(paste0("SELECT id, source FROM gta_measure WHERE id IN (",paste(updated.sa.sources, collapse=","),");"))
 
+# Extract URLs ------------------------------------------------------------
+
+
+    # extract the URLs
     sources.to.parse = sa.sources.update
     new.urls=data.frame()
 
@@ -105,9 +109,16 @@ bt_sa_record_new_source=function(establish.connection=T,
     #some sources have duplicated URLs
     new.urls = subset(new.urls, !duplicated(new.urls[,c("state.act.id", "url")]))
 
+
+
+
+
+
+# Add URL-SA ID correspondence --------------------------------------------
+
+
     new.urls$url.log.updated = 0
     new.urls$measure.url.updated = 0
-
 
     rnds.max=length(unique(new.urls$url))
     rnds=1
@@ -161,12 +172,7 @@ bt_sa_record_new_source=function(establish.connection=T,
       print("Recorded all new URLs successfully!")
     }
 
-#
-#
-#     ## mark as processed
-#     gta_sql_get_value(paste0("UPDATE gta_source_temp
-#                              SET source_processed=1
-#                              WHERE state_act_id IN(",paste(updated.sa.sources, collapse=","),");"))
+
 
 
   }
