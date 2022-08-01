@@ -1,8 +1,10 @@
 #' Checks state acts for URLs and adds them to the tables for scraping later on.
+#' Step 1 in source collection process.
 #'
 #' @param establish.connection If T, opens the DB connection.
 #' @param timeframe Search for sources in the last {timeframe} days.
-#' @param recheck.existing.sources If T, try to scrape sources for entries which already have an attached PDF.
+#' @param recheck.existing.sources If T, try to scrape sources for entries which have already been added to gta_url_log.
+#' @param ignore.manually.added If T, do not search for sources for measures that have an associated file in gta_files. Note that there is no way to distinguish if a file is present for a particular SOURCE.
 #'
 #' @return
 #' @export
@@ -10,7 +12,8 @@
 #' @examples
 bt_sa_record_new_source=function(establish.connection=T,
                                  timeframe = NA,
-                                 recheck.existing.sources = F){
+                                 recheck.existing.sources = F,
+                                 ignore.manually.added = T){
 
   library(glue)
 
@@ -49,7 +52,8 @@ bt_sa_record_new_source=function(establish.connection=T,
   #this will only look for measures that have NEVER been added before
   if(is.na(timeframe)){
     sa.upd.sql = glue("SELECT gm.id, gm.source
-                      FROM gta_measure gm")
+                      FROM gta_measure gm
+                      WHERE 1=1") #need a WHERE clause to make adding AND/OR easier later
   }else{
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
@@ -57,13 +61,25 @@ bt_sa_record_new_source=function(establish.connection=T,
   }
 
   if(!recheck.existing.sources){
-    sa.upd.sql = paste0(sa.upd.sql, " AND gm.id NOT IN (SELECT gmu.measure_id
+    sa.upd.sql = glue("{sa.upd.sql}
+                      AND gm.id NOT IN (SELECT gmu.measure_id
                                         FROM gta_measure_url gmu)")
 
 
   }
 
-  sa.sources.update = dbFetch(con, sa.upd.sql)
+  if(ignore.manually.added){
+    sa.upd.sql = glue("{sa.upd.sql}
+                      AND gm.id NOT IN (
+                        SELECT DISTINCT gf.field_id
+                        FROM gta_files gf
+                        WHERE gf.field_type = 'measure'
+                      )")
+
+
+  }
+
+  sa.sources.update = dbGetQuery(con, sa.upd.sql)
 
   rows.updated = 0
 
