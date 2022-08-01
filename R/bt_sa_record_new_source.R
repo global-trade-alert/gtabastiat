@@ -173,6 +173,7 @@ bt_sa_record_new_source=function(establish.connection=T,
     }
 
 
+    dbDisconnect(conn = con)
 
 
   }
