@@ -10,6 +10,7 @@
 #' @param incl.kanji does the source include CJK chars? (kanji, hanzi, kana, hangeul)
 #' @param invoke.mrs.hudson use to disable mrs. h invocation
 #' @param mrs.hudson.keep.results.ratio the ratio of results for Mrs. H to keep. eg. 0.9 keeps 90% of them.
+#' @param classify.master.on if T, runs the R-based classification system. If F, puts rel_prob as NA for the AWS stack to do it.
 #'
 #' @return
 #' @export
@@ -23,7 +24,8 @@ bt_leads_core_update = function(update.df=NULL,
                                 destination="b221",
                                 incl.kanji=F,
                                 invoke.mrs.hudson=T,
-                                mrs.hudson.keep.results.ratio=1){
+                                mrs.hudson.keep.results.ratio=1,
+                                classify.master.on = F){
 
   #### for testing/dbg
   #run the below lines to instantiate lc.update then skip to 'Begin upload process' section
@@ -584,15 +586,19 @@ bt_leads_core_update = function(update.df=NULL,
 
 
       # Detective classification ------------------------------------------------
+      if(classify.master.on){
+        if(!(all(grepl("(GNEWS)", lc.update$bid)))
+           & !(destination %in% "dpa")
+        ){
+          lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
 
-      if(!(all(grepl("(GNEWS)", lc.update$bid)))
-         & !(destination %in% "dpa")
-      ){
-        lc.update = bt_leads_classify_only(lc.update, assign.relevance = T)
 
+        }
+      } else {
+        #this should be done by the new stack now
+        lc.update$relevance_probability = NA
 
       }
-
 
       #
       #
