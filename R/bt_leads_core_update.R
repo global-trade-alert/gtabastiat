@@ -356,7 +356,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       ### Redundancy check
       ### is it already in bt_url_log? If so, what hints?
-
+      print("Checking URL redundancy...")
       bt.url=gta_sql_get_value("SELECT *
                               FROM bt_url_log;")
       bt.url$url=as.character(bt.url$url)
