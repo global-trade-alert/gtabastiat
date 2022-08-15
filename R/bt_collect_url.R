@@ -29,12 +29,24 @@ bt_collect_url = function(url=NULL,
   })
 
   if(is.logical(r)) {
-    return(list("new.file.name"=NA, "file.suffix"=NA, "url"=url))
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = ))
   } else if (((r$url != url) &
               (paste0(r$url, "/") != url)) &
-             (gsub("www\\.", "", r$url) != url) |
-             r$status_code != "200") {
-    return(list("new.file.name"=NA, "file.suffix"=NA, "url"=url))
+             (gsub("www\\.", "", r$url) != url)){
+
+             #r$status_code != "200",
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = 2))
+  } else if(r$status_code == "404"){
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = 4))
   }
 
   # define where the file should be stored
@@ -75,6 +87,6 @@ bt_collect_url = function(url=NULL,
   } else {
     new.file.name=file.name
   }
-  return(list("new.file.name"=new.file.name, "file.suffix"=file.suffix, "url"=url))
+  return(list("new.file.name"=new.file.name, "file.suffix"=file.suffix, "url"=url, status=0))
 }
 
