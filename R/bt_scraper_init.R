@@ -56,19 +56,28 @@ bt_scraper_init = function(){
 
 
   if(grepl(x = getwd(), pattern = ".+Dropbox/")){
-    bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "[Bb]astiat")
+    bastiat.wd = paste0(str_extract(getwd(), ".+Dropbox/"), "Bastiat")
 
 
   #setwd("/home/rstudio/Dropbox/Bastiat")
   setwd(bastiat.wd)
-  source("setup/keys/ric.R")
+  # source("setup/keys/ric.R")
+  # pool <<- pool::dbPool(
+  #   drv = RMariaDB::MariaDB(),
+  #   host = db.host,
+  #   username = db.user,
+  #   password = db.password,
+  #   dbname=db.name
+  # )
+
   pool <<- pool::dbPool(
     drv = RMariaDB::MariaDB(),
-    host = db.host,
-    username = db.user,
-    password = db.password,
-    dbname=db.name
+    host = gta_pwd('ricardomain')$host,
+    username = gta_pwd('ricardomain')$user,
+    password = gta_pwd('ricardomain')$password,
+    dbname=gta_pwd('ricardomain')$name
   )
+
   #these are not retained when this is run as a function anyway
   #rm(db.host, db.user, db.password, db.name)
   session.prefix<<-"bt_"
