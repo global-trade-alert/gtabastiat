@@ -257,7 +257,7 @@ bt_leads_core_update = function(update.df=NULL,
 
       #Works on the same trade defence phrases as the normal TD filter
 
-      filter.usa.can.td = T
+      filter.usa.can.td = F
 
       if(filter.usa.can.td){
 
