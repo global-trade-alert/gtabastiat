@@ -112,7 +112,7 @@ bt_store_sa_source = function(timeframe = "30",
 
   } else if(grepl("Linux", Sys.info()['sysname'])){
 
-    phantom.path.os = "~/bin/PhantomJS/phantomjs"
+    phantom.path.os = "~/bin/phantomjs"
 
   }
 
