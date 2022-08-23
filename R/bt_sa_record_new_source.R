@@ -166,6 +166,7 @@ bt_sa_record_new_source=function(establish.connection=T,
     if(nrow(problems)>0){
 
       print("There was a problem updating the following URL-SA ID tuples, check the SQL:")
+      print(problems)
       return(problems)
 
     }else{
