@@ -130,7 +130,7 @@ bt_sa_record_new_source=function(establish.connection=T,
 
 
       ## Adding URL if not already in gta_url_log
-      if(is.na(gta_sql_get_value(glue("SELECT id FROM gta_url_log gul
+      if(is.na(dbExecute(con, glue("SELECT id FROM gta_url_log gul
                                         WHERE gul.url  = '{new.urls$url[i]}';")))){
 
         new.urls$url.log.updated[i] = dbExecute(con, glue("INSERT INTO gta_url_log (url)
