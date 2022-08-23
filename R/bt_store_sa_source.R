@@ -152,7 +152,7 @@ bt_store_sa_source = function(timeframe = "30",
       # url
       # status
 
-      if(scrape.result$status=0){
+      if(scrape.result$status==0){
         cat("Success! Uploading to S3...")
         aws.file.name = paste0(scrape.result$new.file.name, scrape.result$file.suffix)
 
