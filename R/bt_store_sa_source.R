@@ -12,7 +12,7 @@ bt_store_sa_source = function(timeframe = "30",
 
   #these used to be params. should not be changed.
   initialise.source.tables = F
-  path.root = "0 source completion"
+  path.root = "0 source completion/temp"
 
 
   #check we are in BT WD
@@ -120,7 +120,7 @@ bt_store_sa_source = function(timeframe = "30",
 
   if(nrow(missing.sources)>0){
 
-    for(i in length(missing.sources$url)){
+    for(i in 1:length(missing.sources$url)){
 
       src.url = missing.sources$url[i]
 
@@ -145,7 +145,6 @@ bt_store_sa_source = function(timeframe = "30",
       print(glue("Attempting scrape of {src.url}... "))
       scrape.result=bt_collect_url(file.name=base.file.name,
                                     url=as.character(src.url),
-                                    store.path="temp",
                                     phantom.path = phantom.path.os)
       #returns a list of 4 objs:
       # new.file.name
@@ -189,7 +188,7 @@ bt_store_sa_source = function(timeframe = "30",
         url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
                            WHERE url = '{src.url}';")
-        gta_sql_multiple_queries(url.log.sql, 1)
+        gta_sql_multiple_queries(con, 1)
       }
     }
     # this should now be redundant with the gmu and gul relational tables

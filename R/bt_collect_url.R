@@ -83,6 +83,10 @@ bt_collect_url = function(url=NULL,
   if(is.file) {
     file.suffix=str_extract(url,"\\.[A-Za-z]{1,5}$")
     GET(url, write_disk(paste0(file.path, t.stamp, file.suffix), overwrite=TRUE))
+    return(list("new.file.name"=new.file.name,
+                "file.suffix"=file.suffix,
+                "url"=url,
+                status = 6))
   } else {
     file.suffix=".pdf"
     cmd=paste(phantom.path,
@@ -96,7 +100,7 @@ bt_collect_url = function(url=NULL,
 
   if(length(output)>0){
     print("rasterize.js failed, output was:")
-    print(output[1])
+    print(paste(output, collapse = "\n", sep ="\n"))
     return(list("new.file.name"=NA,
                 "file.suffix"=NA,
                 "url"=url,
