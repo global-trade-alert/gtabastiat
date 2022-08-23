@@ -2,7 +2,8 @@
 
 #' Bastiat, collects a URL and stores it locally using file name. Websites are printed into PDF, URLS to files are downloaded.
 #'
-#' @return The complete file name of the collected url (incl. file format).
+#'
+#' @return #returns a list of 4 objs: new.file.name, file.suffix, url, status {see gta_prod.gta_url_status_list for these}
 #' @references www.globaltradealert.org
 #' @author Johannes Fritz, Robin Scherrer and Callum Campbell for GTA
 
@@ -28,26 +29,37 @@ bt_collect_url = function(url=NULL,
     FALSE
   })
 
-  if(is.logical(r)) {
+  if(is.logical(r)) { #CC: I am not sure why this is here - I have checked the docs and httr::HEAD() always returns a response object, not a logical
     return(list("new.file.name"=NA,
                 "file.suffix"=NA,
                 "url"=url,
-                status = ))
-  } else if (((r$url != url) &
+                status = 1))
+  } else if (((r$url != url) & #check if we have been redirected
               (paste0(r$url, "/") != url)) &
              (gsub("www\\.", "", r$url) != url)){
 
-             #r$status_code != "200",
-    return(list("new.file.name"=NA,
-                "file.suffix"=NA,
-                "url"=url,
-                status = 2))
-  } else if(r$status_code == "404"){
+    #IF REDIRECTD, THEN...
+    if(grepl("(\\D404\\D)|(\\D404$)", r$url) & #check for 'soft 404'
+       r$status_code == 200){
+      return(list("new.file.name"=NA,
+                  "file.suffix"=NA,
+                  "url"=url,
+                  status = 3))
+    }else{
+      return(list("new.file.name"=NA, #if not 'soft 404', return redirected status
+                  "file.suffix"=NA,
+                  "url"=url,
+                  status = 2))
+    }
+
+  } else if(r$status_code == "404"){ #chcek for proper 404
     return(list("new.file.name"=NA,
                 "file.suffix"=NA,
                 "url"=url,
                 status = 4))
   }
+
+
 
   # define where the file should be stored
   if(is.null(store.path)){
@@ -78,7 +90,17 @@ bt_collect_url = function(url=NULL,
               paste0("'",url,"'"),
               paste0("'",file.path, t.stamp, file.suffix,"'"),
               "'A1'")
-    system(cmd)
+    #run the command and save result to a variable
+    output = system(cmd, intern = T)
+  }
+
+  if(length(output)>0){
+    print("rasterize.js failed, output was:")
+    print(output[1])
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = 5))
   }
 
   # return the file name
@@ -87,6 +109,9 @@ bt_collect_url = function(url=NULL,
   } else {
     new.file.name=file.name
   }
-  return(list("new.file.name"=new.file.name, "file.suffix"=file.suffix, "url"=url, status=0))
+  return(list("new.file.name"=new.file.name,
+              "file.suffix"=file.suffix,
+              "url"=url,
+              status=0))
 }
 

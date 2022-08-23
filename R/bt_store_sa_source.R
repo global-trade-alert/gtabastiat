@@ -47,8 +47,9 @@ bt_store_sa_source = function(timeframe = "30",
   # the old method should not be invoked, hence the '| T'.
   if(!initialise.source.tables | T){
     missing.sources=gta_sql_get_value(glue("SELECT *
-                                        FROM gta_url_log gul
-                                        WHERE (gul.check_status_id <> 0 #0=successfully collected
+                                        FROM gta_url_log gul, gta_measure_url gmu
+                                        WHERE gul.id = gmu.url_id
+                                        AND (gul.check_status_id <> 0 #0=successfully collected
                                               or gul.check_status_id IS NULL)
                                         AND (gul.last_check IS NULL
                                             OR gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
@@ -139,88 +140,114 @@ bt_store_sa_source = function(timeframe = "30",
 
       base.file.name = glue("{path.root}/{url.timestamp}_{url.quick.id}-{url.hash}")
 
-      this.file.name=bt_collect_url(file.name=base.file.name,
+      # do the scraping
+      print(glue("Attempting scrape of {src.url}... "))
+      scrape.result=bt_collect_url(file.name=base.file.name,
                                     url=as.character(src.url),
                                     store.path="temp",
                                     phantom.path = phantom.path.os)
+      #returns a list of 4 objs:
+      # new.file.name
+      # file.suffix
+      # url
+      # status
+
+      if(scrape.result$status=0){
+        cat("Success! Uploading to S3...")
+        aws.file.name = paste0(scrape.result$new.file.name, scrape.result$file.suffix)
+
+        aws.url=bt_upload_to_aws(upload.file.name = aws.file.name,
+                                 upload.file.path = store.path)
 
 
-      aws.url=bt_upload_to_aws(upload.file=this.file.name)
+        n.measures = unique(subset(missing.sources, url == src.url)$measure.id) %>% length()
+        print(glue("Adding url ID {missing.sources$id[i]} to {n.measures}..."))
+        for(sa.id in unique(subset(missing.sources, url == src.url)$measure.id)){
 
+          # update gta_file
+          gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
+                                    VALUES (",sa.id,",'measure','",aws.url,"','",gsub("temp/","", base.file.name),"',0);")
+          gta_sql_multiple_queries(gta.files.sql, 1)
 
-      for(sa.id in unique(subset(new.sources, url == src.url)$state.act.id)){
+          # update gta_url_log
+          aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
+                                              FROM gta_files WHERE file_url = '",aws.url,"';"))
 
-        # update gta_file
-        gta_sql_update_table(paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
-                                    VALUES (",sa.id,",'measure','",aws.url,"','",gsub("temp/","", this.file.name),"',0);"))
+          url.log.sql = glue("UPDATE gta_url_log
+                           SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = '{aws.url}', gta_file_id = {aws.file.id}
+                           WHERE url = '{src.url}';")
 
-        # update gta_sa_soure_url
-        aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
-                                              FROM gta_files WHERE file_url = '",src.url,"';"))
+          gta_sql_multiple_queries(url.log.sql, 1)
 
-        gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
-                                    VALUES (",sa.id,",'",src.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
-
-
-      }
-    }
-
-    for(chk.url in check.for.update){
-
-      ## check whether I have a record linking the state act id to this URL, if not, add
-      local.acts=unique(subset(gta.urls, url==chk.url)$state.act.id)
-      listed.acts=gta_sql_get_value(paste0("SELECT state_act_id
-                                              FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
-
-      if(any(! local.acts %in% listed.acts)){
-
-        aws.file.id=gta_sql_get_value(paste0("SELECT MAX(source_file_id)
-                                              FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
-
-        for(act.id in setdiff(local.acts, listed.acts)){
-
-          gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
-                                    VALUES (",act.id,",'",chk.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
+          # gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
+          #                             VALUES (",sa.id,",'",src.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
 
         }
+      }else{
+
+        url.log.sql = glue("UPDATE gta_url_log
+                           SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
+                           WHERE url = '{src.url}';")
+        gta_sql_multiple_queries(url.log.sql, 1)
       }
-
     }
+    # this should now be redundant with the gmu and gul relational tables
+    # for(chk.url in check.for.update){
+    #
+    #   ## check whether I have a record linking the state act id to this URL, if not, add
+    #   local.acts=unique(subset(gta.urls, url==chk.url)$state.act.id)
+    #   listed.acts=gta_sql_get_value(paste0("SELECT state_act_id
+    #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
+    #
+    #   if(any(! local.acts %in% listed.acts)){
+    #
+    #     aws.file.id=gta_sql_get_value(paste0("SELECT MAX(source_file_id)
+    #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
+    #
+    #     for(act.id in setdiff(local.acts, listed.acts)){
+    #
+    #       gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
+    #                                 VALUES (",act.id,",'",chk.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
+    #
+    #     }
+    #   }
+    #
+    # }
 
 
   }
 
 
-
-  # check listing status per state act of remote
-  for(sa in unique(intersect(gta.urls$state.act.id,documented.urls$state.act.id))){
-
-    #are all urls in documented.urls stil in gta.urls? If not, set listing to F
-
-  }
-
-
-
-  ## checking for attachments
-  has.attachment=gta_sql_get_value("SELECT field_id FROM gta_files WHERE field_type = 'measure' AND is_deleted=0;")
-
-
-  sa.source.repo=unique(data.frame(state.act.id=gta.urls$state.act.id,
-                                   sa.source.attached=gta.urls$state.act.id %in% has.attachment,
-                                   sa.source.contains.url=is.na(gta.urls$url)==F,
-                                   sa.source.collected=F,
-                                   stringsAsFactors = F))
-
-  gta_sql_append_table(append.table = "sa.source.repo",
-                       append.by.df = "sa.source.repo")
-
-
-  gta_sql_create_table(write.df="sa.source.repo",
-                       create.foreign.key = "state.act.id",
-                       foreign.key.parent.table = "measure",
-                       foreign.key.parent.name = "id",
-                       foreign.key.parent.table.prefix = "gta_",
-                       append.existing = F)
+#
+#   # check listing status per state act of remote
+#   for(sa in unique(intersect(gta.urls$state.act.id,documented.urls$state.act.id))){
+#
+#     #are all urls in documented.urls stil in gta.urls? If not, set listing to F
+#
+#   }
+#
+#
+#
+#   ## checking for attachments
+#   has.attachment=gta_sql_get_value("SELECT field_id FROM gta_files WHERE field_type = 'measure' AND is_deleted=0;")
+#
+#
+#   sa.source.repo=unique(data.frame(state.act.id=gta.urls$state.act.id,
+#                                    sa.source.attached=gta.urls$state.act.id %in% has.attachment,
+#                                    sa.source.contains.url=is.na(gta.urls$url)==F,
+#                                    sa.source.collected=F,
+#                                    stringsAsFactors = F))
+#
+#   gta_sql_append_table(append.table = "sa.source.repo",
+#                        append.by.df = "sa.source.repo")
+#
+#
+#   gta_sql_create_table(write.df="sa.source.repo",
+#                        create.foreign.key = "state.act.id",
+#                        foreign.key.parent.table = "measure",
+#                        foreign.key.parent.name = "id",
+#                        foreign.key.parent.table.prefix = "gta_",
+#                        append.existing = F)
 
 
 
