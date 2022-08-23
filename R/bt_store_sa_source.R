@@ -25,7 +25,7 @@ bt_store_sa_source = function(timeframe = "30",
   library(RMariaDB)
   library(data.table)
   library(stringr)
-  library(pdftools)
+  #library(pdftools)
   library(glue)
 
 
