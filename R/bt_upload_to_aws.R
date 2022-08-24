@@ -13,7 +13,8 @@
 bt_upload_to_aws = function(upload.file.name=NULL,
                             upload.file.path=NULL,
                             upload.destination="gtaupload/Uploads/files/",
-                            credential.path="setup/keys/as3.R") {
+                            credential.path="setup/keys/as3.R",
+                            rm.after.upload = T) {
 
   library(httr)
   library(glue)
@@ -34,14 +35,19 @@ bt_upload_to_aws = function(upload.file.name=NULL,
 
 
   if(is.logical(r) | r$status_code!=200){
-    stop(glue("Error uploading to AWS! The URL was supposed to be: {aws.url}"))
+    stop(glue("Error uploading to AWS! The URL was supposed to be: {aws.url}.\nTry running `$aws configure`."))
   }
 
 
 
   if(r$status_code == 200){
-    print("AWS upload return code 200!")
+    print("AWS upload return code 200! Deleting temp file...")
+    if(rm.after.upload){
+      system(command = glue("rm '{upload.location}'"))
+      }
     return(aws.url)
   }
+
+  stop(glue("UNCAUGHT ERROR uploading to AWS! The URL was supposed to be: {aws.url}.\nTry running `$aws configure`."))
 }
 
