@@ -15,7 +15,7 @@ bt_collect_url = function(url=NULL,
                           file.name=NULL,
                           store.path=NULL,
                           add.timestamp=F,
-                          update.file.name=T,
+                          update.file.name=F,
                           js.path="setup/rasterize.js",
                           phantom.path="~/bin/phantomjs"){
 
@@ -29,11 +29,11 @@ bt_collect_url = function(url=NULL,
     FALSE
   })
 
-  if(is.logical(r)) { #CC: I am not sure why this is here - I have checked the docs and httr::HEAD() always returns a response object, not a logical
+  if(is.logical(r)) {
     return(list("new.file.name"=NA,
                 "file.suffix"=NA,
                 "url"=url,
-                status = 1))
+                status = 1)) #GET returned error
   } else if (((r$url != url) & #check if we have been redirected
               (paste0(r$url, "/") != url)) &
              (gsub("www\\.", "", r$url) != url)){
