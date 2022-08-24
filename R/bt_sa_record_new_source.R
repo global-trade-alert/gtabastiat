@@ -55,7 +55,7 @@ bt_sa_record_new_source=function(establish.connection=T,
   if(is.na(timeframe)){
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE 1=1") #need a WHERE clause to make adding AND/OR easier later
+                      WHERE gm.status <> 5") #need a WHERE clause to make adding AND/OR easier later
   }else{
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
