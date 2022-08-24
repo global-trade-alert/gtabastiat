@@ -7,8 +7,9 @@
 #' @export
 #'
 #' @examples
-bt_store_sa_source = function(timeframe = "30",
-                              update.source.log = T){
+bt_store_sa_source = function(timeframe = 30,
+                              update.source.log = T,
+                              establish.connection = T){
 
   #these used to be params. should not be changed.
   initialise.source.tables = F
@@ -28,6 +29,32 @@ bt_store_sa_source = function(timeframe = "30",
   #library(pdftools)
   library(glue)
 
+  if(establish.connection){
+    library(gtalibrary)
+    library(gtasql)
+    library(pool)
+    library(RMariaDB)
+    library(data.table)
+
+    # gta_sql_pool_open(db.title="gtamain",
+    #                   db.host = gta_pwd("gtamain")$host,
+    #                   db.name = gta_pwd("gtamain")$name,
+    #                   db.user = gta_pwd("gtamain")$user,
+    #                   db.password = gta_pwd("gtamain")$password,
+    #                   table.prefix = "gta_")
+
+    #for gtamain
+    database <<- "gtamain"
+
+    con <<- dbConnect(drv = RMariaDB::MariaDB(),
+                      user = gta_pwd(database)$user,
+                      password = gta_pwd(database)$password,
+                      dbname = gta_pwd(database)$name,
+                      host=gta_pwd(database)$host)
+
+
+  }
+
 
 
   gta_sql_pool_open(db.title="gtamain",
@@ -40,14 +67,15 @@ bt_store_sa_source = function(timeframe = "30",
   if(update.source.log){
     print("Updating source log table with new entries")
     ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
-    problems = bt_sa_record_new_source(timeframe=timeframe)
+    problems = bt_sa_record_new_source(timeframe=timeframe,
+                                       establish.connection = F)
 
   }
 
   ### Collecting new URLs
   # the old method should not be invoked, hence the '| T'.
   if(!initialise.source.tables | T){
-    missing.sources=gta_sql_get_value(glue("SELECT *
+    missing.sources=dbGetQuery(con, glue("SELECT *
                                         FROM gta_url_log gul, gta_measure_url gmu
                                         WHERE gul.id = gmu.url_id
                                         AND (gul.check_status_id <> 0 #0=successfully collected
@@ -76,7 +104,7 @@ bt_store_sa_source = function(timeframe = "30",
     dir.create(path.files)
 
     # get all published measures without an attached file and save them to disk
-    missing.sources <- gta_sql_get_value("SELECT *
+    missing.sources <- dbGetQuery(con, "SELECT *
                                       FROM gta_measure AS gm
                                       LEFT JOIN
                                           (
@@ -157,7 +185,7 @@ bt_store_sa_source = function(timeframe = "30",
         aws.file.name = paste0(scrape.result$new.file.name, scrape.result$file.suffix)
 
         aws.url=bt_upload_to_aws(upload.file.name = aws.file.name,
-                                 upload.file.path = store.path)
+                                 upload.file.path = "")
 
 
         n.measures = unique(subset(missing.sources, url == src.url)$measure.id) %>% length()
@@ -167,7 +195,9 @@ bt_store_sa_source = function(timeframe = "30",
           # update gta_file
           gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
                                     VALUES (",sa.id,",'measure','",aws.url,"','",gsub("temp/","", base.file.name),"',0);")
-          gta_sql_multiple_queries(gta.files.sql, 1)
+
+          dbExecute(con, gta.files.sql)
+          # gta_sql_multiple_queries(gta.files.sql, 1)
 
           # update gta_url_log
           aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
@@ -177,7 +207,8 @@ bt_store_sa_source = function(timeframe = "30",
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = '{aws.url}', gta_file_id = {aws.file.id}
                            WHERE url = '{src.url}';")
 
-          gta_sql_multiple_queries(url.log.sql, 1)
+          dbExecute(con, url.log.sql)
+          # gta_sql_multiple_queries(url.log.sql, 1)
 
           # gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
           #                             VALUES (",sa.id,",'",src.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
@@ -188,7 +219,9 @@ bt_store_sa_source = function(timeframe = "30",
         url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
                            WHERE url = '{src.url}';")
-        gta_sql_multiple_queries(con, 1)
+
+        dbExecute(con, url.log.sql)
+        # gta_sql_multiple_queries(url.log.sql, 1)
       }
     }
     # this should now be redundant with the gmu and gul relational tables
