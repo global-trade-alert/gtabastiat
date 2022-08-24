@@ -156,7 +156,7 @@ bt_sa_record_new_source=function(establish.connection=T,
         cat(glue("{i}\n"))
       }
       # print(rnds/rnds.max)
-      # rnds=rnds+1
+      # rnds=rnds+
     }
 
 
