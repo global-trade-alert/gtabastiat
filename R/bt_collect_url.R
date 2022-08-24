@@ -46,9 +46,9 @@ bt_collect_url = function(url=NULL,
                   "url"=url,
                   status = 3))
     }else{
-      return(list("new.file.name"=NA, #if not 'soft 404', return redirected status
+      return(list("new.file.name"=NA, #if not 'soft 404', return redirected status and new url
                   "file.suffix"=NA,
-                  "url"=url,
+                  "url"=r$url,
                   status = 2))
     }
 
@@ -83,6 +83,13 @@ bt_collect_url = function(url=NULL,
   if(is.file) {
     file.suffix=str_extract(url,"\\.[A-Za-z]{1,5}$")
     GET(url, write_disk(paste0(file.path, t.stamp, file.suffix), overwrite=TRUE))
+
+    if(update.file.name){
+      new.file.name=paste0(file.path, t.stamp, file.suffix)
+    } else {
+      new.file.name=file.name
+    }
+
     return(list("new.file.name"=new.file.name,
                 "file.suffix"=file.suffix,
                 "url"=url,
