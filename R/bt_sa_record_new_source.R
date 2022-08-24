@@ -96,7 +96,7 @@ bt_sa_record_new_source=function(establish.connection=T,
     new.urls=data.frame()
 
     #the below loop constructs the many-to-one relationship between urls and sa ids
-    print("constructing URL-SA ID dataframe")
+    print(glue("constructing URL-SA ID dataframe for {nrow(sources.to.parse)} state acts"))
 
     for(i in 1:nrow(sources.to.parse)){
       new.urls=rbind(new.urls,
@@ -109,7 +109,7 @@ bt_sa_record_new_source=function(establish.connection=T,
     #some sources have duplicated URLs
     new.urls = subset(new.urls, !duplicated(new.urls[,c("state.act.id", "url")]))
 
-
+    print(glue("{nrow(new.urls)} new URLs found."))
 
 
 
@@ -128,25 +128,25 @@ bt_sa_record_new_source=function(establish.connection=T,
     #sources with multiple measures are all added
     for(i in 1:nrow(new.urls)){
 
-
+      url.id = dbGetQuery(con, glue("SELECT id FROM gta_url_log gul
+                                        WHERE gul.url  = '{new.urls$url[i]}';")) #will return 0 row df if no results
       ## Adding URL if not already in gta_url_log
-      if(is.na(dbExecute(con, glue("SELECT id FROM gta_url_log gul
-                                        WHERE gul.url  = '{new.urls$url[i]}';")))){
+      if(nrow(url.id) == 0){
 
         new.urls$url.log.updated[i] = dbExecute(con, glue("INSERT INTO gta_url_log (url)
                                     VALUES ('{new.urls$url[i]}');"))
 
 
+      }else{
+        new.urls$url.log.updated[i] = 1
         }
 
 
       #add sa id-url id tuple to measure_url table
       #this should be done even if the URL exists in the URL table already, because all the tuples are new
-      {
-        new.urls$measure.url.updated[i] = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
-                                    VALUES ({new.urls$state.act.id[i]}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{new.urls$url[i]}'));"))
 
-      }
+      new.urls$measure.url.updated[i] = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
+                                    VALUES ({new.urls$state.act.id[i]}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{new.urls$url[i]}'));"))
 
 
 
@@ -165,8 +165,8 @@ bt_sa_record_new_source=function(establish.connection=T,
 
     if(nrow(problems)>0){
 
-      print("There was a problem updating the following URL-SA ID tuples, check the SQL:")
-      print(problems)
+      print("There was a problem updating the following URL-SA ID tuples, check the SQL. SA IDs affected:")
+      print(paste(problems$state.act.id, collapse = ", "))
       return(problems)
 
     }else{
