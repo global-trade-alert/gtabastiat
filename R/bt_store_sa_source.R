@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-bt_store_sa_source = function(timeframe = 30,
+bt_store_sa_source = function(timeframe = 365,
                               update.source.log = T,
                               establish.connection = T){
 
@@ -57,18 +57,15 @@ bt_store_sa_source = function(timeframe = 30,
 
 
 
-  gta_sql_pool_open(db.title="gtamain",
-                    db.host = gta_pwd("gtamain")$host,
-                    db.name = gta_pwd("gtamain")$name,
-                    db.user = gta_pwd("gtamain")$user,
-                    db.password = gta_pwd("gtamain")$password,
-                    table.prefix = "gta_")
+
 
   if(update.source.log){
     print("Updating source log table with new entries")
     ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
     problems = bt_sa_record_new_source(timeframe=timeframe,
-                                       establish.connection = F)
+                                       establish.connection = F,
+                                       recheck.existing.sources = F,
+                                       ignore.manually.added = T)
 
   }
 
