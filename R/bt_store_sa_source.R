@@ -192,7 +192,8 @@ bt_store_sa_source = function(timeframe = 365,
 
 
           n.measures = unique(subset(missing.sources, url == src.url)$measure_id) %>% length()
-          print(glue("Adding url ID {missing.sources$id[missing.sources$url == url]} to {n.measures} state act(s)..."))
+          add.id = missing.sources$id[missing.sources$url == url] %>% unique()
+          print(glue("Adding url ID {add.id} to {n.measures} state act(s)..."))
 
           for(sa.id in unique(subset(missing.sources, url == src.url)$measure_id)){
             cat(glue("SA ID {sa.id}: "))
