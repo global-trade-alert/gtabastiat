@@ -75,8 +75,7 @@ bt_store_sa_source = function(timeframe = 365,
     missing.sources=dbGetQuery(con, glue("SELECT *
                                         FROM gta_url_log gul, gta_measure_url gmu
                                         WHERE gul.id = gmu.url_id
-                                        AND (gul.check_status_id <> 0 #0=successfully collected
-                                              or gul.check_status_id IS NULL)
+                                        AND gul.check_status_id IS NULL
                                         AND (gul.last_check IS NULL
                                             OR gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
                                             );"))
@@ -145,106 +144,149 @@ bt_store_sa_source = function(timeframe = 365,
 
   if(nrow(missing.sources)>0){
 
-    for(i in 1:length(missing.sources$url)){
 
-      src.url = missing.sources$url[i]
+    for(url in unique(missing.sources$url)){
 
-      ## collect the source,
-      ##TBA from here
-      ## upload it to AWS (user soucre ID as file name)
+      src.url = url
+      if(src.url!="NA"){
+        ## collect the source,
+        ##TBA from here
+        ## upload it to AWS (user soucre ID as file name)
 
-      ## ADD collection URL to gta_files (name by source ID and URL-tld)
+        ## ADD collection URL to gta_files (name by source ID and URL-tld)
 
-      ## record file_id in gta_source_log
+        ## record file_id in gta_source_log
 
-      library(digest)
-
-
-      url.timestamp = gsub("\\D", "-", Sys.time())
-      url.hash = digest(src.url)
-      url.quick.id = gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$"))
-
-      base.file.name = glue("{path.root}/{url.timestamp}_{url.quick.id}-{url.hash}")
-
-      # do the scraping
-      print(glue("Attempting scrape of {src.url}... "))
-      scrape.result=bt_collect_url(file.name=base.file.name,
-                                    url=as.character(src.url),
-                                    phantom.path = phantom.path.os)
-      #returns a list of 4 objs:
-      # new.file.name
-      # file.suffix
-      # url
-      # status
-
-      if(scrape.result$status==0){
-        cat("Success! Uploading to S3...")
-        aws.file.name = paste0(scrape.result$new.file.name, scrape.result$file.suffix)
-
-        aws.url=bt_upload_to_aws(upload.file.name = aws.file.name,
-                                 upload.file.path = "")
+        library(digest)
 
 
-        n.measures = unique(subset(missing.sources, url == src.url)$measure.id) %>% length()
-        print(glue("Adding url ID {missing.sources$id[i]} to {n.measures}..."))
-        for(sa.id in unique(subset(missing.sources, url == src.url)$measure.id)){
+        url.timestamp = gsub("\\D", "-", Sys.time())
+        url.hash = digest(src.url)
+        url.quick.id = gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$"))
 
-          # update gta_file
-          gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
-                                    VALUES (",sa.id,",'measure','",aws.url,"','",gsub("temp/","", base.file.name),"',0);")
+        base.file.name = glue("{url.timestamp}_{url.quick.id}-{url.hash}")
 
-          dbExecute(con, gta.files.sql)
-          # gta_sql_multiple_queries(gta.files.sql, 1)
+        #db/website only allows up to 100chr filename
+        if(nchar(base.file.name)>95){
+          base.file.name = url.hash
+        }
 
-          # update gta_url_log
-          aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
+        # do the scraping
+        print(glue("Attempting scrape of {src.url}... "))
+        scrape.result=bt_collect_url(file.name=base.file.name,
+                                     store.path = path.root,
+                                     url=as.character(src.url),
+                                     phantom.path = phantom.path.os)
+        #returns a list of 4 objs:
+        # new.file.name
+        # file.suffix
+        # url
+        # status
+
+        if(scrape.result$status %in% c(0, 6)){
+          cat("Success! Uploading to S3...")
+          aws.file.name = paste0(scrape.result$new.file.name, scrape.result$file.suffix)
+
+          aws.url=bt_upload_to_aws(upload.file.name = aws.file.name,
+                                   upload.file.path = path.root)
+
+
+          n.measures = unique(subset(missing.sources, url == src.url)$measure_id) %>% length()
+          print(glue("Adding url ID {missing.sources$id[missing.sources$url == url]} to {n.measures} state act(s)..."))
+
+          for(sa.id in unique(subset(missing.sources, url == src.url)$measure_id)){
+            cat(glue("SA ID {sa.id}: "))
+            # update gta_file
+            gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
+                                    VALUES (",sa.id,",'measure','",aws.url,"','",gsub("temp/","", base.file.name), scrape.result$file.suffix,"',0);")
+
+            gta.files.sql.upload = dbExecute(con, gta.files.sql)
+            cat(glue("gta_files upload status: {gta.files.sql.upload}  ///  "))
+            # gta_sql_multiple_queries(gta.files.sql, 1)
+
+            # update gta_url_log
+            aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
                                               FROM gta_files WHERE file_url = '",aws.url,"';"))
 
-          url.log.sql = glue("UPDATE gta_url_log
+            url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = '{aws.url}', gta_file_id = {aws.file.id}
                            WHERE url = '{src.url}';")
 
-          dbExecute(con, url.log.sql)
-          # gta_sql_multiple_queries(url.log.sql, 1)
+            url.log.sql.upload = dbExecute(con, url.log.sql)
+            cat(glue("gta_url_log upload status: {url.log.sql.upload}"))
 
-          # gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
-          #                             VALUES (",sa.id,",'",src.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
+            cat("\n")
+            # gta_sql_multiple_queries(url.log.sql, 1)
 
-        }
-      }else{
+            # gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
+            #                             VALUES (",sa.id,",'",src.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
 
-        url.log.sql = glue("UPDATE gta_url_log
+          }
+        }else if(scrape.result$status == 2){
+
+          #add all the info if redirected
+          cat(glue("REDIRECTED - "))
+          for(sa.id in unique(subset(missing.sources, url == src.url)$measure_id)){
+            #update the url on record to show redirected
+            cat(glue("AMENDING SA ID {sa.id}: "))
+            url.log.sql = glue("UPDATE gta_url_log
+                             SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
+                             WHERE url = '{src.url}';")
+
+            url.log.sql.status = dbExecute(con, url.log.sql)
+            cat(url.log.sql.status)
+
+            #add the new url after redirect for later scraping
+            cat("\nADDING NEW URL: ")
+
+            url.exist.check = dbGetQuery(con, glue("SELECT * FROM gta_url_log gul
+                                                   WHERE gul.url = '{scrape.result$url}'"))
+            if(nrow(url.exist.check)==0){
+              new.url.log.upl = dbExecute(con, glue("INSERT INTO gta_url_log (url)
+                                      VALUES ('{scrape.result$url}');"))
+              cat(glue("new url_log status = {new.url.log.upl}  ///  "))
+            }
+            new.mes.url.upl = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
+                                    VALUES ({sa.id}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{scrape.result$url}'));"))
+            cat(glue("new measure_url status = {new.mes.url.upl}"))
+          }
+
+        }else{
+          cat("updating url_log with failed status: ")
+          url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
                            WHERE url = '{src.url}';")
 
-        dbExecute(con, url.log.sql)
-        # gta_sql_multiple_queries(url.log.sql, 1)
+          url.log.sql.status = dbExecute(con, url.log.sql)
+          cat(glue("{url.log.sql.status}"))
+          cat("\n")
+          # gta_sql_multiple_queries(url.log.sql, 1)
+        }
       }
+      # this should now be redundant with the gmu and gul relational tables
+      # for(chk.url in check.for.update){
+      #
+      #   ## check whether I have a record linking the state act id to this URL, if not, add
+      #   local.acts=unique(subset(gta.urls, url==chk.url)$state.act.id)
+      #   listed.acts=gta_sql_get_value(paste0("SELECT state_act_id
+      #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
+      #
+      #   if(any(! local.acts %in% listed.acts)){
+      #
+      #     aws.file.id=gta_sql_get_value(paste0("SELECT MAX(source_file_id)
+      #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
+      #
+      #     for(act.id in setdiff(local.acts, listed.acts)){
+      #
+      #       gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
+      #                                 VALUES (",act.id,",'",chk.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
+      #
+      #     }
+      #   }
+      #
+      # }
+
     }
-    # this should now be redundant with the gmu and gul relational tables
-    # for(chk.url in check.for.update){
-    #
-    #   ## check whether I have a record linking the state act id to this URL, if not, add
-    #   local.acts=unique(subset(gta.urls, url==chk.url)$state.act.id)
-    #   listed.acts=gta_sql_get_value(paste0("SELECT state_act_id
-    #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
-    #
-    #   if(any(! local.acts %in% listed.acts)){
-    #
-    #     aws.file.id=gta_sql_get_value(paste0("SELECT MAX(source_file_id)
-    #                                           FROM gta_sa_source_url WHERE source_url = '",chk.url,"';"))
-    #
-    #     for(act.id in setdiff(local.acts, listed.acts)){
-    #
-    #       gta_sql_update_table(paste0("INSERT INTO gta_sa_source_url
-    #                                 VALUES (",act.id,",'",chk.url,"',1,1,CURRENT_TIMESTAMP,1,",aws.file.id,");"))
-    #
-    #     }
-    #   }
-    #
-    # }
-
-
   }
 
 
