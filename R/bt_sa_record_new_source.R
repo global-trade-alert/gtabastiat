@@ -97,7 +97,7 @@ bt_sa_record_new_source=function(establish.connection=T,
     specific.sa.ids = paste0(specific.sa.ids, collapse = ", ")
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE gm.id IN ({specific.sa.ids.})"
+                      WHERE gm.id IN ({specific.sa.ids.})")
 
   }
 
