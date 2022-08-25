@@ -14,7 +14,8 @@ bt_sa_record_new_source=function(establish.connection=T,
                                  timeframe = NA,
                                  recheck.existing.sources = F,
                                  ignore.manually.added = T,
-                                 exclude.data.dump.measures = T){
+                                 exclude.data.dump.measures = T,
+                                 specific.sa.ids = NA){
 
 
     library(glue)
@@ -87,6 +88,16 @@ bt_sa_record_new_source=function(establish.connection=T,
                         SELECT gi.measure_id
                         FROM gta_intervention gi, gta_intervention_dump gid
                         WHERE gi.id = gid.intervention_id) ")
+
+  }
+
+  if(!is.na(specific.sa.ids)){
+    print("Specific IDs supplied; other filter params will be ignored.")
+
+    specific.sa.ids = paste0(specific.sa.ids, collapse = ", ")
+    sa.upd.sql = glue("SELECT gm.id, gm.source
+                      FROM gta_measure gm
+                      WHERE gm.id IN ({specific.sa.ids.})"
 
   }
 
