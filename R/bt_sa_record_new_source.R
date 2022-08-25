@@ -13,7 +13,8 @@
 bt_sa_record_new_source=function(establish.connection=T,
                                  timeframe = NA,
                                  recheck.existing.sources = F,
-                                 ignore.manually.added = T){
+                                 ignore.manually.added = T,
+                                 exclude.data.dump.measures = T){
 
 
     library(glue)
@@ -52,14 +53,14 @@ bt_sa_record_new_source=function(establish.connection=T,
 
 
   #this will only look for measures that have NEVER been added before
-  if(is.na(timeframe)){
-    sa.upd.sql = glue("SELECT gm.id, gm.source
+
+  sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE gm.status <> 5") #need a WHERE clause to make adding AND/OR easier later
-  }else{
-    sa.upd.sql = glue("SELECT gm.id, gm.source
-                      FROM gta_measure gm
-                      WHERE gm.creation_date > (SELECT NOW() - INTERVAL {timeframe} DAY)")
+                      WHERE gm.status_id <> 5 #not archived")
+
+  if(!is.na(timeframe)){
+    sa.upd.sql = glue("{sa.upd.sql}
+                      AND gm.creation_date > (SELECT NOW() - INTERVAL {timeframe} DAY) ")
   }
 
   if(!recheck.existing.sources){
@@ -77,7 +78,15 @@ bt_sa_record_new_source=function(establish.connection=T,
                         FROM gta_files gf
                         WHERE gf.field_type = 'measure'
                       )")
+  }
 
+  if(exclude.data.dump.measures){
+
+    sa.upd.sql = glue("{sa.upd.sql}
+                      AND gm.id NOT IN ( #no dumps
+                        SELECT gi.measure_id
+                        FROM gta_intervention gi, gta_intervention_dump gid
+                        WHERE gi.id = gid.intervention_id) ")
 
   }
 
