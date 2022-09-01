@@ -57,7 +57,8 @@ bt_sa_record_new_source=function(establish.connection=T,
 
   sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE gm.status_id <> 5 #not archived")
+                      WHERE gm.status_id <> 5 #not archived
+                      AND gm.source NOT LIKE '%wind.com.cn%' #the wind dump measures should be excluded")
 
   if(!is.na(timeframe)){
     sa.upd.sql = glue("{sa.upd.sql}
@@ -129,7 +130,8 @@ bt_sa_record_new_source=function(establish.connection=T,
     #some sources have duplicated URLs
     new.urls = subset(new.urls, !duplicated(new.urls[,c("state.act.id", "url")]))
 
-    print(glue("{nrow(new.urls)} new URLs found."))
+    n.new.urls = unique(new.urls$url) %>% length()
+    print(glue("{n.new.urls} new URLs found."))
 
 
 
