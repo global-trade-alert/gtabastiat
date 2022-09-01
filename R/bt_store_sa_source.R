@@ -210,7 +210,7 @@ bt_store_sa_source = function(timeframe = 365,
             # gta_sql_multiple_queries(gta.files.sql, 1)
 
             # update gta_url_log
-            aws.file.id=gta_sql_get_value(paste0("SELECT MAX(id)
+            aws.file.id=dbGetQuery(con, paste0("SELECT MAX(id)
                                               FROM gta_files WHERE file_url = '",aws.url,"';"))
 
             url.log.sql = glue("UPDATE gta_url_log
@@ -333,5 +333,7 @@ bt_store_sa_source = function(timeframe = 365,
 
   #set CRON
 
+  print("reached the end! disconnecting")
+  dbDisconnect()
 
 }
