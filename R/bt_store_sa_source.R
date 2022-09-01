@@ -1,4 +1,8 @@
-#' Update missing state act sources using rasterise.js.
+#' Main function of the source collection process.
+#' Uses bt_sa_record_new_source() to update the log of missing sources.
+#' Then uses bt_collect_url() to check if they are working.
+#' Gets a PDF if possible, uploads to the bucket and updates gta_files.
+#' Then adds the link to all the state acts which use that source.
 #'
 #' @param timeframe how long ago to check
 #' @param update.source.log whether to update the master table
