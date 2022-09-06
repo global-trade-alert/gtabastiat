@@ -257,6 +257,7 @@ bt_store_sa_source = function(timeframe = 365,
             new.mes.url.upl = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
                                     VALUES ({sa.id}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{escaped.url}'));"))
             cat(glue("new measure_url status = {new.mes.url.upl}"))
+            cat("\n")
           }
 
         }else{
