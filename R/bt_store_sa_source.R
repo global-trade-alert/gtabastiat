@@ -244,15 +244,18 @@ bt_store_sa_source = function(timeframe = 365,
             #add the new url after redirect for later scraping
             cat("\nADDING NEW URL: ")
 
+            #in very rare cases the new url may have an apostrophe in it...
+            escaped.url = gsub("'", "\\\\'", scrape.result$url)
+
             url.exist.check = dbGetQuery(con, glue("SELECT * FROM gta_url_log gul
-                                                   WHERE gul.url = '{scrape.result$url}'"))
+                                                   WHERE gul.url = '{escaped.url}'"))
             if(nrow(url.exist.check)==0){
               new.url.log.upl = dbExecute(con, glue("INSERT INTO gta_url_log (url)
-                                      VALUES ('{scrape.result$url}');"))
+                                      VALUES ('{escaped.url}');"))
               cat(glue("new url_log status = {new.url.log.upl}  ///  "))
             }
             new.mes.url.upl = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
-                                    VALUES ({sa.id}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{scrape.result$url}'));"))
+                                    VALUES ({sa.id}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{escaped.url}'));"))
             cat(glue("new measure_url status = {new.mes.url.upl}"))
           }
 
