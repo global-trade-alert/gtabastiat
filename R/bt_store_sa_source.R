@@ -13,7 +13,8 @@
 #' @examples
 bt_store_sa_source = function(timeframe = 365,
                               update.source.log = T,
-                              establish.connection = T){
+                              establish.connection = T,
+                              recheck.existing.sources = F){
 
   #these used to be params. should not be changed.
   initialise.source.tables = F
@@ -68,7 +69,7 @@ bt_store_sa_source = function(timeframe = 365,
     ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
     problems = bt_sa_record_new_source(timeframe=timeframe,
                                        establish.connection = F,
-                                       recheck.existing.sources = F,
+                                       recheck.existing.sources = recheck.existing.sources,
                                        ignore.manually.added = T)
 
   }
@@ -82,7 +83,16 @@ bt_store_sa_source = function(timeframe = 365,
                                         AND gul.check_status_id IS NULL
                                         AND (gul.last_check IS NULL
                                             OR gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
-                                            );"))
+                                            );
+                                         "))
+
+    if(!recheck.existing.sources){
+
+      #need the or operator remember because NA == 1 -> NA
+
+      missing.sources = subset(missing.sources, (is.na(has_manually_added_file) | has_manually_added_file != 1 ) )
+
+    }
   }else{
 
     #Robin's approach
@@ -122,6 +132,7 @@ bt_store_sa_source = function(timeframe = 365,
 
 
 
+
   #must select executable path. depending on the OS
   #could maybe use a switch?
 
@@ -148,6 +159,8 @@ bt_store_sa_source = function(timeframe = 365,
 
   if(nrow(missing.sources)>0){
 
+
+    print(glue("beginning source completion process for {length(unique(missing.sources$url))} url(s)"))
 
     for(url in unique(missing.sources$url)){
 
