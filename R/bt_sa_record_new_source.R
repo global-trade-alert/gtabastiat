@@ -52,6 +52,20 @@ bt_sa_record_new_source=function(establish.connection=T,
   }
 
 
+  #first, see what sources have been added to gta_files since this was last run, and store that accordingly later on
+
+  manually.added = dbGetQuery(con,
+                                    "SELECT DISTINCT gf.field_id
+                                    FROM gta_files gf
+                                    WHERE gf.field_type = 'measure'
+                                    AND gf.field_id NOT IN (
+                                      SELECT gmu.measure_id
+                                      FROM gta_measure_url gmu
+                                    );")
+
+  manually.added = manually.added$field_id
+
+
 
   #this will only look for measures that have NEVER been added before
 
@@ -131,13 +145,37 @@ bt_sa_record_new_source=function(establish.connection=T,
     new.urls = subset(new.urls, !duplicated(new.urls[,c("state.act.id", "url")]))
 
     n.new.urls = unique(new.urls$url) %>% length()
-    print(glue("{n.new.urls} new URLs found."))
+    print(glue("{n.new.urls} URLs found."))
 
 
 
 
 # Add URL-SA ID correspondence --------------------------------------------
 
+    #the below is kept for reference. it is how I determined which SA IDs were
+    #already present in gta_files after I had done the first round of source
+    #collection. the resulting IDs are saved in
+    #0 source completion/add status to already existing sources.sql
+
+
+    # if(F){
+    #   already.in.gta.files = dbGetQuery(con, "SELECT DISTINCT gf.field_id
+    #                     FROM gta_files gf
+    #                     WHERE gf.field_type = 'measure';")
+    #
+    #   already.scraped.ids = dbGetQuery(con, "SELECT DISTINCT gmu.measure_id
+    #                                     FROM gta_measure_url gmu
+    #                                     RIGHT JOIN gta_url_log gul
+    #                                     ON gul.id = gmu.url_id")
+    #
+    #   already.had.source = already.in.gta.files$field_id[!already.in.gta.files$field_id %in% already.scraped.ids$measure_id]
+    #   already.had.source = paste(already.had.source, collapse = ",")
+    #
+    #   sql.query = glue("UPDATE gta_measure_url
+    #             SET has_manually_added_file = 1
+    #             WHERE measure_id IN ({already.had.source})")
+    #   dbExecute(con, sql.query)
+    # }
 
     new.urls$url.log.updated = 0
     new.urls$measure.url.updated = 0
@@ -167,8 +205,11 @@ bt_sa_record_new_source=function(establish.connection=T,
       #add sa id-url id tuple to measure_url table
       #this should be done even if the URL exists in the URL table already, because all the tuples are new
 
-      new.urls$measure.url.updated[i] = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id)
-                                    VALUES ({new.urls$state.act.id[i]}, (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{new.urls$url[i]}'));"))
+      new.urls$measure.url.updated[i] = dbExecute(con, glue("INSERT INTO gta_measure_url (measure_id, url_id, has_manually_added_file)
+                                    VALUES (
+                                                            {new.urls$state.act.id[i]},
+                                                            (SELECT gul.id FROM gta_url_log gul WHERE gul.url = '{new.urls$url[i]}'),
+                                                            {as.numeric(new.urls$state.act.id[i] %in% manually.added)});"))
 
 
 
