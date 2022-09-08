@@ -57,6 +57,11 @@ bt_collect_url = function(url=NULL,
                 "file.suffix"=NA,
                 "url"=url,
                 status = 4))
+  } else if(r$status_code == "405"){ #chcek for 405 (blocked)
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = 8))
   }
 
 
