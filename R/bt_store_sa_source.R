@@ -33,6 +33,8 @@ bt_store_sa_source = function(timeframe = 365,
   library(stringr)
   #library(pdftools)
   library(glue)
+  library(R.utils)
+  library(digest)
 
   if(establish.connection){
     library(gtalibrary)
@@ -69,7 +71,7 @@ bt_store_sa_source = function(timeframe = 365,
     ## extracting URLs, if present, and adding them to gta_source_log and gta_state_act_source, where necessary.
     problems = bt_sa_record_new_source(timeframe=timeframe,
                                        establish.connection = F,
-                                       recheck.existing.sources = recheck.existing.sources,
+                                       recheck.existing.sources = F,
                                        ignore.manually.added = T)
 
   }
@@ -174,8 +176,6 @@ bt_store_sa_source = function(timeframe = 365,
 
         ## record file_id in gta_source_log
 
-        library(digest)
-
 
         url.timestamp = gsub("\\D", "-", Sys.time())
         url.hash = digest(src.url)
@@ -190,10 +190,34 @@ bt_store_sa_source = function(timeframe = 365,
 
         # do the scraping
         print(glue("Attempting scrape of {src.url}... "))
-        scrape.result=bt_collect_url(file.name=base.file.name,
-                                     store.path = path.root,
-                                     url=as.character(src.url),
-                                     phantom.path = phantom.path.os)
+
+
+        tryCatch(
+          withTimeout( {
+            print("scraping...")
+            scrape.result=bt_collect_url(file.name=base.file.name,
+                                         store.path = path.root,
+                                         url=as.character(src.url),
+                                         phantom.path = phantom.path.os);
+          },
+
+            timeout = 120),
+
+          TimeoutException = function(ex){
+            cat("[Skipped due to timeout]\n")
+            scrape.result <<- list("new.file.name"=NA,
+                 "file.suffix"=NA,
+                 "url"=src.url,
+                 status=10)
+            },
+          error=function(cond){
+            message("[caught error] timeout, skipping")
+          },
+          warning=function(cond){
+            message("[caught warning] timeout, skipping")
+          }
+        )
+
         #returns a list of 4 objs:
         # new.file.name
         # file.suffix
