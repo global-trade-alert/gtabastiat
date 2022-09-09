@@ -62,7 +62,13 @@ bt_collect_url = function(url=NULL,
                 "file.suffix"=NA,
                 "url"=url,
                 status = 8))
+  } else if(r$status_code != "200"){ #chcek for other statuses (eg 521)
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=url,
+                status = 3))
   }
+
 
 
 
@@ -117,6 +123,17 @@ bt_collect_url = function(url=NULL,
                 "file.suffix"=NA,
                 "url"=url,
                 status = 5))
+  }
+
+  file.saved.check = grepl(file.name, list.files(file.path)) %>% any()
+
+  if(!file.saved.check){
+
+    print("successful scrape, but rasterize.js failed to save the PDF for an unknown reason. (this is a very fiendish error)")
+    return(list("new.file.name"=NA,
+                "file.suffix"=NA,
+                "url"=r$url,
+                status = 9))
   }
 
   # return the file name
