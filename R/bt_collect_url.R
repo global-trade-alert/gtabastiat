@@ -113,7 +113,9 @@ bt_collect_url = function(url=NULL,
               paste0("'",file.path, t.stamp, file.suffix,"'"),
               "'A1'")
     #run the command and save result to a variable
-    output = system(cmd, intern = T)
+    output = system(cmd,
+                    intern = T,
+                    timeout = 120)
   }
 
   if(length(output)>0){

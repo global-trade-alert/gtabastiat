@@ -192,31 +192,57 @@ bt_store_sa_source = function(timeframe = 365,
         print(glue("Attempting scrape of {src.url}... "))
 
 
-        tryCatch(
-          withTimeout( {
-            print("scraping...")
+
+        #I leave the timeout code here for reference. However, withTimeout fn
+        #doesn't work with system(cmd) calls because it relies on it running
+        #native C/fortran code... from the documentation:
+
+
+        # "Time limits are checked whenever a user interrupt could occur. This
+        # will happen frequently in R code and during Sys.sleep(*), but only at
+        # points in compiled C and Fortran code identified by the code author."
+        #
+        # More precisely, if a function is implemented in native code (e.g. C)
+        # and the developer of that function does not check for user interrupts,
+        # then you cannot interrupt that function neither via a user interrupt
+        # (e.g. Ctrl-C) nor via the built-in time out mechanism. To change this,
+        # you need to contact the developer of that piece of code and ask them
+        # to check for R user interrupts in their native code.
+        #
+        # Furthermore, it is not possible to interrupt/break out of a "readline"
+        # prompt (e.g. readline() and readLines()) using timeouts; the timeout
+        # exception will not be thrown until after the user completes the prompt
+        # (i.e. after pressing ENTER).
+        #
+        # System calls via system() and system2() cannot be timed out via the
+        # above mechanisms. However, in R (>= 3.5.0) these functions have
+        # argument timeout providing their own independent timeout mechanism.
+
+        # tryCatch(
+        #   withTimeout( {
+        #     print("scraping...")
             scrape.result=bt_collect_url(file.name=base.file.name,
                                          store.path = path.root,
                                          url=as.character(src.url),
                                          phantom.path = phantom.path.os);
-          },
-
-            timeout = 120),
-
-          TimeoutException = function(ex){
-            cat("[Skipped due to timeout]\n")
-            scrape.result <<- list("new.file.name"=NA,
-                 "file.suffix"=NA,
-                 "url"=src.url,
-                 status=10)
-            },
-          error=function(cond){
-            message("[caught error] timeout, skipping")
-          },
-          warning=function(cond){
-            message("[caught warning] timeout, skipping")
-          }
-        )
+        #   },
+        #
+        #     timeout = 120),
+        #
+        #   TimeoutException = function(ex){
+        #     cat("[Skipped due to timeout]\n")
+        #     scrape.result <<- list("new.file.name"=NA,
+        #          "file.suffix"=NA,
+        #          "url"=src.url,
+        #          status=10)
+        #     },
+        #   error=function(cond){
+        #     message("[caught error] timeout, skipping")
+        #   },
+        #   warning=function(cond){
+        #     message("[caught warning] timeout, skipping")
+        #   }
+        # )
 
         #returns a list of 4 objs:
         # new.file.name
