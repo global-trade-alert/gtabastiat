@@ -24,7 +24,7 @@ bt_collect_url = function(url=NULL,
 
   # send request to check if page is redirecting or broken
   r = tryCatch({
-    httr::HEAD(url=url, timeout(5))
+    httr::HEAD(url=url, timeout(30))
   }, error = function(e) {
     FALSE
   })
