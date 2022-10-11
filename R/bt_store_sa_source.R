@@ -79,14 +79,24 @@ bt_store_sa_source = function(timeframe = 365,
   ### Collecting new URLs
   # the old method should not be invoked, hence the '| T'.
   if(!initialise.source.tables | T){
-    missing.sources=dbGetQuery(con, glue("SELECT *
-                                        FROM gta_url_log gul, gta_measure_url gmu
+    missing.sources=dbGetQuery(con, glue("SELECT gul.*, gmu.measure_id, gmu.has_manually_added_file, gusl.is_terminal, gusl.is_success
+                                        FROM gta_url_log gul, gta_measure_url gmu, gta_url_status_list gusl
                                         WHERE gul.id = gmu.url_id
-                                        AND gul.check_status_id IS NULL
-                                        AND (gul.last_check IS NULL
-                                            OR gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
-                                            );
-                                         "))
+                                        AND gul.check_status_id = gusl.id
+                                        AND (
+													 	gul.last_check IS NULL #not yet attempted scrape
+														 OR (
+													 	    gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
+														    AND gul.check_status_id IN
+													 	      #status ID where the scrape fininshed in a non-successful way
+													 	      (
+														 	    SELECT gusl2.id
+														  	  FROM gta_url_status_list gusl2
+														  	  WHERE gusl2.is_success = 0
+													 	      #AND gusl2.is_terminal = 0
+														  	  )
+														    )
+														  );"))
 
     if(!recheck.existing.sources){
 
@@ -168,14 +178,6 @@ bt_store_sa_source = function(timeframe = 365,
 
       src.url = url
       if(src.url!="NA"){
-        ## collect the source,
-        ##TBA from here
-        ## upload it to AWS (user soucre ID as file name)
-
-        ## ADD collection URL to gta_files (name by source ID and URL-tld)
-
-        ## record file_id in gta_source_log
-
 
         url.timestamp = gsub("\\D", "-", Sys.time())
         url.hash = digest(src.url)
@@ -184,8 +186,39 @@ bt_store_sa_source = function(timeframe = 365,
         base.file.name = glue("{url.timestamp}_{url.quick.id}-{url.hash}")
 
         #db/website only allows up to 100chr filename
-        if(nchar(base.file.name)>95){
+        if(nchar(base.file.name)>90){
           base.file.name = url.hash
+        }
+
+
+        most.recent.attempt = subset(missing.sources, url == src.url) %>% last()
+
+
+# INTERNET ARCHIVE CHECK --------------------------------------------------
+
+
+        if(most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12){
+
+
+          measure.date = dbGetQuery(con,glue("SELECT gm.announcement_date
+                                             FROM gta_measure gm
+                                             WHERE gm.id = {most.recent.attempt$measure_id}"))$announcement_date[1] %>%
+            as.character()
+
+          tryCatch(expr={
+            src.url=bt_get_archive_url(src.url,tgt.date = measure.date)
+          },
+          error=function(e){
+            print("Failed to find internet archive snapshot of {src.url}.")
+            wayback.fail <<- T
+            }
+          )
+
+          print(glue("Broken link detected. Closest Internet archive link to {measure.date} found at URL:\n {src.url}"))
+          base.file.name = paste0("WAYBACK_", base.file.name)
+
+          #TODO add the internet archive URL to gta_url_log and gta_measure_url... maybe as separate col?
+
         }
 
         # do the scraping
@@ -221,10 +254,10 @@ bt_store_sa_source = function(timeframe = 365,
         # tryCatch(
         #   withTimeout( {
         #     print("scraping...")
-            scrape.result=bt_collect_url(file.name=base.file.name,
+            scrape.result= bt_collect_url(file.name=base.file.name,
                                          store.path = path.root,
                                          url=as.character(src.url),
-                                         phantom.path = phantom.path.os);
+                                         phantom.path = phantom.path.os)
         #   },
         #
         #     timeout = 120),
@@ -262,7 +295,12 @@ bt_store_sa_source = function(timeframe = 365,
           add.id = missing.sources$id[missing.sources$url == url] %>% unique()
           print(glue("Adding url ID {add.id} to {n.measures} state act(s)..."))
 
-          for(sa.id in unique(subset(missing.sources, url == src.url)$measure_id)){
+          #add appropriate status if this was an internet archive scrape.
+          if(grepl("web\\.archive\\.org", src.url)){
+            scrape.result$status = 11
+          }
+
+          for(sa.id in unique(subset(missing.sources, url == url)$measure_id)){
             cat(glue("SA ID {sa.id}: "))
             # update gta_file
             gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
@@ -278,7 +316,7 @@ bt_store_sa_source = function(timeframe = 365,
 
             url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = '{aws.url}', gta_file_id = {aws.file.id}
-                           WHERE url = '{src.url}';")
+                           WHERE url = '{url}';")
 
             url.log.sql.upload = dbExecute(con, url.log.sql)
             cat(glue("gta_url_log upload status: {url.log.sql.upload}"))
