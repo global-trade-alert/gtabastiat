@@ -9,9 +9,6 @@ bt_unnest_tokens(doc.id, text)
 \arguments{
 \item{text}{}
 }
-\value{
-
-}
 \description{
 Inlcudes bigrams and trigrams based on those words.
 }

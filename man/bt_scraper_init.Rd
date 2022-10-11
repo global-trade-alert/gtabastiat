@@ -6,9 +6,6 @@
 \usage{
 bt_scraper_init()
 }
-\value{
-
-}
 \description{
 Loads all packages and opens the DB connection in preparation for running the scrape routine.
 }

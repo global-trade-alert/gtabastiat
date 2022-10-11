@@ -11,9 +11,6 @@ bt_generate_2cat_tf_idf(unnested.token.df, rlv.doc.ids)
 
 \item{rlv.doc.ids}{the ids of the relevant (category 1) documents (others will be irrelevant/cat 2)}
 }
-\value{
-
-}
 \description{
 Get tf-idf scores for terms two categories of document and create master list
 }

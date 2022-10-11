@@ -15,9 +15,6 @@ bt_d2v_col_preprocess(d2v.col, doc_id, text, as.df = T)
 
 \item{model.w2v}{pretrained word embeddings}
 }
-\value{
-
-}
 \description{
 To be used on text data from a particular feature column (e.g. title, description or AA)
 }

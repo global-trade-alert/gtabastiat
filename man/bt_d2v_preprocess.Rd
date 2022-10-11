@@ -15,9 +15,6 @@ bt_d2v_preprocess(model.w2v, doc_id, text, as.df = T)
 
 \item{as.df}{return as a dataframe? if F, returns a matrix}
 }
-\value{
-
-}
 \description{
 To be used when a model is classifying docs based on one string (e.g. paste(AA, title,description))
 }

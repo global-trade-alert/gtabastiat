@@ -9,9 +9,6 @@ bt_gen_d2v_conc(leads.core)
 \arguments{
 \item{leads.core}{}
 }
-\value{
-
-}
 \description{
 Vectorises text using saved training colnames. preprocesses the text as well.
 }

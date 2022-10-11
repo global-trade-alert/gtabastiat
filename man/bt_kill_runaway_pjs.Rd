@@ -6,9 +6,6 @@
 \usage{
 bt_kill_runaway_pjs()
 }
-\value{
-
-}
 \description{
 Sometimes, pjs processes are left running after crashing or not being
 terminated properly and can eat up the CPU. This function tries to kill them

@@ -2,10 +2,29 @@
 % Please edit documentation in R/bt_store_sa_source.R
 \name{bt_store_sa_source}
 \alias{bt_store_sa_source}
-\title{Bastiat, please extract all URLs you find in the following string.}
+\title{Main function of the source collection process.
+Uses bt_sa_record_new_source() to update the log of missing sources.
+Then uses bt_collect_url() to check if they are working.
+Gets a PDF if possible, uploads to the bucket and updates gta_files.
+Then adds the link to all the state acts which use that source.}
 \usage{
-bt_store_sa_source()
+bt_store_sa_source(
+  timeframe = 365,
+  update.source.log = T,
+  establish.connection = T,
+  recheck.existing.sources = F,
+  use.wayback = F
+)
+}
+\arguments{
+\item{timeframe}{how long ago to check}
+
+\item{update.source.log}{whether to update the master table}
 }
 \description{
-Bastiat, please extract all URLs you find in the following string.
+Main function of the source collection process.
+Uses bt_sa_record_new_source() to update the log of missing sources.
+Then uses bt_collect_url() to check if they are working.
+Gets a PDF if possible, uploads to the bucket and updates gta_files.
+Then adds the link to all the state acts which use that source.
 }

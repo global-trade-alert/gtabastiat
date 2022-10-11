@@ -14,7 +14,8 @@ bt_leads_core_update(
   destination = "b221",
   incl.kanji = F,
   invoke.mrs.hudson = T,
-  mrs.hudson.keep.results.ratio = 1
+  mrs.hudson.keep.results.ratio = 1,
+  classify.master.on = F
 )
 }
 \arguments{
@@ -33,9 +34,8 @@ bt_leads_core_update(
 \item{invoke.mrs.hudson}{use to disable mrs. h invocation}
 
 \item{mrs.hudson.keep.results.ratio}{the ratio of results for Mrs. H to keep. eg. 0.9 keeps 90% of them.}
-}
-\value{
 
+\item{classify.master.on}{if T, runs the R-based classification system. If F, puts rel_prob as NA for the AWS stack to do it.}
 }
 \description{
 Send a prepared leads.core dataframe to the ricardo database

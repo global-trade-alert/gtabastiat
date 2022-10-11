@@ -9,9 +9,6 @@ bt_generate_tf_idf_agg_score(tf.idf.master.path, doc.id, text)
 \arguments{
 \item{text}{}
 }
-\value{
-
-}
 \description{
 Get the tf-idf-type scores per document using master vocab list
 }

@@ -8,7 +8,8 @@ bt_upload_to_aws(
   upload.file.name = NULL,
   upload.file.path = NULL,
   upload.destination = "gtaupload/Uploads/files/",
-  credential.path = "setup/keys/as3.R"
+  credential.path = "setup/keys/as3.R",
+  rm.after.upload = T
 )
 }
 \value{

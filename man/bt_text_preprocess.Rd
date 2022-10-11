@@ -11,9 +11,6 @@ bt_text_preprocess(text, stop.rm = T)
 
 \item{stop.rm}{remove stopwords. set to F for e.g. acting.agency}
 }
-\value{
-
-}
 \description{
 Takes text and returns it lowercase, minus punctuation and stopwords.
 }

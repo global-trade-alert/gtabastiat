@@ -8,14 +8,14 @@ bt_collect_url(
   url = NULL,
   file.name = NULL,
   store.path = NULL,
-  add.timestamp = T,
-  update.file.name = T,
+  add.timestamp = F,
+  update.file.name = F,
   js.path = "setup/rasterize.js",
   phantom.path = "~/bin/phantomjs"
 )
 }
 \value{
-The complete file name of the collected url (incl. file format).
+#returns a list of 4 objs: new.file.name, file.suffix, url, status {see gta_prod.gta_url_status_list for these}
 }
 \description{
 Bastiat, collects a URL and stores it locally using file name. Websites are printed into PDF, URLS to files are downloaded.
@@ -24,5 +24,5 @@ Bastiat, collects a URL and stores it locally using file name. Websites are prin
 www.globaltradealert.org
 }
 \author{
-Johannes Fritz for GTA
+Johannes Fritz, Robin Scherrer and Callum Campbell for GTA
 }
