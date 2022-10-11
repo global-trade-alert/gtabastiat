@@ -19,7 +19,7 @@ bt_get_archive_url = function(tgt.url, tgt.date = NA){
                         endDate = as.character(Sys.Date()))
 
 
-  if(nrow(avail)==0){
+  if(length(avail)==0){
 
     err.msg=glue("no snapshots available after date: {tgt.start} for URL: {tgt.url}")
 
