@@ -14,7 +14,8 @@
 bt_store_sa_source = function(timeframe = 365,
                               update.source.log = T,
                               establish.connection = T,
-                              recheck.existing.sources = F){
+                              recheck.existing.sources = F,
+                              use.wayback = F){
 
   #these used to be params. should not be changed.
   initialise.source.tables = F
@@ -196,7 +197,7 @@ bt_store_sa_source = function(timeframe = 365,
 
 # INTERNET ARCHIVE CHECK --------------------------------------------------
 
-
+if(use.wayback){
         if(most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12){
 
 
@@ -218,9 +219,10 @@ bt_store_sa_source = function(timeframe = 365,
           base.file.name = paste0("WAYBACK_", base.file.name)
 
           #TODO add the internet archive URL to gta_url_log and gta_measure_url... maybe as separate col?
+          #does this need to be done?
 
         }
-
+}
         # do the scraping
         print(glue("Attempting scrape of {src.url}... "))
 
