@@ -170,6 +170,9 @@ bt_store_sa_source = function(timeframe = 365,
   }
 
 
+# begin looping through each URL ------------------------------------------
+
+
   if(nrow(missing.sources)>0){
 
 
@@ -197,36 +200,36 @@ bt_store_sa_source = function(timeframe = 365,
 
 # INTERNET ARCHIVE CHECK --------------------------------------------------
 
-if(use.wayback){
-        if(most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12){
+        if(use.wayback){
+          if(most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12){
 
 
-          measure.date = dbGetQuery(con,glue("SELECT gm.announcement_date
+            measure.date = dbGetQuery(con,glue("SELECT gm.announcement_date
                                              FROM gta_measure gm
                                              WHERE gm.id = {most.recent.attempt$measure_id}"))$announcement_date[1] %>%
-            as.character()
+              as.character()
 
-          tryCatch(expr={
-            src.url=bt_get_archive_url(src.url,tgt.date = measure.date)
-          },
-          error=function(e){
-            print("Failed to find internet archive snapshot of {src.url}.")
-            wayback.fail <<- T
-            scrape.result <<- list("new.file.name"=NA,
-                                   "file.suffix"=NA,
-                                   "url"=src.url,
-                                   status=12)
+            tryCatch(expr={
+              src.url=bt_get_archive_url(src.url,tgt.date = measure.date)
+            },
+            error=function(e){
+              print("Failed to find internet archive snapshot of {src.url}.")
+              wayback.fail <<- T
+              scrape.result <<- list("new.file.name"=NA,
+                                     "file.suffix"=NA,
+                                     "url"=src.url,
+                                     status=12)
             }
-          )
-          if(!wayback.fail){
-            print(glue("Broken link detected. Closest Internet archive link to {measure.date} found at URL:\n {src.url}"))
-            base.file.name = paste0("WAYBACK_", base.file.name)
-          }
-          #TODO add the internet archive URL to gta_url_log and gta_measure_url... maybe as separate col?
-          #does this need to be done?
+            )
+            if(!wayback.fail){
+              print(glue("Broken link detected. Closest Internet archive link to {measure.date} found at URL:\n {src.url}"))
+              base.file.name = paste0("WAYBACK_", base.file.name)
+            }
+            #TODO add the internet archive URL to gta_url_log and gta_measure_url... maybe as separate col?
+            #does this need to be done?
 
+          }
         }
-}
         if(!wayback.fail){
           # do the scraping
           print(glue("Attempting scrape of {src.url}... "))
