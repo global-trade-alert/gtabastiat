@@ -213,7 +213,7 @@ bt_store_sa_source = function(timeframe = 365,
               src.url=bt_get_archive_url(src.url,tgt.date = measure.date)
             },
             error=function(e){
-              print("Failed to find internet archive snapshot of {src.url}.")
+              print(glue("Failed to find internet archive snapshot of {src.url}."))
               wayback.fail <<- T
               scrape.result <<- list("new.file.name"=NA,
                                      "file.suffix"=NA,
