@@ -128,6 +128,7 @@ bt_collect_url = function(url=NULL,
     print("rasterize.js failed, output was:")
     print(paste(output, collapse = "\n", sep ="\n"))
 
+    print("now attempting to save PNG with webdriver...")
 
     library(webdriver)
     pjs <- run_phantomjs()
