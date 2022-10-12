@@ -20,6 +20,12 @@ bt_collect_url = function(url=NULL,
                           phantom.path="~/bin/phantomjs"){
 
 
+  # example vars for debugging
+  # file.name="2022-10-12-10-30-30_eur-lexeuropaeu-4c66d7945bed408c1c7acefe8ddd4c7e"
+  # store.path="0 source completion/temp"
+  # url="http://web.archive.org/web/20130305174905/http://eur-lex.europa.eu:80/JOHtml.do?uri=OJ:C:2013:056:SOM:EN:HTML"
+  # phantom.path="~/bin/phantomjs"
+
   library(httr)
 
   # send request to check if page is redirecting or broken
@@ -121,10 +127,33 @@ bt_collect_url = function(url=NULL,
   if(length(output)>0){
     print("rasterize.js failed, output was:")
     print(paste(output, collapse = "\n", sep ="\n"))
-    return(list("new.file.name"=NA,
-                "file.suffix"=NA,
+
+
+    library(webdriver)
+    pjs <- run_phantomjs()
+    remDr=Session$new(port=pjs$port)
+    remDr$go(url)
+    w = remDr$getWindow()
+    curr.width = w$getSize()$width
+
+    #set to 1920 width for standard HD res
+    w$setSize(width = 1920, height = curr.height*(1920/curr.width))
+
+    file.suffix = ".PNG"
+
+    if(update.file.name){
+      new.file.name=paste0(file.path, t.stamp, file.suffix)
+    } else {
+      new.file.name=file.name
+    }
+
+    remDr$takeScreenshot(file = paste0(file.path, ".PNG"))
+
+
+    return(list("new.file.name"=new.file.name,
+                "file.suffix"=file.suffix,
                 "url"=url,
-                status = 5))
+                status = 11))
   }
 
   file.saved.check = grepl(file.name, list.files(file.path)) %>% any()
