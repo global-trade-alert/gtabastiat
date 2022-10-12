@@ -136,6 +136,7 @@ bt_collect_url = function(url=NULL,
     remDr$go(url)
     w = remDr$getWindow()
     curr.width = w$getSize()$width
+    curr.height= w$getSize()$height
 
     #set to 1920 width for standard HD res
     w$setSize(width = 1920, height = curr.height*(1920/curr.width))
