@@ -66,6 +66,8 @@ bt_guess_country = function(tgt.string, placeholder.result = NA, top.match.only 
 
   #load(file="0 gtabastiat/data/countries_matcher.Rda")
   #save(countries.matcher, file="0 gtabastiat/data/countries_matcher.Rda")
+  #the below is the bettwe way of doing it
+  #usethis::use_data(countries.matcher, overwrite = T)
 
   #this looks weird because the syntax of sapply() and grepl() mean that the 'y'
   #variable in the sapply() is used as the 'x' variable in the grepl()
