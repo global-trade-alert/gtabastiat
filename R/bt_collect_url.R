@@ -125,10 +125,21 @@ bt_collect_url = function(url=NULL,
   }
 
   if(length(output)>0){
-    print("rasterize.js failed, output was:")
-    print(paste(output, collapse = "\n", sep ="\n"))
+    print("rasterize.js produced some errors")
+    #print(paste(output, collapse = "\n", sep ="\n"))
 
-    print("now attempting to save PNG with webdriver...")
+
+  }
+
+  file.saved.check = grepl(file.name, list.files(store.path)) %>% any()
+
+  if(file.saved.check){
+    print("PDF saved regardless of above messages!")
+  }
+
+  if(!file.saved.check){
+
+    print("no saved file detected (pjs error or pdf saving error). now attempting to save PNG with webdriver...")
 
     library(webdriver)
     pjs <- run_phantomjs()
@@ -152,22 +163,25 @@ bt_collect_url = function(url=NULL,
     remDr$takeScreenshot(file = paste0(file.path, ".PNG"))
 
 
+
+    file.saved.check = grepl(file.name, list.files(store.path)) %>% any()
+    if(!file.saved.check){
+      print("PDF still not saved. assigning status code 9")
+      return(list("new.file.name"=NA,
+                  "file.suffix"=NA,
+                  "url"=r$url,
+                  status = 9))
+    }
+
+    print("webdriver saved the PDF! assigning status code 11")
     return(list("new.file.name"=new.file.name,
                 "file.suffix"=file.suffix,
                 "url"=url,
                 status = 11))
+
+
   }
 
-  file.saved.check = grepl(file.name, list.files(file.path)) %>% any()
-
-  if(!file.saved.check){
-
-    print("successful scrape, but rasterize.js failed to save the PDF for an unknown reason. (this is a very fiendish error)")
-    return(list("new.file.name"=NA,
-                "file.suffix"=NA,
-                "url"=r$url,
-                status = 9))
-  }
 
   # return the file name
   if(update.file.name){
