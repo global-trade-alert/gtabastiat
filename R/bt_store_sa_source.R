@@ -84,6 +84,7 @@ bt_store_sa_source = function(timeframe = 365,
                                         FROM gta_url_log gul, gta_measure_url gmu, gta_url_status_list gusl
                                         WHERE gul.id = gmu.url_id
                                         AND gul.check_status_id = gusl.id
+                                        AND (gmu.has_manually_added_file <> 1 OR gmu.has_manually_added_file IS NULL)
                                         AND (
 													 	gul.last_check IS NULL #not yet attempted scrape
 														 OR (
@@ -98,6 +99,8 @@ bt_store_sa_source = function(timeframe = 365,
 														  	  )
 														    )
 														  );"))
+    #yes, this is the one error I could not solve as it causes the system call to die in an uncatchable way
+    missing.sources = subset(missing.sources, url != "http://dppzhambyl.gov.kz/catalog/Investorsguide.pdf")
 
     if(!recheck.existing.sources){
 
@@ -185,13 +188,15 @@ bt_store_sa_source = function(timeframe = 365,
 
         url.timestamp = gsub("\\D", "-", Sys.time())
         url.hash = digest(src.url)
-        url.quick.id = gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$"))
+        url.quick.id = gsub("\\.","",str_extract(str_extract(src.url,"((https?://)|(www\\.))[A-Za-z\\.\\-_0-9]+"), "[A-Za-z\\.\\-_0-9]+$")) %>%
+          str_trunc(35, ellipsis = "")
 
-        base.file.name = glue("{url.timestamp}_{url.quick.id}-{url.hash}")
+        base.file.name = glue("larkin_{url.timestamp}_{url.quick.id}-{url.hash}")
 
+        #I added a str_trunc above, but keep this here for redundancy
         #db/website only allows up to 100chr filename
         if(nchar(base.file.name)>90){
-          base.file.name = url.hash
+          base.file.name = glue("larkin_{url.timestamp}_{url.hash}")
         }
 
 
@@ -199,7 +204,7 @@ bt_store_sa_source = function(timeframe = 365,
 
 
 # INTERNET ARCHIVE CHECK --------------------------------------------------
-
+        wayback.fail = F
         if(use.wayback){
           if(most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12){
 
@@ -304,7 +309,7 @@ bt_store_sa_source = function(timeframe = 365,
                                    upload.file.path = path.root)
 
 
-          n.measures = unique(subset(missing.sources, url == src.url)$measure_id) %>% length()
+          n.measures = unique(missing.sources$measure_id[missing.sources$url == url]) %>% length()
           add.id = missing.sources$id[missing.sources$url == url] %>% unique()
           print(glue("Adding url ID {add.id} to {n.measures} state act(s)..."))
 
@@ -313,7 +318,7 @@ bt_store_sa_source = function(timeframe = 365,
             scrape.result$status = 11
           }
 
-          for(sa.id in unique(subset(missing.sources, url == url)$measure_id)){
+          for(sa.id in missing.sources$measure_id[missing.sources$url == url]){
             cat(glue("SA ID {sa.id}: "))
             # update gta_file
             gta.files.sql = paste0("INSERT INTO gta_files (field_id, field_type, file_url, file_name, is_deleted)
@@ -378,7 +383,7 @@ bt_store_sa_source = function(timeframe = 365,
           cat("updating url_log with failed status: ")
           url.log.sql = glue("UPDATE gta_url_log
                            SET last_check = CURRENT_TIMESTAMP, check_status_id = {scrape.result$status}, s3_url = NULL, gta_file_id = NULL
-                           WHERE url = '{src.url}';")
+                           WHERE url = '{url}';")
 
           url.log.sql.status = dbExecute(con, url.log.sql)
           cat(glue("{url.log.sql.status}"))
