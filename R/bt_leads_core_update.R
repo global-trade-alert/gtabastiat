@@ -679,8 +679,9 @@ bt_leads_core_update = function(update.df=NULL,
     }
 
     # DPA Classification ------------------------------------------------------
+    #now superseded by AWS stack
 
-    if(destination == "dpa"){
+    if(F){#destination == "dpa"){
 
       #bad keywords
 
@@ -700,6 +701,9 @@ bt_leads_core_update = function(update.df=NULL,
 
       #dpa.hypermodel.result = dpa_hypermodel_estimate_leads(lc.update)
       if(nrow(classify)>0){
+
+        dpa
+
         dpa.hypermodel.result = dpa_hypermodel_estimate_leads(classify)
 
 
