@@ -9,7 +9,7 @@ Gets a PDF if possible, uploads to the bucket and updates gta_files.
 Then adds the link to all the state acts which use that source.}
 \usage{
 bt_store_sa_source(
-  timeframe = 365,
+  timeframe = 365 * 14,
   update.source.log = T,
   establish.connection = T,
   recheck.existing.sources = F,
