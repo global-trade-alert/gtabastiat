@@ -53,7 +53,7 @@ bt_sa_record_new_source=function(establish.connection=T,
 
 
   #first, see what sources have been added to gta_files since this was last run, and store that accordingly later on
-
+if(ignore.manually.added){
   manually.added = dbGetQuery(con,
                                     "SELECT DISTINCT gf.field_id
                                     FROM gta_files gf
@@ -64,7 +64,10 @@ bt_sa_record_new_source=function(establish.connection=T,
                                     );")
 
   manually.added = manually.added$field_id
-
+}else{
+  #dummy var for manually added so everything is included in later %in% type comparisons (apart from sa.id #1)
+  manually.added = c(1)
+}
 
 
   #this will only look for measures that have NEVER been added before
@@ -109,10 +112,10 @@ bt_sa_record_new_source=function(establish.connection=T,
   if(!is.na(specific.sa.ids)){
     print("Specific IDs supplied; other filter params will be ignored.")
 
-    specific.sa.ids = paste0(specific.sa.ids, collapse = ", ")
+    specific.sa.ids.sql = paste0(specific.sa.ids, collapse = ", ")
     sa.upd.sql = glue("SELECT gm.id, gm.source
                       FROM gta_measure gm
-                      WHERE gm.id IN ({specific.sa.ids})")
+                      WHERE gm.id IN ({specific.sa.ids.sql})")
 
   }
 
@@ -134,9 +137,13 @@ bt_sa_record_new_source=function(establish.connection=T,
     print(glue("constructing URL-SA ID dataframe for {nrow(sources.to.parse)} state acts"))
 
     for(i in 1:nrow(sources.to.parse)){
+      extracted.urls = bt_extract_url(sources.to.parse$source[i])
+
+      extracted.urls = extracted.urls[!grepl(x=extracted.urls, pattern = "\\.{3}$")]
+
       new.urls=rbind(new.urls,
                      data.frame(state.act.id=sources.to.parse$id[i],
-                                url=bt_extract_url(sources.to.parse$source[i]),
+                                url=extracted.urls,
                                 stringsAsFactors = F))
 
     }

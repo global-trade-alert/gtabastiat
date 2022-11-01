@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @examples
-bt_store_sa_source = function(timeframe = 365,
+bt_store_sa_source = function(timeframe = 365*14,
                               update.source.log = T,
                               establish.connection = T,
                               recheck.existing.sources = F,
@@ -84,7 +84,7 @@ bt_store_sa_source = function(timeframe = 365,
                                         FROM gta_url_log gul, gta_measure_url gmu, gta_url_status_list gusl
                                         WHERE gul.id = gmu.url_id
                                         AND gul.check_status_id = gusl.id
-                                        AND (gmu.has_manually_added_file <> 1 OR gmu.has_manually_added_file IS NULL)
+                                        #AND (gmu.has_manually_added_file <> 1 OR gmu.has_manually_added_file IS NULL)
                                         AND (
 													 	gul.last_check IS NULL #not yet attempted scrape
 														 OR (
@@ -100,7 +100,8 @@ bt_store_sa_source = function(timeframe = 365,
 														    )
 														  );"))
     #yes, this is the one error I could not solve as it causes the system call to die in an uncatchable way
-    missing.sources = subset(missing.sources, url != "http://dppzhambyl.gov.kz/catalog/Investorsguide.pdf")
+    missing.sources = subset(missing.sources, ! url %in% c("http://dppzhambyl.gov.kz/catalog/Investorsguide.pdf",
+                                                           "http://www.arkansasonline.com/news/2015/may/30/hutchinson-signs-lockheed-bond-bills-20/"))
 
     if(!recheck.existing.sources){
 
@@ -178,8 +179,12 @@ bt_store_sa_source = function(timeframe = 365,
 
   if(nrow(missing.sources)>0){
 
+    completed = subset(missing.sources, is_success == 1)
 
-    print(glue("beginning source completion process for {length(unique(missing.sources$url))} url(s)"))
+    missing.sources = subset(missing.sources, ! url %in% completed$url)
+
+    n.remaining = length(unique(missing.sources$url))
+    print(glue("beginning source completion process for {n.remaining} url(s)"))
 
     for(url in unique(missing.sources$url)){
 
@@ -228,7 +233,7 @@ bt_store_sa_source = function(timeframe = 365,
             )
             if(!wayback.fail){
               print(glue("Broken link detected. Closest Internet archive link to {measure.date} found at URL:\n {src.url}"))
-              base.file.name = paste0("WAYBACK_", base.file.name)
+              base.file.name = paste0("WBK_", base.file.name)
             }
             #TODO add the internet archive URL to gta_url_log and gta_measure_url... maybe as separate col?
             #does this need to be done?
