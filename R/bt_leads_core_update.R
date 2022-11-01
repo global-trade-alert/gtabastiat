@@ -927,7 +927,7 @@ bt_leads_core_update = function(update.df=NULL,
               /* state 10 if old <=2019 */
               /* state 1 if no jur */
               /* state 3 if relevant = 1 & not official */
-              /* state 5 otherwise (relevant,official = 1) */
+              /* state 2 otherwise (relevant,official = 1) */
               UPDATE bt_hint_log
               JOIN bt_leads_core ON bt_hint_log.hint_id = bt_leads_core.hint_id
               LEFT JOIN gta_jurisdiction_list ON bt_leads_core.country_lead = gta_jurisdiction_list.jurisdiction_name
@@ -935,7 +935,7 @@ bt_leads_core_update = function(update.df=NULL,
               				     WHEN bt_leads_core.act_date <= '2019-01-01' THEN 10
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NULL THEN 1
               				     WHEN gta_jurisdiction_list.jurisdiction_id IS NOT NULL AND bt_leads_core.relevant = 1 AND bt_leads_core.act_url_official = 0 THEN 3
-              				     ELSE 5 END);
+              				     ELSE 2 END);
 
               /* Writing into classification log*/
               INSERT INTO bt_classification_log(hint_id, user_id, hint_state_id)
