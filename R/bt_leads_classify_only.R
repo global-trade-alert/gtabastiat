@@ -13,6 +13,10 @@
 bt_leads_classify_only = function(update.core,
                                   assign.relevance=F){
 
+  # dbg
+  #gtabastiat::bt_scraper_init()
+  #load("lc.Rdata")
+  #lc.update = leads.core
 
 
   lc.update = update.core
@@ -85,9 +89,14 @@ bt_leads_classify_only = function(update.core,
 
     #lc.update$relevance.probability = NA
 
-
-
-    lc.update = merge(lc.update, classify[,c("bid", "relevance.probability")], all.x = T)
+    #this func is usually used on DPA leads where we only want the relevance prob as a continuous value
+    #binary relevance is not appropriate for DPA leads as it is trained on GTA content
+    if(assign.relevance){
+      lc.update$relevant = NULL
+      lc.update = merge(lc.update, classify[,c("bid", "relevance.probability", "relevant")], all.x = T)
+    }else{
+      lc.update = merge(lc.update, classify[,c("bid", "relevance.probability")], all.x = T)
+    }
     if(any(is.na(lc.update$relevance.probability))){
       for(bid.i in classify$bid){
 
@@ -105,11 +114,7 @@ bt_leads_classify_only = function(update.core,
 
     #need to preserve the col order
 
-    #this func is usually used on DPA leads where we only want the relevance prob as a continuous value
-    #binary relevance is not appropriate for DPA leads as it is trained on GTA content
-    if(!assign.relevance){
-      lc.update$relevant = NULL
-    }
+
 
 
 #    update.core$relevance.probability = lc.update$relevance.probability
