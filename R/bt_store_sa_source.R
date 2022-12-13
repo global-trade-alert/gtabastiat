@@ -210,8 +210,7 @@ bt_store_sa_source = function(timeframe = 365*14,
 # INTERNET ARCHIVE CHECK --------------------------------------------------
         wayback.fail = F
         if(use.wayback){
-          if((most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12)
-             | is.na(most.recent.attempt$is_success)){
+          if((most.recent.attempt$is_success==0 & most.recent.attempt$check_status_id!=12)){
 
 
             measure.date = dbGetQuery(con,glue("SELECT gm.announcement_date
