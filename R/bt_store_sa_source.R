@@ -81,11 +81,10 @@ bt_store_sa_source = function(timeframe = 365*14,
   # the old method should not be invoked, hence the '| T'.
   if(!initialise.source.tables | T){
     missing.sources=dbGetQuery(con, glue("SELECT gul.*, gmu.measure_id, gmu.has_manually_added_file, gusl.is_terminal, gusl.is_success
-                                        FROM gta_url_log gul, gta_measure_url gmu, gta_url_status_list gusl
-                                        WHERE gul.id = gmu.url_id
-                                        AND gul.check_status_id = gusl.id
+                                        FROM gta_url_log gul JOIN gta_measure_url gmu ON gul.id = gmu.url_id
+                                        LEFT JOIN gta_url_status_list gusl ON gul.check_status_id = gusl.id
                                         #AND (gmu.has_manually_added_file <> 1 OR gmu.has_manually_added_file IS NULL)
-                                        AND (
+                                        WHERE (
 													 	gul.last_check IS NULL #not yet attempted scrape
 														 OR (
 													 	    gul.last_check > (SELECT NOW() - INTERVAL {timeframe} DAY)
