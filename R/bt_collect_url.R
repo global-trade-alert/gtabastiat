@@ -42,8 +42,9 @@ bt_collect_url = function(url=NULL,
                 status = 1)) #GET returned error
   } else if (((r$url != url) & #check if we have been redirected
               (paste0(r$url, "/") != url)) &
-             (gsub("www\\.", "", r$url) != url)&
-             !grepl("web\\.archive\\.org", r$url)){ #wayback sometimes has slightly changing URLs
+             (gsub("www\\.", "", r$url) != url) &
+             !grepl("web\\.archive\\.org", r$url) & #wayback sometimes has slightly changing URLs
+             (gsub("https:", "http:", r$url) != url) ){
 
     #IF REDIRECTD, THEN...
     if(grepl("(\\D404\\D)|(\\D404$)", r$url) & #check for 'soft 404'
