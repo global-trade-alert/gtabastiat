@@ -42,7 +42,7 @@ bt_collect_url = function(url=NULL,
                 status = 1)) #GET returned error
   } else if (((r$url != url) & #check if we have been redirected
               (paste0(r$url, "/") != url)) &
-             (gsub("www\\.", "", r$url) != url) &
+             (gsub("h?t{0,2}p?s?:?/{0,2}www\\.", "", r$url) != url) &
              !grepl("web\\.archive\\.org", r$url) & #wayback sometimes has slightly changing URLs
              (gsub("https:", "http:", r$url) != url) ){
 
@@ -175,11 +175,11 @@ bt_collect_url = function(url=NULL,
                   status = 9))
     }
 
-    print("webdriver saved the PDF! assigning status code 11")
+    print("webdriver saved the PDF! assigning status code 13")
     return(list("new.file.name"=new.file.name,
                 "file.suffix"=file.suffix,
                 "url"=url,
-                status = 11))
+                status = 13))
 
 
   }
