@@ -327,10 +327,10 @@ bt_sync_221_main = function(){
     #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
     #chunk = seq(1, nrow(new.leads), 50)[1]
 
-    chunk.size = 10000
+    chunk.size = 50
     for(chunk in seq(1, nrow(new.leads), chunk.size)){
 
-      upload.chunk=new.leads[c(chunk:min((chunk+chunk_size-1), nrow(new.leads))),]
+      upload.chunk=new.leads[c(chunk:min((chunk+chunk.size-1), nrow(new.leads))),]
 
       gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency, relevance_probability)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
