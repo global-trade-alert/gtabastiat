@@ -72,7 +72,7 @@ bt_sync_221_main = function(){
                                       ) nh
                               LEFT JOIN bt_hint_bid bhb
                               on nh.hint_id = bhb.hint_id
-                              INNER JOIN (
+                              LEFT JOIN (
                               SELECT bhj2.hint_id AS hint_id, bhj2.jurisdiction_id AS jurisdiction_id, bhj2.jurisdiction_accepted AS jurisdiction_accepted
                 								FROM bt_hint_jurisdiction bhj2
                 								INNER JOIN (
@@ -128,10 +128,8 @@ bt_sync_221_main = function(){
                   								) b ON a.classification_id = b.classification_id AND a.date_type_id = b.date_type_id) bhda2
                               ON nh.hint_id = bhda2.hint_id
                               AND bhda2.date_accepted = 1
+                              WHERE (bhj.hint_id IS NOT NULL OR nh.hint_type_id = 3)
                               GROUP BY nh.hint_id")
-
-
-
 
 
   #I think it's much quicker doing this in a separate query due to size of bt_hint_relevance
@@ -180,11 +178,11 @@ bt_sync_221_main = function(){
 
   if(!is.na(dup.bid.check)){
     warning("Some BIDs are already in the gtamain database - please check these! Saving recorded duplicates to `logs/duplicated_bids.Rdata`")
-    load(file = "logs/duplicated_bids.Rdata")
+    #load(file = "logs/duplicated_bids.Rdata")
 
-    duplicated.bids = c(duplicated.bids, dup.bid.check)
+    #duplicated.bids = c(duplicated.bids, dup.bid.check)
 
-    save(duplicated.bids, file = "logs/duplicated_bids.Rdata")
+    #save(duplicated.bids, file = "logs/duplicated_bids.Rdata")
 
   }
 
@@ -329,9 +327,10 @@ bt_sync_221_main = function(){
     #chunk = seq(1, nrow(new.leads), 50)[6:length(seq(1, nrow(new.leads), 50))][1]
     #chunk = seq(1, nrow(new.leads), 50)[1]
 
-      for(chunk in seq(1, nrow(new.leads), 50)){
+    chunk.size = 10000
+    for(chunk in seq(1, nrow(new.leads), chunk.size)){
 
-      upload.chunk=new.leads[c(chunk:min((chunk+49), nrow(new.leads))),]
+      upload.chunk=new.leads[c(chunk:min((chunk+chunk_size-1), nrow(new.leads))),]
 
       gta_sql_update_table(paste0("INSERT INTO gta_leads (lead_text, lead_comment, bastiat_id, source_type_id, announcement_year, creation_time, display_id, acting_agency, relevance_probability)
                               VALUES ",paste(paste0("('",upload.chunk$url ,"','",
@@ -373,10 +372,10 @@ bt_sync_221_main = function(){
 
         gta_sql_update_table(egi.sql, "main")
 
-        save(egi.leads, egi.sql,
-             file = paste0("0 projects/037 lead theme fix/logs/lead_theme_log_",
-                           format(Sys.Date(), "%Y-%m-%d"),
-                           ".Rdata"))
+        # save(egi.leads, egi.sql,
+        #      file = paste0("0 projects/037 lead theme fix/logs/lead_theme_log_",
+        #                    format(Sys.Date(), "%Y-%m-%d"),
+        #                    ".Rdata"))
 
 
       }
@@ -394,12 +393,20 @@ bt_sync_221_main = function(){
 
       }
 
+      # Old if registration date > -5 months current date
+      old.dpa.leads = subset(upload.chunk, hint.type.id==3 & registration.date < as.Date(seq(Sys.time(), length = 2, by = "-5 months")[2]))
+      if(nrow(old.dpa.leads)>0){
+        old.dpa.leads.sql = paste0("INSERT INTO gta_lead_theme (lead_id, theme_id)
+                                    VALUES ",paste(paste0("(",old.dpa.leads$lead.id,", 26)"), collapse=","),";")
+
+        gta_sql_update_table(old.dpa.leads.sql, "main")
+      }
 
 
 
       upload.chunk=aggregate(gta.jur.id ~ lead.id, upload.chunk, min)
 
-      upload.chunk=subset(upload.chunk, lead.id>=(max(upload.chunk$lead.id)-49))
+      upload.chunk=subset(upload.chunk, lead.id>=(max(upload.chunk$lead.id)-chunk.size-1))
 
 
       gta_sql_update_table(paste0("INSERT INTO gta_lead_jurisdiction (lead_id, jurisdiction_id)
@@ -626,5 +633,5 @@ bt_sync_221_main = function(){
   gta_sql_pool_close()
 
 
-}
   }
+}
