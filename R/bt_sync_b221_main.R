@@ -17,7 +17,6 @@ bt_sync_221_main = function(){
   library(RMariaDB)
   library(data.table)
   library(gtabastiat)
-  library(xlsx)
   library(stringr)
 
   gta_sql_kill_connections()
@@ -514,8 +513,9 @@ bt_sync_221_main = function(){
     # 16 - No thanks*
     # 17 - Link broken/paywall
 
-    hints.relevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,6,10,11,12,13,14,16))$bastiat.id,"'"), collapse=","),")"))
+    hints.relevant=gta_sql_get_value(paste0("SELECT bhl.hint_id FROM bt_hint_bid
+                                            JOIN bt_hint_log bhl on bhl.hint_id = bt_hint_bid.hint_id and bhl.hint_state_id not in (7)
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked,  removal.reason %in% c(2,3,5,10,11,12,13,14))$bastiat.id,"'"), collapse=","),")"))
 
     #very rarely, duplicate BIDs get into this table and are assigned hint_id as
     #NULL. should be OK, as they are duplicates anyway, so remove the NAs.
@@ -550,8 +550,9 @@ bt_sync_221_main = function(){
     # Notice #17 is included here. 'link broken/paywall' content should not
     # contribute to classification learning and should not be assigned any state
     # (or maybe a new 'null' state of some kind).
-    hints.irrelevant=gta_sql_get_value(paste0("SELECT hint_id FROM bt_hint_bid
-                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,6,10,11,12,13,14,16,17))$bastiat.id,"'"), collapse=","),")"))
+    hints.irrelevant=gta_sql_get_value(paste0("SELECT bhl.hint_id FROM bt_hint_bid
+                                                JOIN bt_hint_log bhl on bhl.hint_id = bt_hint_bid.hint_id and bhl.hint_state_id not in (9)
+                                     WHERE bid IN (",paste(paste0("'",subset(leads.checked, !removal.reason %in% c(2,3,5,10,11,12,13,14,17))$bastiat.id,"'"), collapse=","),")"))
 
     #see above for whence the NAs here can arise
     hints.irrelevant = hints.irrelevant[!is.na(hints.irrelevant)]
