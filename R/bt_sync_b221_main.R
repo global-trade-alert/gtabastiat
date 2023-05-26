@@ -142,8 +142,8 @@ bt_sync_221_main = function(){
 
 
   #merge back in, not all have a relevance score for some reason
-  new.leads = merge(new.leads, hint.relevance, all.x = T)
-  new.leads$relevance.probability[is.na(new.leads$relevance.probability)] = "NULL"
+  new.leads = merge(new.leads, hint.relevance)
+  #new.leads$relevance.probability[is.na(new.leads$relevance.probability)] = "NULL"
 
   egi.hints=gta_sql_get_value(paste0("SELECT hint_id
                                      FROM b221_hint_product_group
